@@ -1,0 +1,21 @@
+# TStudio
+^.*\.Rproj$
+^\.Rproj\.user$
+openSTARS.Rproj
+
+# Git
+.gitignore
+
+# Travis
+.travis.yml
+
+# appveyor
+^appveyor\.yml$
+travis-tool.sh.cmd
+
+# READMES
+README.html
+README.Rmd
+README.md
+README_files
+CONTRIBUTING.md
