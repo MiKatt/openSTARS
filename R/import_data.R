@@ -1,5 +1,7 @@
 #' Import data into GRASS.
 #'
+#' This function load dem and sites data (both required) into the GRASS session.
+#'
 #' @import rgrass7
 #'
 #' @param dem character; path to DEM.
@@ -10,11 +12,23 @@
 #'  (currently not implemented)
 #'
 #' @return Nothing, the data is loaded into the GRASS session.
+#' The DEM is stored as raster 'dem' and sites as vector 'sites_o' within GRASS.
 #'
 #' @note A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #'
+#' @examples
+#' library(rgrass7)
+#' initGRASS(gisBase = "/usr/lib/grass70/",
+#'   home = tempdir())
+#' gmeta()
+#' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
+#' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+#' import_data(dem = dem_path, sites = sites_path)
+#'
+#' dem <- readRAST('dem')
+#' plot(dem)
 import_data <- function(dem, sites, streams = NULL, ...) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop('GRASS not initialised. Please run initGRASS().')

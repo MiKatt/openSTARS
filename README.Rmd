@@ -27,6 +27,57 @@ For more information on STARS and SSN, see [their webpage](http://www.fs.fed.us/
 Peterson, E. E., & Ver Hoef, J. M. (2014). STARS: An ArcGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J Stat Softw, 56(2), 1–17.
 
 
+### Installation
+A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with installed addons [r.stream.basins](https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass70/manuals/addons/r.stream.distance.html) and [r.stream.order](https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html) is needed.
+
+The openSTARS package can be installed from github using
+
+```{r install, eval=FALSE}
+install.packages("devtools")
+devtools::install_github("edild/openSTARS")
+library('openSTARS')
+```
+
+
+### Basic usage
+
+Initiate a ephemeral GRASS session:
+```{r setup_grass}
+library(openSTARS)
+initGRASS(gisBase = "/usr/lib/grass70/",
+          home = tempdir(),
+          override = TRUE)
+```
+
+Load DEM and sites into GRASS:
+
+```{r import_data, warning=FALSE, message=FALSE}
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
+sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+import_data(dem = dem_path, sites = sites_path)
+gmeta()
+```
+
+The dem is loaded as raster names `dem`, the sites as vector named `sites_o`.
+Here's how the data looks like:
+
+```{r plot_data1, message=FALSE}
+dem <- readRAST('dem', ignore.stderr = TRUE)
+sites <- readVECT('sites_o', ignore.stderr = TRUE)
+plot(dem, col = terrain.colors(20))
+points(sites, pch = 4)
+```
+
+Derive streams from DEM:
+```{r derive_streams, warning=FALSE}
+derive_streams()
+streams <- readVECT('streams_v', ignore.stderr = TRUE)
+plot(dem, col = terrain.colors(20))
+points(sites, pch = 4)
+lines(streams, col = 'blue')
+```
+
+
 
 ### Contributors
 

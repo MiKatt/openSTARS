@@ -6,6 +6,7 @@
 \alias{webchem-package}
 \title{openSTARS: An open source implementation of the STARS toolbox.}
 \description{
-openSTARS: An open source implementation of the STARS toolbox.
+GRASS GIS 7.0 (or greater) with installed addons r.stream.basins, r.stream.distance and r.stream.order
+is needed.
 }
 

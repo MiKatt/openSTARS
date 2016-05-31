@@ -19,12 +19,25 @@ If available it can be to burn into DEM}
 }
 \value{
 Nothing, the data is loaded into the GRASS session.
+The DEM is stored as raster 'dem' and sites as vector 'sites_o' within GRASS.
 }
 \description{
-Import data into GRASS.
+This function load dem and sites data (both required) into the GRASS session.
 }
 \note{
 A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
+}
+\examples{
+library(rgrass7)
+initGRASS(gisBase = "/usr/lib/grass70/",
+  home = tempdir())
+gmeta()
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
+sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+import_data(dem = dem_path, sites = sites_path)
+
+dem <- readRAST('dem')
+plot(dem)
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}
