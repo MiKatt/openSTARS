@@ -5,7 +5,7 @@ Description: An open source implementation of the STARS toolbox
     (Peterson & Ver Hoef, 2014)) using R and GRASS GIS.
     It prepares the .ssn object needed for the SSN package.
     Currently a DEM is used to derive stream networks (in contrast to STARS, which can clean an existing stream network).
-Version: 0.0.0.9000
+Version: 0.0.1.9000
 License: MIT + file LICENSE
 URL: https://github.com/EDiLD/openSTARS
 BugReports: https://github.com/EDiLD/openSTARS/issues
