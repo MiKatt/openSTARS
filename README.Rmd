@@ -79,8 +79,8 @@ derive_streams()
 ```{r derive_streams2}
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-points(sites, pch = 16, col = cols)
 lines(streams, col = 'blue')
+points(sites, pch = 16, col = cols)
 ```
 
 Prepare edges:
@@ -98,6 +98,22 @@ head(edges@data)
 
 
 Prepare sites:
+
+```{r prep_sites, results='hide', message=FALSE, warning=FALSE}
+calc_sites()
+```
+
+```{r sites}
+sites <- readVECT('sites', ignore.stderr = TRUE)
+edges <- readVECT('edges', ignore.stderr = TRUE)
+plot(dem, col = terrain.colors(20))
+lines(edges, col = 'blue')
+points(sites, pch = 16, col = cols)
+head(sites@data)
+```
+
+Now the sites are snapped to the network and additional attributes (pid, locID, netID, rid, upDist) are appended to the sites.
+
 
 
 

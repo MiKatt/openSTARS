@@ -26,7 +26,6 @@
 #'  \item{"netID_v"}{network IDs (vector)}
 #'  \item{"netID"}{network IDs (raster)}
 #'  \item{"rca"}{RCA per segement (raster)}
-#'  \item{"streams_r"}{stream network (raster)}
 #' }
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
@@ -236,7 +235,7 @@ calc_edges <- function(clean = TRUE) {
               flags = c('quiet', 'f'),
               parameters = list(
                 type = 'raster',
-                name = 'netID,rca,streams_r'
+                name = 'netID,rca'
               ))
   }
 }

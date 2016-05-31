@@ -37,9 +37,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpMAk8d1 
-#> location    file5b6e5e84c36b 
-#> mapset      file5b6e5ce5e8d3 
+#> gisdbase    /tmp/RtmptrpmL9 
+#> location    file3afa6e0edc24 
+#> mapset      file3afa45e7c875 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -63,8 +63,8 @@ import_data(dem = dem_path, sites = sites_path)
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmpMAk8d1 
-#> location    file5b6e5e84c36b 
+#> gisdbase    /tmp/RtmptrpmL9 
+#> location    file3afa6e0edc24 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -108,8 +108,8 @@ streams <- readVECT('streams_v', ignore.stderr = TRUE)
 #> WARNING: 178 points found, but not requested to be exported. Verify 'type'
 #>          parameter.
 plot(dem, col = terrain.colors(20))
-points(sites, pch = 16, col = cols)
 lines(streams, col = 'blue')
+points(sites, pch = 16, col = cols)
 ```
 
 ![](README_files/figure-html/derive_streams2-1.png)<!-- -->
@@ -145,6 +145,43 @@ head(edges@data)
 
 
 Prepare sites:
+
+
+```r
+calc_sites()
+```
+
+
+```r
+sites <- readVECT('sites', ignore.stderr = TRUE)
+edges <- readVECT('edges', ignore.stderr = TRUE)
+plot(dem, col = terrain.colors(20))
+lines(edges, col = 'blue')
+points(sites, pch = 16, col = cols)
+```
+
+![](README_files/figure-html/sites-1.png)<!-- -->
+
+```r
+head(sites@data)
+#>   cat cat_ value       dist       xm       ym pid locID netID rid   upDist
+#> 1   1    1     1  79.907826 631046.1 226074.1   1     1   162  96 22387.92
+#> 2   2    2     2  76.098623 631495.3 225849.5   2     2   162  96 21880.94
+#> 3   3    3     1 112.904797 631787.3 225580.0   3     3   162  96 21511.53
+#> 4   4    4     1  61.158605 632011.9 225175.7   4     4   162  96 21064.54
+#> 5   5    5     1  72.041077 631203.4 224771.5   5     5   145  65 21721.53
+#> 6   6    6     2   4.226159 631540.2 224883.8   6     6   145  65 21256.97
+#>        H20areaKm
+#> 1 2371500.000000
+#> 2 2371500.000000
+#> 3 2371500.000000
+#> 4 2371500.000000
+#> 5 2371500.000000
+#> 6 2371500.000000
+```
+
+Now the sites are snapped to the network and additional attributes are appended to the sites.
+
 
 
 

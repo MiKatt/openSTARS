@@ -36,7 +36,6 @@ Intermediate layers cleaned are:
  \item{"netID_v"}{network IDs (vector)}
  \item{"netID"}{network IDs (raster)}
  \item{"rca"}{RCA per segement (raster)}
- \item{"streams_r"}{stream network (raster)}
 }
 }
 \examples{
@@ -49,10 +48,10 @@ sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS"
 import_data(dem = dem_path, sites = sites_path)
 derive_streams()
 calc_edges()
+edges <- readVECT('edges', ignore.stderr = TRUE)
+head(edges@data)
 dem <- readRAST('dem', ignore.stderr = TRUE)
 sites <- readVECT('sites_o', ignore.stderr = TRUE)
-edges <- readVECT('edges_tmp', ignore.stderr = TRUE)
-head(edges@data)
 plot(dem, col = terrain.colors(20))
 points(sites, pch = 4)
 lines(edges, col = 'blue')
