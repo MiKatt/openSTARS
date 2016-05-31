@@ -2,6 +2,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 openSTARS.Rproj
+LICENSE_full
 
 # Git
 .gitignore

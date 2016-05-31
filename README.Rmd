@@ -72,9 +72,11 @@ points(sites, pch = 16, col = cols)
 ```
 
 Derive streams from DEM:
-```{r derive_streams, warning=FALSE, message=FALSE}
+```{r derive_streams, results='hide', message=FALSE, warning=FALSE}
 derive_streams()
+```
 
+```{r derive_streams2}
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 points(sites, pch = 16, col = cols)
@@ -83,7 +85,7 @@ lines(streams, col = 'blue')
 
 Prepare edges:
 
-```{r prep_edges, warning=FALSE, message=FALSE}
+```{r prep_edges, results='hide', message=FALSE, warning=FALSE}
 calc_edges()
 ```
 

@@ -37,9 +37,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpNYk2IR 
-#> location    file4f1047f5b40 
-#> mapset      file4f10282f2f58 
+#> gisdbase    /tmp/RtmpMAk8d1 
+#> location    file5b6e5e84c36b 
+#> mapset      file5b6e5ce5e8d3 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -63,8 +63,8 @@ import_data(dem = dem_path, sites = sites_path)
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmpNYk2IR 
-#> location    file4f1047f5b40 
+#> gisdbase    /tmp/RtmpMAk8d1 
+#> location    file5b6e5e84c36b 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -100,7 +100,10 @@ Derive streams from DEM:
 
 ```r
 derive_streams()
+```
 
+
+```r
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
 #> WARNING: 178 points found, but not requested to be exported. Verify 'type'
 #>          parameter.
@@ -109,58 +112,13 @@ points(sites, pch = 16, col = cols)
 lines(streams, col = 'blue')
 ```
 
-![](README_files/figure-html/derive_streams-1.png)<!-- -->
+![](README_files/figure-html/derive_streams2-1.png)<!-- -->
 
 Prepare edges:
 
 
 ```r
 calc_edges()
-#> WARNING: 178 points found, but not requested to be exported. Verify 'type'
-#>          parameter.
-#> WARNING: Vector map <edges> already exists and will be overwritten
-#> WARNING: Width for column stream_type set to 255 (was not specified by
-#>          OGR), some strings may be truncated!
-#> Finding nearest features...
-#>  100%
-#>    4%   9%  14%  19%  24%  29%  34%  39%  44%  49%  54%  59%  64%  69%  74%  79%  84%  89%  94%  99% 100%
-#> Update vector attributes...
-#>    0%   2%   4%   6%   8%  10%  12%  14%  16%  18%  20%  22%  24%  26%  28%  30%  32%  34%  36%  38%  40%  42%  44%  46%  48%  50%  52%  54%  56%  58%  60%  62%  64%  66%  68%  70%  72%  74%  76%  78%  80%  82%  84%  86%  88%  90%  92%  94%  96%  98% 100%
-#> v.distance complete. 162 records updated.
-#> Finding nearest features...
-#>  100%
-#>    4%   9%  14%  19%  24%  29%  34%  39%  44%  49%  54%  59%  64%  69%  74%  79%  84%  89%  94%  99% 100%
-#> Update vector attributes...
-#>    0%   2%   4%   6%   8%  10%  12%  14%  16%  18%  20%  22%  24%  26%  28%  30%  32%  34%  36%  38%  40%  42%  44%  46%  48%  50%  52%  54%  56%  58%  60%  62%  64%  66%  68%  70%  72%  74%  76%  78%  80%  82%  84%  86%  88%  90%  92%  94%  96%  98% 100%
-#> 162 categories with more than 1 feature in vector map <streams_topo>
-#> 1 categories - no nearest feature found
-#> v.distance complete. 162 records updated.
-#> Finding nearest features...
-#>  100%
-#>    4%   9%  14%  19%  24%  29%  34%  39%  44%  49%  54%  59%  64%  69%  74%  79%  84%  89%  94%  99% 100%
-#> Update vector attributes...
-#>    0%   2%   4%   6%   8%  10%  12%  14%  16%  18%  20%  22%  24%  26%  28%  30%  32%  34%  36%  38%  40%  42%  44%  46%  48%  50%  52%  54%  56%  58%  60%  62%  64%  66%  68%  70%  72%  74%  76%  78%  80%  82%  84%  86%  88%  90%  92%  94%  96%  98% 100%
-#> 162 categories with more than 1 feature in vector map <streams_topo>
-#> 1 categories - no nearest feature found
-#> v.distance complete. 162 records updated.
-#> Finding nearest features...
-#>  100%
-#>    4%   9%  14%  19%  24%  29%  34%  39%  44%  49%  54%  59%  64%  69%  74%  79%  84%  89%  94%  99% 100%
-#> Update vector attributes...
-#>    0%   2%   4%   6%   8%  10%  12%  14%  16%  18%  20%  22%  24%  26%  28%  30%  32%  34%  36%  38%  40%  42%  44%  46%  48%  50%  52%  54%  56%  58%  60%  62%  64%  66%  68%  70%  72%  74%  76%  78%  80%  82%  84%  86%  88%  90%  92%  94%  96%  98% 100%
-#> v.distance complete. 162 records updated.
-#> Finding nearest features...
-#>  100%
-#>    4%   9%  14%  19%  24%  29%  34%  39%  44%  49%  54%  59%  64%  69%  74%  79%  84%  89%  94%  99% 100%
-#> Update vector attributes...
-#>    0%   2%   4%   6%   8%  10%  12%  14%  16%  18%  20%  22%  24%  26%  28%  30%  32%  34%  36%  38%  40%  42%  44%  46%  48%  50%  52%  54%  56%  58%  60%  62%  64%  66%  68%  70%  72%  74%  76%  78%  80%  82%  84%  86%  88%  90%  92%  94%  96%  98% 100%
-#> v.distance complete. 162 records updated.
-#> WARNING: 178 points found, but not requested to be exported. Verify 'type'
-#>          parameter.
-#> WARNING: Vector map <edges> already exists and will be overwritten
-#> WARNING: Width for column stream_type set to 255 (was not specified by
-#>          OGR), some strings may be truncated!
-#> WARNING: No data base element files found
 ```
 
 
