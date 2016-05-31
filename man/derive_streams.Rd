@@ -4,10 +4,12 @@
 \alias{derive_streams}
 \title{Derive stream network from DEM.}
 \usage{
-derive_streams(burn = 5, at = 700)
+derive_streams(burn = 5, at = 700, clean = TRUE)
 }
 \arguments{
 \item{burn}{numeric; How many meters should the streams be burned in DEM.}
+
+\item{clean}{logical; Should intermediate layer be removed from GRASS session?}
 
 \item{accumulation}{numeric; accumulation threshold to use.}
 }
@@ -27,7 +29,12 @@ If a stream network is available (see \code{\link{import_data}}) and
 burn > 0 it will be first burned into DEM.
 }
 \note{
-\code{\link{import_data}} must be run before
+\code{\link{import_data}} must be run before.
+Intermediate layers cleaned are:
+\itemize{
+ \item{"streams_or"}{raster of imported streams (raster)}
+ \item{"streams_vr"}{uncleaned vector of derived network (vector)}
+}
 }
 \examples{
 library(rgrass7)

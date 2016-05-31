@@ -7,6 +7,7 @@
 #'
 #' @param burn numeric; How many meters should the streams be burned in DEM.
 #' @param accumulation numeric; accumulation threshold to use.
+#' @param clean logical; Should intermediate layer be removed from GRASS session?
 #'
 #' @return Nothing. The function produces the following maps:
 #' \itemize{
@@ -16,7 +17,12 @@
 #'  \item{"accums"}{accumulation values (raster)}
 #' }
 #'
-#' @note \code{\link{import_data}} must be run before
+#' @note \code{\link{import_data}} must be run before.
+#' Intermediate layers cleaned are:
+#' \itemize{
+#'  \item{"streams_or"}{raster of imported streams (raster)}
+#'  \item{"streams_vr"}{uncleaned vector of derived network (vector)}
+#' }
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #'
@@ -37,7 +43,7 @@
 #' lines(streams, col = 'blue')
 
 
-derive_streams <- function(burn = 5, at = 700) {
+derive_streams <- function(burn = 5, at = 700, clean = TRUE) {
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = 'vect'
@@ -71,12 +77,14 @@ derive_streams <- function(burn = 5, at = 700) {
                   paste0('\"dem = if(isnull(streams_or),  dem, dem-',
                          burn, ')\"')
               ))
-    # remove streams_or
-    execGRASS("g.remove",
-              flags = c('quiet', 'remove'),
+    if (clean) {
+      execGRASS("g.remove",
+              flags = c('quiet', 'f'),
               parameters = list(
-                rast = 'streams_or'
+                type = 'raster',
+                name = 'streams_or'
               ))
+    }
   }
   message('Deriving streams from DEM...\n')
   execGRASS("r.stream.extract",
@@ -84,17 +92,26 @@ derive_streams <- function(burn = 5, at = 700) {
             parameters = list(elevation = "dem",
                               threshold = at, # use ATRIC to get this value?
                               stream_raster = "streams_r",  # raster
-                              stream_vector = "streams_v",  # vector
+                              stream_vector = "streams_vr",  # vector
                               direction = 'dirs'))          # flow direction
   # remove segments without length ------------
   execGRASS("v.clean",
             flags = c('overwrite', 'quiet'),
             parameters = list(
-              input = "streams_v",
-              output = "streams_vc",
+              input = "streams_vr",
+              output = "streams_v",
               type = 'line',
               tool = 'rmline'
             ))
+  if (clean) {
+  # remove streams_or
+  execGRASS("g.remove",
+            flags = c('quiet', 'f'),
+            parameters = list(
+              type = 'vector',
+              name = 'streams_vr'
+            ))
+  }
   # calculate flow accumulation --------------
   execGRASS("r.watershed",
             flags = c('overwrite', 'quiet'),

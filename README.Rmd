@@ -54,7 +54,9 @@ Load DEM and sites into GRASS:
 ```{r import_data, warning=FALSE, message=FALSE}
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+
 import_data(dem = dem_path, sites = sites_path)
+
 gmeta()
 ```
 
@@ -65,17 +67,36 @@ Here's how the data looks like:
 dem <- readRAST('dem', ignore.stderr = TRUE)
 sites <- readVECT('sites_o', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-points(sites, pch = 4)
+cols <- colorRampPalette(c("blue", 'red'))(length(sites$value))[rank(sites$value)]
+points(sites, pch = 16, col = cols)
 ```
 
 Derive streams from DEM:
-```{r derive_streams, warning=FALSE}
+```{r derive_streams, warning=FALSE, message=FALSE}
 derive_streams()
+
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-points(sites, pch = 4)
+points(sites, pch = 16, col = cols)
 lines(streams, col = 'blue')
 ```
+
+Prepare edges:
+
+```{r prep_edges, warning=FALSE, message=FALSE}
+calc_edges()
+```
+
+```{r edges}
+edges <- readVECT('edges', ignore.stderr = TRUE)
+head(edges@data)
+```
+
+`edges` now holds the derived network plus attributes needed for SSN (segment id, network id, upstream distance, watershed area, river contributing area, toplogical dimension)
+
+
+Prepare sites:
+
 
 
 
