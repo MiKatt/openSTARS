@@ -11,12 +11,12 @@ Calcuate sites for SSN object.
 
 Steps include:
 \itemize{
- \item{Snap points to derived network.}
- \item{Assign unique pid and locID.}
- \item{Set underlying rid and netID from stream network.}
- \item{Calculate upstream distance for each point (upDist)}
- \item{Calculate watershed for each point}
- \item{Calculate watershed predictors for each point [currently not implemented]}
+ \item{Snap points to derived network. 'dist' give the distance to streams.}
+ \item{Assign unique 'pid' and 'locID'.}
+ \item{Set underlying 'rid' and 'netID' from stream network.}
+ \item{Calculate upstream distance for each point ('upDist')}
+ \item{Calculate watershed for each point, 'H2Oarea'}
+ \item{Calculate watershed predictors for each point from raster files [currently not implemented]}
 }
 }
 \examples{

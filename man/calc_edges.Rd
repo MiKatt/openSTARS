@@ -25,8 +25,8 @@ Steps include:
  \item{Finding different stream networks in the region and assigning "netID"}
  \item{Calculation of stream topology, "topo_dim"}
  \item{Calculation of segments upstream distance ("upDist")}
- \item{Calculation of river contributing areas (RCA) per segment, "rcaAreaKm2"}
- \item{Calculation of watershed areas, "H2OAreaKm2"}
+ \item{Calculation of river contributing areas (RCA) per segment, "rcaArea"}
+ \item{Calculation of watershed areas, "H2OArea"}
 }
 }
 \note{

@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 
+
 [![Build Status](https://travis-ci.org/ropensci/webchem.png)](https://travis-ci.org/edild/openSTARS)
 [![Open Issues](https://img.shields.io/github/issues/edild/openSTARS.svg)](https://github.com/edild/openSTARS/issues)
 
@@ -41,7 +42,7 @@ library('openSTARS')
 
 ### Basic usage
 
-Initiate a ephemeral GRASS session:
+#### Initiate a ephemeral GRASS session:
 ```{r setup_grass}
 library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
@@ -49,7 +50,7 @@ initGRASS(gisBase = "/usr/lib/grass70/",
           override = TRUE)
 ```
 
-Load DEM and sites into GRASS:
+#### Load DEM and sites into GRASS:
 
 ```{r import_data, warning=FALSE, message=FALSE}
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
@@ -71,7 +72,7 @@ cols <- colorRampPalette(c("blue", 'red'))(length(sites$value))[rank(sites$value
 points(sites, pch = 16, col = cols)
 ```
 
-Derive streams from DEM:
+#### Derive streams from DEM:
 ```{r derive_streams, results='hide', message=FALSE, warning=FALSE}
 derive_streams()
 ```
@@ -83,7 +84,7 @@ lines(streams, col = 'blue')
 points(sites, pch = 16, col = cols)
 ```
 
-Prepare edges:
+#### Prepare edges:
 
 ```{r prep_edges, results='hide', message=FALSE, warning=FALSE}
 calc_edges()
@@ -97,7 +98,7 @@ head(edges@data)
 `edges` now holds the derived network plus attributes needed for SSN (segment id, network id, upstream distance, watershed area, river contributing area, toplogical dimension)
 
 
-Prepare sites:
+#### Prepare sites:
 
 ```{r prep_sites, results='hide', message=FALSE, warning=FALSE}
 calc_sites()
@@ -114,8 +115,59 @@ head(sites@data)
 
 Now the sites are snapped to the network and additional attributes (pid, locID, netID, rid, upDist) are appended to the sites.
 
+#### Setup prediction sites
+
+[Currently not implemented]
+
+#### Calculate binary IDs for each network
+
+```{r calc_binary}
+binaries <- calc_binary()
+head(binaries[[1]])
+```
 
 
+#### Write all files ssn folder
+
+```{r export}
+ssn_dir <- file.path(tempdir(), 'nc.ssn')
+ssn_dir
+export_ssn(ssn_dir, binary = binaries)
+list.files(ssn_dir)
+```
+
+
+#### Try with SSN package
+```{r ssn_test}
+library(SSN)
+# import
+ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
+plot(ssn_obj, 'value')
+
+# Create Distance Matrix
+createDistMat(ssn_obj, o.write = TRUE)
+dmats <- getStreamDistMat(ssn_obj)
+
+ssn_obj.Torg <- Torgegram(ssn_obj, "value", nlag = 20)
+plot(ssn_obj.Torg)
+
+names(ssn_obj@data)
+names(ssn_obj)
+ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
+
+# non-spatial model
+ssn_obj.glmssn0 <- glmssn(value ~ H2OArea, ssn.object = ssn_obj,
+                            CorModels = NULL, use.nugget = TRUE)
+summary(ssn_obj.glmssn0)
+# same as
+summary(lm(value ~ H2OArea, getSSNdata.frame(ssn_obj)))
+
+# # # spatial model
+# doesn't work
+# ssn_obj.glmssn1 <- glmssn(value ~ H2OArea, ssn.object = ssn_obj,
+#                             CorModels = c("Exponential.tailup","Exponential.taildown","Exponential.Euclid"),
+#                           addfunccol = "computed.afv", use.nugget = TRUE)
+```
 
 
 ### Contributors

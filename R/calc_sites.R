@@ -9,7 +9,7 @@
 #'  \item{Assign unique 'pid' and 'locID'.}
 #'  \item{Set underlying 'rid' and 'netID' from stream network.}
 #'  \item{Calculate upstream distance for each point ('upDist')}
-#'  \item{Calculate watershed for each point, 'H2OareaKm'}
+#'  \item{Calculate watershed for each point, 'H2Oarea'}
 #'  \item{Calculate watershed predictors for each point from raster files [currently not implemented]}
 #' }
 #'
@@ -147,11 +147,12 @@ calc_sites <- function() {
             ))
 
   # Calculate and H20predictors for each site -----
-  message('Calculating H20areaKm...\n')
+  message('Calculating H20Area...\n')
   sites <- readVECT('sites', ignore.stderr = FALSE)
   take_area <- NA
   #! add here more predictors!
-  for (take in sites@data$pid) {
+  for (i in seq_along(sites@data$pid)) {
+    take <- sites@data$pid[i]
     # subset sites
     execGRASS('v.extract',
               flags = c("overwrite", "quiet"),
@@ -165,13 +166,13 @@ calc_sites <- function() {
               parameters = list(direction = "dirs",
                                 points = 'take_site',
                                 basins = "take_area"))
-    # calc drainaagee area size
-    take_area <- strsplit(execGRASS('r.stats',
+    # calc drainage area size
+    take_area[i] <- strsplit(execGRASS('r.stats',
                                     flags = c('a', 'quiet'),
                                     parameters = list(input = 'take_area'),
                                     intern = TRUE)[1], split = ' ')[[1]][[2]]
   }
-  sites$H20areaKm <- take_area
+  sites$H2OArea <- round(as.numeric(take_area), 2)
   sites$cat_ <- NULL
   writeVECT(sites, vname = 'sites',
             v.in.ogr_flags = c('overwrite', 'quiet'),

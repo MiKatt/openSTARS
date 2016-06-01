@@ -3,6 +3,7 @@ openSTARS
 
 
 
+
 [![Build Status](https://travis-ci.org/ropensci/webchem.png)](https://travis-ci.org/edild/openSTARS)
 [![Open Issues](https://img.shields.io/github/issues/edild/openSTARS.svg)](https://github.com/edild/openSTARS/issues)
 
@@ -30,16 +31,16 @@ library('openSTARS')
 
 ### Basic usage
 
-Initiate a ephemeral GRASS session:
+#### Initiate a ephemeral GRASS session:
 
 ```r
 library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmptrpmL9 
-#> location    file3afa6e0edc24 
-#> mapset      file3afa45e7c875 
+#> gisdbase    /tmp/RtmpC5RfNB 
+#> location    file48105b89e0ef 
+#> mapset      file481033bbba5f 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -51,7 +52,7 @@ initGRASS(gisBase = "/usr/lib/grass70/",
 #> projection  NA
 ```
 
-Load DEM and sites into GRASS:
+#### Load DEM and sites into GRASS:
 
 
 ```r
@@ -59,12 +60,11 @@ dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTAR
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 
 import_data(dem = dem_path, sites = sites_path)
-#> WARNING: Over-riding projection check
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmptrpmL9 
-#> location    file3afa6e0edc24 
+#> gisdbase    /tmp/RtmpC5RfNB 
+#> location    file48105b89e0ef 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -96,7 +96,7 @@ points(sites, pch = 16, col = cols)
 
 ![](README_files/figure-html/plot_data1-1.png)<!-- -->
 
-Derive streams from DEM:
+#### Derive streams from DEM:
 
 ```r
 derive_streams()
@@ -114,7 +114,7 @@ points(sites, pch = 16, col = cols)
 
 ![](README_files/figure-html/derive_streams2-1.png)<!-- -->
 
-Prepare edges:
+#### Prepare edges:
 
 
 ```r
@@ -125,26 +125,26 @@ calc_edges()
 ```r
 edges <- readVECT('edges', ignore.stderr = TRUE)
 head(edges@data)
-#>   cat stream_type type_code rid OBJECTID netID    upDist topo_dim
-#> 1   1       start         0 114      114   162 1877.9394       26
-#> 2   2       start         0 111      111   162 1268.5281       23
-#> 3   3       start         0 115      115   162 1877.9394       26
-#> 4   4       start         0  79       79   151 6824.7727        7
-#> 5   5       start         0   8        8     5 2687.0563        1
-#> 6   6       start         0 106      106   162  204.8528       18
-#>   H2OAreaKm2 rcaAreaKm2
-#> 1     246.15     246.15
-#> 2     106.74     106.74
-#> 3     134.73     134.73
-#> 4     552.33     552.33
-#> 5     283.05     283.05
-#> 6     310.41     310.41
+#>   cat rid type_code OBJECTID cat_o netID    upDist topo_dim H2OArea
+#> 1   1   1         0        1    19    20  102.4264        2  246.15
+#> 2   2   2         0        2    17    20  102.4264        2  246.15
+#> 3   3   3         1        3    20    20  102.4264        2  444.60
+#> 4   4   4         0        4    15    15 1610.9545        1  246.15
+#> 5   5   5         0        5    23    26 2488.2338        1  246.15
+#> 6   6   6         0        6     7    26 2488.2338        1  246.15
+#>   rcaArea
+#> 1  100.80
+#> 2   97.65
+#> 3   98.37
+#> 4  178.65
+#> 5  171.63
+#> 6   98.73
 ```
 
 `edges` now holds the derived network plus attributes needed for SSN (segment id, network id, upstream distance, watershed area, river contributing area, toplogical dimension)
 
 
-Prepare sites:
+#### Prepare sites:
 
 
 ```r
@@ -165,25 +165,149 @@ points(sites, pch = 16, col = cols)
 ```r
 head(sites@data)
 #>   cat cat_ value       dist       xm       ym pid locID netID rid   upDist
-#> 1   1    1     1  79.907826 631046.1 226074.1   1     1   162  96 22387.92
-#> 2   2    2     2  76.098623 631495.3 225849.5   2     2   162  96 21880.94
-#> 3   3    3     1 112.904797 631787.3 225580.0   3     3   162  96 21511.53
-#> 4   4    4     1  61.158605 632011.9 225175.7   4     4   162  96 21064.54
-#> 5   5    5     1  72.041077 631203.4 224771.5   5     5   145  65 21721.53
-#> 6   6    6     2   4.226159 631540.2 224883.8   6     6   145  65 21256.97
-#>        H20areaKm
-#> 1 2371500.000000
-#> 2 2371500.000000
-#> 3 2371500.000000
-#> 4 2371500.000000
-#> 5 2371500.000000
-#> 6 2371500.000000
+#> 1   1    1     1  79.907826 631046.1 226074.1   1     1   162 114 22387.92
+#> 2   2    2     2  76.098623 631495.3 225849.5   2     2   162 114 21880.94
+#> 3   3    3     1 112.904797 631787.3 225580.0   3     3   162 114 21511.53
+#> 4   4    4     1  61.158605 632011.9 225175.7   4     4   162 114 21064.54
+#> 5   5    5     1  72.041077 631203.4 224771.5   5     5   162 115 21721.53
+#> 6   6    6     2   4.226159 631540.2 224883.8   6     6   162 115 21256.97
+#>   H2OArea
+#> 1 1047600
+#> 2 1656900
+#> 3 1867500
+#> 4 2419200
+#> 5  669600
+#> 6 1099800
 ```
 
-Now the sites are snapped to the network and additional attributes are appended to the sites.
+Now the sites are snapped to the network and additional attributes (pid, locID, netID, rid, upDist) are appended to the sites.
+
+#### Setup prediction sites
+
+[Currently not implemented]
+
+#### Calculate binary IDs for each network
 
 
+```r
+binaries <- calc_binary()
+head(binaries[[1]])
+#>    rid                   binaryID
+#> 1  114 11000001001001110011010110
+#> 2  111    11000001001001110011011
+#> 3  115 11000001001001110011010111
+#> 6  106         110000010010011010
+#> 8   97                  110000011
+#> 10 120     1100000100100111001100
+```
 
+
+#### Write all files ssn folder
+
+
+```r
+ssn_dir <- file.path(tempdir(), 'nc.ssn')
+ssn_dir
+#> [1] "/tmp/RtmpC5RfNB/nc.ssn"
+export_ssn(ssn_dir, binary = binaries)
+list.files(ssn_dir)
+#>  [1] "edges.dbf"    "edges.prj"    "edges.shp"    "edges.shx"   
+#>  [5] "netID111.dat" "netID145.dat" "netID146.dat" "netID149.dat"
+#>  [9] "netID151.dat" "netID15.dat"  "netID160.dat" "netID162.dat"
+#> [13] "netID20.dat"  "netID26.dat"  "netID39.dat"  "netID49.dat" 
+#> [17] "netID53.dat"  "netID5.dat"   "netID62.dat"  "netID88.dat" 
+#> [21] "sites.dbf"    "sites.prj"    "sites.shp"    "sites.shx"
+```
+
+
+#### Try with SSN package
+
+```r
+library(SSN)
+# import
+ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
+plot(ssn_obj, 'value')
+```
+
+![](README_files/figure-html/ssn_test-1.png)<!-- -->
+
+```r
+
+# Create Distance Matrix
+createDistMat(ssn_obj, o.write = TRUE)
+dmats <- getStreamDistMat(ssn_obj)
+
+ssn_obj.Torg <- Torgegram(ssn_obj, "value", nlag = 20)
+plot(ssn_obj.Torg)
+```
+
+![](README_files/figure-html/ssn_test-2.png)<!-- -->
+
+```r
+
+names(ssn_obj@data)
+#>  [1] "cat"       "rid"       "type_code" "OBJECTID"  "cat_o"    
+#>  [6] "netID"     "upDist"    "topo_dim"  "H2OArea"   "rcaArea"
+names(ssn_obj)
+#> $Obs
+#>  [1] "cat"     "cat_"    "value"   "dist"    "xm"      "ym"      "pid"    
+#>  [8] "locID"   "netID"   "rid"     "upDist"  "H2OArea"
+ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
+
+# non-spatial model
+ssn_obj.glmssn0 <- glmssn(value ~ H2OArea, ssn.object = ssn_obj,
+                            CorModels = NULL, use.nugget = TRUE)
+summary(ssn_obj.glmssn0)
+#> 
+#> Call:
+#> glmssn(formula = value ~ H2OArea, ssn.object = ssn_obj, CorModels = NULL, 
+#>     use.nugget = TRUE)
+#> 
+#> Residuals:
+#>    Min     1Q Median     3Q    Max 
+#>     NA -2.400 -1.135  2.796     NA 
+#> 
+#> Coefficients:
+#>              Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) 4.014e+00  3.753e-01  10.698  < 2e-16 ***
+#> H2OArea     7.393e-08  2.411e-08   3.066  0.00294 ** 
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Covariance Parameters:
+#>  Covariance.Model Parameter Estimate
+#>            Nugget   parsill     8.69
+#> 
+#> Residual standard error: 2.947448
+#> Generalized R-squared: 0.102845
+# same as
+summary(lm(value ~ H2OArea, getSSNdata.frame(ssn_obj)))
+#> 
+#> Call:
+#> lm(formula = value ~ H2OArea, data = getSSNdata.frame(ssn_obj))
+#> 
+#> Residuals:
+#>    Min     1Q Median     3Q    Max 
+#> -3.674 -2.400 -1.135  2.796  5.838 
+#> 
+#> Coefficients:
+#>              Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) 4.014e+00  3.753e-01  10.698  < 2e-16 ***
+#> H2OArea     7.393e-08  2.411e-08   3.066  0.00294 ** 
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 2.947 on 82 degrees of freedom
+#>   (3 observations deleted due to missingness)
+#> Multiple R-squared:  0.1028,	Adjusted R-squared:  0.0919 
+#> F-statistic:   9.4 on 1 and 82 DF,  p-value: 0.002938
+
+# # # spatial model
+# doesn't work
+# ssn_obj.glmssn1 <- glmssn(value ~ H2OArea, ssn.object = ssn_obj,
+#                             CorModels = c("Exponential.tailup","Exponential.taildown","Exponential.Euclid"),
+#                           addfunccol = "computed.afv", use.nugget = TRUE)
+```
 
 
 ### Contributors

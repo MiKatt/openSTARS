@@ -94,6 +94,12 @@ derive_streams <- function(burn = 5, at = 700, clean = TRUE) {
                               stream_raster = "streams_r",  # raster
                               stream_vector = "streams_vr",  # vector
                               direction = 'dirs'))          # flow direction
+
+  # execGRASS('r.info',
+  #           parameters = list(
+  #             map = 'streams_r'
+  #           ))
+
   # remove segments without length ------------
   execGRASS("v.clean",
             flags = c('overwrite', 'quiet'),

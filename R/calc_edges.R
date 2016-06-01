@@ -9,8 +9,8 @@
 #'  \item{Finding different stream networks in the region and assigning "netID"}
 #'  \item{Calculation of stream topology, "topo_dim"}
 #'  \item{Calculation of segments upstream distance ("upDist")}
-#'  \item{Calculation of river contributing areas (RCA) per segment, "rcaAreaKm2"}
-#'  \item{Calculation of watershed areas, "H2OAreaKm2"}
+#'  \item{Calculation of river contributing areas (RCA) per segment, "rcaArea"}
+#'  \item{Calculation of watershed areas, "H2OArea"}
 #' }
 #'
 #' @param clean logical; Should intermediate layer be removed from GRASS session?
@@ -84,6 +84,18 @@ calc_edges <- function(clean = TRUE) {
                               column = 'OBJECTID',
                               value = 'rid'))
 
+  # copy cat to cat_o
+  execGRASS("v.db.addcolumn",
+            flags = c('quiet'),
+            parameters = list(map = 'edges',
+                              columns = 'cat_o int'))
+  execGRASS("v.db.update",
+            parameters = list(
+              map = 'edges',
+              column = 'cat_o',
+              value = 'cat_'
+            ))
+
   # Set network id (=edges.netID) -------------------------------------------
   #! Works but slow and not nice
   message('Setting netID...\n')
@@ -118,16 +130,35 @@ calc_edges <- function(clean = TRUE) {
                               elevation = 'dem',
                               accumulation = 'accums',
                               stream_vect = 'streams_topo'))
+
+  # Dirty way to remove points from streams_topo
+  streams_topo <- readVECT('streams_topo',
+                      type = 'line',
+                      ignore.stderr = TRUE)
+  writeVECT(streams_topo, 'streams_topo', v.in.ogr_flags = 'overwrite')
+  # copy cat to cat_o
   execGRASS("v.db.addcolumn",
             flags = c('quiet'),
             parameters = list(map = 'streams_topo',
-                              columns = 'rid int'))
-  execGRASS("v.what.vect",
-            parameters = list(map = 'streams_topo',
-                              column = 'rid',
-                              query_map = 'edges',
-                              query_column = 'rid',
-                              dmax = 5))
+                              columns = 'cat_o int'))
+  execGRASS("v.db.update",
+            parameters = list(
+              map = 'streams_topo',
+              column = 'cat_o',
+              value = 'cat'
+            ))
+
+  execGRASS("v.db.join",
+            parameters = list(
+              map = 'streams_topo',
+              column = 'cat_o',
+              other_table = 'edges',
+              other_column = 'cat_o',
+              subset_columns = 'rid'
+            ))
+
+
+  # can join using v.what.vect because no overlap of different networks
   execGRASS("v.db.addcolumn",
             flags = c('quiet'),
             parameters = list(map = 'streams_topo',
@@ -137,7 +168,12 @@ calc_edges <- function(clean = TRUE) {
                               column = 'netID',
                               query_map = 'edges',
                               query_column = 'netID',
-                              dmax = 5))
+                              dmax = 1))
+
+  # execGRASS('v.info',
+  #           parameters = list(
+  #             map = 'streams_topo'
+  #           ))
 
   # upstream distance ----------
   message('Calculating upDist...\n')
@@ -190,15 +226,14 @@ calc_edges <- function(clean = TRUE) {
                       ignore.stderr = TRUE)
   up_area <- NA
   # for each stream segment
-  for (i in streams@data$cat) {
-    # get category
-    cat <- streams@data$cat[i]
+  for (i in seq_len(nrow(streams))) {
+    cat <- streams$cat[1]
     # if no upstream segments take area directly
     if (streams@data$prev_str01[i] == 0) {
-      up_area[i] <- as.numeric(areas[areas[ , 1] == i , 2])
+      up_area[i] <- as.numeric(areas[areas[ , 1] == cat , 2])
     } else {
       # own area
-      self_area <- as.numeric(areas[areas[ , 1] == i , 2])
+      self_area <- as.numeric(areas[areas[ , 1] == cat , 2])
       up <- cat_upseg <- c(streams@data$prev_str01[i], streams@data$prev_str02[i])
       # accumulate upstream
       while (!all(up == 0)) {
@@ -211,15 +246,16 @@ calc_edges <- function(clean = TRUE) {
       up_area[i] <- sum(area_upseg , self_area)
     }
   }
-  areas <- data.frame(cat = streams@data$cat,
-                      H2OAreaKm2 = up_area / 10000,
-                      rcaAreaKm2 = as.numeric(areas[, 2]) / 10000)
+  areas <- data.frame(rid = streams@data$rid,
+                      H2OArea = round(up_area / 10000, 2),
+                      rcaArea = as.numeric(areas[, 2]) / 10000)
 
   edges <- readVECT('edges', type = 'line', ignore.stderr = TRUE)
 
-  edges@data <- merge(edges@data, areas, by.x = 'cat_', by.y = 'cat')
+  edges@data <- merge(edges@data, areas, by = 'rid')
   edges$cat_ <- NULL
   edges$cat <- NULL
+  edges$stream_type <- NULL
   writeVECT(edges, 'edges',
             v.in.ogr_flags = c('overwrite', 'quiet'),
             ignore.stderr = TRUE)

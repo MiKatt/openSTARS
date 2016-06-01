@@ -21,7 +21,8 @@
 #' @examples
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
-#'   home = tempdir())
+#'   home = tempdir(),
+#'   override = TRUE)
 #' gmeta()
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
@@ -37,10 +38,6 @@ import_data <- function(dem, sites, streams = NULL, ...) {
   message('Setting up GRASS Environment...\n')
 
   # Set Projection to input file -------------------------
-  currmapset <- execGRASS("g.gisenv",
-                          parameters = list(
-                            get = "MAPSET"),
-                          intern = TRUE)
   execGRASS("g.mapset",
             flags = c('quiet'),
             parameters = list(
@@ -54,7 +51,7 @@ import_data <- function(dem, sites, streams = NULL, ...) {
   # set Region -----------------
   # read raster to set region
   execGRASS("r.in.gdal",
-            flags = c('o', "overwrite", "quiet"),
+            flags = c("overwrite", "quiet"),
             parameters = list(
               input = dem,
               output = "dem"))
@@ -72,13 +69,21 @@ import_data <- function(dem, sites, streams = NULL, ...) {
             parameters = list(
               input = dem,
               output = "dem"))
+  # execGRASS('r.info',
+  #           parameters = list(
+  #             map = 'dem'
+  #           ))
 
   # sites data
   execGRASS("v.in.ogr",
-            flags = c("overwrite", "quiet"),
+            flags = c("o", "overwrite", "quiet"),
             parameters = list(
               input = sites,
               output = "sites_o"))
+  # execGRASS('v.info',
+  #           parameters = list(
+  #             map = 'sites_o'
+  #           ))
 
   # streams data
   if (!is.null(streams)) {
