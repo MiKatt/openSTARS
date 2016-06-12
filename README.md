@@ -35,9 +35,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpzGMD0e 
-#> location    file2582afdf532 
-#> mapset      file25826035f8 
+#> gisdbase    /tmp/RtmplENZkj 
+#> location    file77470b3f41e 
+#> mapset      file7741ba963d6 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -60,8 +60,8 @@ import_data(dem = dem_path, sites = sites_path)
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmpzGMD0e 
-#> location    file2582afdf532 
+#> gisdbase    /tmp/RtmplENZkj 
+#> location    file77470b3f41e 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -122,7 +122,7 @@ calc_edges()
 ```r
 edges <- readVECT('edges', ignore.stderr = TRUE)
 head(edges@data)
-#>   cat rid type_code OBJECTID cat_o netID topo_dim    Lenght sourceDist
+#>   cat rid type_code OBJECTID cat_o netID topo_dim    Length sourceDist
 #> 1   1   0         0        0    19    20        2  102.4264   102.4264
 #> 2   2   1         0        1    17    20        2   90.0000    90.0000
 #> 3   3   2         1        2    20    20        1 1081.2489  1183.6753
@@ -190,12 +190,12 @@ Now the sites are snapped to the network and additional attributes (pid, locID, 
 binaries <- calc_binary()
 head(binaries[[1]])
 #>    rid                   binaryID
-#> 1  113 10111001000101110000110110
-#> 2  110    10111001000101110000111
-#> 3  114 10111001000101110000110111
-#> 6  105         101110010001011000
-#> 8   96                  101110011
-#> 10 119     1011100100010111000010
+#> 1  113 10001111011110111111000111
+#> 2  110    10001111011110111111001
+#> 3  114 10001111011110111111000110
+#> 6  105         100011110111101011
+#> 8   96                  100011111
+#> 10 119     1000111101111011111101
 ```
 
 
@@ -205,7 +205,7 @@ head(binaries[[1]])
 ```r
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 ssn_dir
-#> [1] "/tmp/RtmpzGMD0e/nc.ssn"
+#> [1] "/tmp/RtmplENZkj/nc.ssn"
 export_ssn(ssn_dir, binary = binaries)
 list.files(ssn_dir)
 #>  [1] "edges.dbf"    "edges.prj"    "edges.shp"    "edges.shx"   
@@ -244,7 +244,7 @@ plot(ssn_obj.Torg)
 
 names(ssn_obj@data)
 #>  [1] "cat"        "rid"        "type_code"  "OBJECTID"   "cat_o"     
-#>  [6] "netID"      "topo_dim"   "Lenght"     "sourceDist" "upDist"    
+#>  [6] "netID"      "topo_dim"   "Length"     "sourceDist" "upDist"    
 #> [11] "H2OArea"    "rcaArea"
 names(ssn_obj)
 #> $Obs

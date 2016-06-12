@@ -69,6 +69,5 @@ calc_binary_horse <- function(network) {
   }
   out <- network@data[ , c('rid', 'bin_id')]
   names(out) <- c("rid", "binaryID")
-  class(out) <- c('list', 'binary')
   return(out)
 }
