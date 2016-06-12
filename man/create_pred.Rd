@@ -4,7 +4,8 @@
 \alias{create_pred}
 \title{Create prediction sites for .ssn object}
 \usage{
-create_pred(path, name, n = 1000, type = c("random", "regular"), ...)
+create_pred(path, name, n = 1000, type = c("random", "regular"),
+  export = TRUE, ...)
 }
 \arguments{
 \item{path}{character; path to .ssn folder}
@@ -15,9 +16,11 @@ create_pred(path, name, n = 1000, type = c("random", "regular"), ...)
 
 \item{type}{character; "random" for completely spatial random;
 "regular" for regular (systematically aligned) sampling;}
+
+\item{export}{logical; should the prediction sites also be exported to the .ssn folder?}
 }
 \value{
-SpatialPoints-Object with prediction sites
+SpatialPointsDataFrame with prediction sites
 }
 \description{
 Create prediction sites for .ssn object
