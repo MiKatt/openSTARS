@@ -147,7 +147,7 @@ calc_edges <- function(clean = TRUE) {
               column = 'cat_o',
               value = 'cat'
             ))
-
+  # add cat_o to streams_topo
   execGRASS("v.db.join",
             parameters = list(
               map = 'streams_topo',
@@ -156,7 +156,6 @@ calc_edges <- function(clean = TRUE) {
               other_column = 'cat_o',
               subset_columns = 'rid'
             ))
-
 
   # can join using v.what.vect because no overlap of different networks
   execGRASS("v.db.addcolumn",
@@ -177,36 +176,34 @@ calc_edges <- function(clean = TRUE) {
 
   # upstream distance ----------
   message('Calculating upDist...\n')
-  execGRASS("v.db.addcolumn",
-            flags = c('quiet'),
-            parameters = list(map = 'edges',
-                              columns = 'upDist double'))
-  execGRASS("v.what.vect",
-            parameters = list(map = 'edges',
-                              column = 'upDist',
-                              query_map = 'streams_topo',
-                              query_column = 'cum_length',
-                              dmax = 5))
-  execGRASS("v.db.addcolumn",
-            flags = c('quiet'),
-            parameters = list(map = 'edges',
-                              columns = 'Length double'))
-  execGRASS("v.what.vect",
-            parameters = list(map = 'edges',
-                              column = 'Length',
-                              query_map = 'streams_topo',
-                              query_column = 'length',
-                              dmax = 5))
-  execGRASS("v.db.addcolumn",
-            flags = c('quiet'),
-            parameters = list(map = 'edges',
-                              columns = 'topo_dim double'))
-  execGRASS("v.what.vect",
-            parameters = list(map = 'edges',
-                              column = 'topo_dim',
-                              query_map = 'streams_topo',
-                              query_column = 'topo_dim',
-                              dmax = 5))
+  execGRASS("v.db.join",
+            parameters = list(
+              map = 'edges',
+              column = 'cat_o',
+              other_table = 'streams_topo',
+              other_column = 'cat_o',
+              subset_columns = 'length,cum_length,topo_dim,out_dist'
+            ))
+  execGRASS('v.db.renamecolumn',
+            parameters = list(
+              map = 'edges',
+              column = 'length,segLength'
+            ))
+  execGRASS('v.db.renamecolumn',
+            parameters = list(
+              map = 'edges',
+              column = 'segLength,Length'
+            ))
+  execGRASS('v.db.renamecolumn',
+            parameters = list(
+              map = 'edges',
+              column = 'cum_length,sourceDist'
+            ))
+  execGRASS('v.db.renamecolumn',
+            parameters = list(
+              map = 'edges',
+              column = 'out_dist,upDist'
+            ))
 
 
   # calculate basins for streams segments --------
@@ -275,7 +272,7 @@ calc_edges <- function(clean = TRUE) {
               flags = c('quiet', 'f'),
               parameters = list(
                 type = 'vector',
-                name = 'nedID_v'
+                name = 'netID_v'
               ))
     execGRASS("g.remove",
               flags = c('quiet', 'f'),
