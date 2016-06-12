@@ -9,9 +9,9 @@ derive_streams(burn = 5, at = 700, clean = TRUE)
 \arguments{
 \item{burn}{numeric; How many meters should the streams be burned in DEM.}
 
-\item{clean}{logical; Should intermediate layer be removed from GRASS session?}
+\item{at}{numeric; accumulation threshold to use.}
 
-\item{accumulation}{numeric; accumulation threshold to use.}
+\item{clean}{logical; Should intermediate layer be removed from GRASS session?}
 }
 \value{
 Nothing. The function produces the following maps:
@@ -39,7 +39,8 @@ Intermediate layers cleaned are:
 \examples{
 library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir())
+  home = tempdir(),
+  override = TRUE)
 gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")

@@ -6,7 +6,7 @@
 #' burn > 0 it will be first burned into DEM.
 #'
 #' @param burn numeric; How many meters should the streams be burned in DEM.
-#' @param accumulation numeric; accumulation threshold to use.
+#' @param at numeric; accumulation threshold to use.
 #' @param clean logical; Should intermediate layer be removed from GRASS session?
 #'
 #' @return Nothing. The function produces the following maps:
@@ -29,7 +29,8 @@
 #' @examples
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
-#'   home = tempdir())
+#'   home = tempdir(),
+#'   override = TRUE)
 #' gmeta()
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")

@@ -1,4 +1,5 @@
 #' Calculate binary IDs for each stream network
+#' @importFrom stats aggregate
 #'
 #' @return A list of data.frames (for each network one), with rid and the binary code for each segment.
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
@@ -6,7 +7,8 @@
 #' @examples
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
-#'   home = tempdir())
+#'   home = tempdir(),
+#'   override = TRUE)
 #' gmeta()
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
@@ -41,6 +43,8 @@ calc_binary <- function(){
 }
 
 #' workhorse for calc_binary
+#' @param network network ID
+#' @keywords internal
 calc_binary_horse <- function(network) {
   # empty id cols
   network$bin_id <- rep(NA, nrow(network))

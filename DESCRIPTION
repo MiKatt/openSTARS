@@ -21,5 +21,7 @@ Depends:
 Imports:
     rgdal,
     raster,
-    SSN
+    SSN,
+    sp,
+    methods
 RoxygenNote: 5.0.1

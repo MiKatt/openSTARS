@@ -6,7 +6,7 @@
 #'
 #' @param dem character; path to DEM.
 #' @param sites character; path to sites.
-#' @param stream character, (optional); path to network shape.
+#' @param streams character, (optional); path to network shape.
 #'  If available it can be to burn into DEM
 #' @param ... other paths to raster data to import as predictors
 #'  (currently not implemented)

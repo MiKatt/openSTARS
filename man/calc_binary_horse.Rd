@@ -6,7 +6,11 @@
 \usage{
 calc_binary_horse(network)
 }
+\arguments{
+\item{network}{network ID}
+}
 \description{
 workhorse for calc_binary
 }
+\keyword{internal}
 

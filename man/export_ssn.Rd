@@ -21,7 +21,8 @@ to a folder which then can be read using the SSN package.
 \examples{
 library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir())
+  home = tempdir(),
+  override = TRUE)
 gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")

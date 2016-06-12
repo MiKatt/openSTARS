@@ -11,11 +11,11 @@ import_data(dem, sites, streams = NULL, ...)
 
 \item{sites}{character; path to sites.}
 
+\item{streams}{character, (optional); path to network shape.
+If available it can be to burn into DEM}
+
 \item{...}{other paths to raster data to import as predictors
 (currently not implemented)}
-
-\item{stream}{character, (optional); path to network shape.
-If available it can be to burn into DEM}
 }
 \value{
 Nothing, the data is loaded into the GRASS session.
