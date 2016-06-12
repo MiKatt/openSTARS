@@ -19,6 +19,7 @@ Depends:
     R (>= 3.2.1),
     rgrass7
 Imports:
+    rgdal,
     raster,
     SSN
 RoxygenNote: 5.0.1

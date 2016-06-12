@@ -68,7 +68,7 @@ calc_edges <- function(clean = TRUE) {
               vector = 'streams_v,edges'))
 
   edges <- readVECT('edges', type = 'line', ignore.stderr = TRUE)
-  edges$rid <- seq_len(nrow(edges))
+  edges$rid <- seq_len(nrow(edges)) - 1
   writeVECT(edges, 'edges',
             v.in.ogr_flags = c('overwrite', 'quiet'),
             ignore.stderr = TRUE)
@@ -186,6 +186,16 @@ calc_edges <- function(clean = TRUE) {
                               column = 'upDist',
                               query_map = 'streams_topo',
                               query_column = 'cum_length',
+                              dmax = 5))
+  execGRASS("v.db.addcolumn",
+            flags = c('quiet'),
+            parameters = list(map = 'edges',
+                              columns = 'Length double'))
+  execGRASS("v.what.vect",
+            parameters = list(map = 'edges',
+                              column = 'Length',
+                              query_map = 'streams_topo',
+                              query_column = 'length',
                               dmax = 5))
   execGRASS("v.db.addcolumn",
             flags = c('quiet'),
