@@ -133,12 +133,27 @@ export_ssn(ssn_dir, binary = binaries)
 list.files(ssn_dir)
 ```
 
+#### Check ssn folder
+```{r check_ssn}
+check_ssn(ssn_dir)
+```
+
+#### Create prediction sites
+```{r create_pred, include=FALSE, eval=FALSE}
+preds <- create_pred(ssn_dir, 'pred_regular', n = 500, type = 'regular')
+sites <- readOGR(ssn_dir, 'sites')
+edges <- readOGR(ssn_dir, 'edges')
+preds <- readOGR(ssn_dir, 'pred_regular')
+plot(edges)
+points(sites)
+points(preds, pch = 4)
+```
 
 #### Try with SSN package
 ```{r ssn_test}
 library(SSN)
 # import
-ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
+ssn_obj <- importSSN(ssn_dir, predpts = 'pred_regular', o.write = TRUE)
 plot(ssn_obj, 'value')
 
 # Create Distance Matrix
