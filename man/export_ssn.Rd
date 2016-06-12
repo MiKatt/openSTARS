@@ -6,6 +6,11 @@
 \usage{
 export_ssn(path, binary)
 }
+\arguments{
+\item{path}{character; path to write .ssn object to.}
+
+\item{binary}{object of type \code{binary}, as created by \code{\link{calc_binary}}.}
+}
 \value{
 Nothing. Files are written to the specified folder
 }

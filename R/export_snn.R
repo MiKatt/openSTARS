@@ -3,6 +3,10 @@
 #' This function takes the calculated sites, edges and binary IDs and exports them
 #' to a folder which then can be read using the SSN package.
 #'
+#' @import rgrass7
+#' @param path character; path to write .ssn object to.
+#' @param binary object of type \code{binary}, as created by \code{\link{calc_binary}}.
+#'
 #' @return Nothing. Files are written to the specified folder
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export

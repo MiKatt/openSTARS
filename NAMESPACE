@@ -3,6 +3,7 @@
 export(calc_binary)
 export(calc_edges)
 export(calc_sites)
+export(check_ssn)
 export(derive_streams)
 export(export_ssn)
 export(import_data)

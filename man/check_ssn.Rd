@@ -2,11 +2,36 @@
 % Please edit documentation in R/check_ssn.R
 \name{check_ssn}
 \alias{check_ssn}
-\title{Check .ssn object}
+\title{Checking the .ssn Object}
 \usage{
 check_ssn(path)
 }
+\arguments{
+\item{path}{character; path to .ssn object.}
+}
+\value{
+TRUE or FALSE depending if checks pass.
+}
 \description{
-Check .ssn object
+This function roughly checks
+}
+\examples{
+library(rgrass7)
+initGRASS(gisBase = "/usr/lib/grass70/",
+  home = tempdir())
+gmeta()
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
+sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+import_data(dem = dem_path, sites = sites_path)
+derive_streams()
+calc_edges()
+calc_sites()
+binaries <- calc_binary()
+ssn_dir <- file.path(tempdir(), 'nc.ssn')
+export_ssn(ssn_dir, binary = binaries)
+check_ssn(ssn_dir)
+}
+\author{
+Eduard Szoecs, \email{eduardszoecs@gmail.com}
 }
 
