@@ -7,6 +7,7 @@
 #'
 #' @param burn numeric; How many meters should the streams be burned in DEM.
 #' @param at numeric; accumulation threshold to use.
+#' @param condition logical; should conditioning using r.hydrodem run?
 #' @param clean logical; Should intermediate layer be removed from GRASS session?
 #'
 #' @return Nothing. The function produces the following maps:
@@ -46,7 +47,7 @@
 #' }
 
 
-derive_streams <- function(burn = 5, at = 700, clean = TRUE) {
+derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = 'vect'
@@ -59,7 +60,19 @@ derive_streams <- function(burn = 5, at = 700, clean = TRUE) {
                     intern = TRUE)
   if (!'dem' %in% rast)
     stop('DEM not found. Did you run import_data()?')
-  if ('streams_o' %in% vect) {
+
+  if (condition) {
+    message('Conditioning DEM...\n')
+    execGRASS('r.hydrodem',
+              flags = c('overwrite'),
+              parameters = list(
+                input = 'dem',
+                output = 'dem'
+              ))
+  }
+
+
+  if ('streams_o' %in% vect & burn > 0) {
     message('Burning streams into DEM...\n')
     # rasterize streams, set value to 1
     execGRASS("v.to.rast",
@@ -72,7 +85,8 @@ derive_streams <- function(burn = 5, at = 700, clean = TRUE) {
                 value = 1
               ))
 
-    # burn streams 5m into dem -------------
+    # burn streams into dem -------------
+    #! is r.carve?
     execGRASS("r.mapcalc",
               flags = c('overwrite', 'quiet'),
               parameters = list(

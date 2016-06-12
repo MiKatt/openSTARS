@@ -78,6 +78,7 @@ calc_sites <- function() {
                               column = 'dist,xm,ym'))
   #! This is in R faster than in GRASS!? (which has to write to hard-drive)
   #! Other possibilities in GRASS to change coordinates?
+  #! use r.stream.snap alternatively?
   sites <- readVECT('sites', type = 'point', ignore.stderr = TRUE)
   proj4 <- proj4string(sites)
   sites <-  as(sites, "data.frame")
@@ -88,6 +89,7 @@ calc_sites <- function() {
   writeVECT(sites, vname = 'sites',
             v.in.ogr_flags = c('overwrite', 'quiet'),
             ignore.stderr = TRUE)
+
 
   ### Setting pid -----------
   #! pid and locID identical???

@@ -4,12 +4,14 @@
 \alias{derive_streams}
 \title{Derive stream network from DEM.}
 \usage{
-derive_streams(burn = 5, at = 700, clean = TRUE)
+derive_streams(burn = 5, at = 700, condition = TRUE, clean = TRUE)
 }
 \arguments{
 \item{burn}{numeric; How many meters should the streams be burned in DEM.}
 
 \item{at}{numeric; accumulation threshold to use.}
+
+\item{condition}{logical; should conditioning using r.hydrodem run?}
 
 \item{clean}{logical; Should intermediate layer be removed from GRASS session?}
 }
