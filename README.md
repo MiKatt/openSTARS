@@ -35,9 +35,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpykzCwr 
-#> location    file4b1a6e8ba6f8 
-#> mapset      file4b1a31ff93fd 
+#> gisdbase    /tmp/RtmpzGMD0e 
+#> location    file2582afdf532 
+#> mapset      file25826035f8 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -60,8 +60,8 @@ import_data(dem = dem_path, sites = sites_path)
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmpykzCwr 
-#> location    file4b1a6e8ba6f8 
+#> gisdbase    /tmp/RtmpzGMD0e 
+#> location    file2582afdf532 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -190,12 +190,12 @@ Now the sites are snapped to the network and additional attributes (pid, locID, 
 binaries <- calc_binary()
 head(binaries[[1]])
 #>    rid                   binaryID
-#> 1  113 10001111101110001111110100
-#> 2  110    10001111101110001111111
-#> 3  114 10001111101110001111110101
-#> 6  105         100011111011100100
-#> 8   96                  100011110
-#> 10 119     1000111110111000111110
+#> 1  113 10111001000101110000110110
+#> 2  110    10111001000101110000111
+#> 3  114 10111001000101110000110111
+#> 6  105         101110010001011000
+#> 8   96                  101110011
+#> 10 119     1011100100010111000010
 ```
 
 
@@ -205,7 +205,7 @@ head(binaries[[1]])
 ```r
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 ssn_dir
-#> [1] "/tmp/RtmpykzCwr/nc.ssn"
+#> [1] "/tmp/RtmpzGMD0e/nc.ssn"
 export_ssn(ssn_dir, binary = binaries)
 list.files(ssn_dir)
 #>  [1] "edges.dbf"    "edges.prj"    "edges.shp"    "edges.shx"   
