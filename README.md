@@ -14,7 +14,8 @@ Peterson, E. E., & Ver Hoef, J. M. (2014). STARS: An ArcGIS Toolset Used to Calc
 
 
 ### Installation
-A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with installed addons [r.stream.basins](https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass70/manuals/addons/r.stream.distance.html) and [r.stream.order](https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html) is needed.
+A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with installed addons [r.stream.basins](https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass70/manuals/addons/r.stream.distance.html), [r.stream.order](https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html) and 
+[r.hydrodem](https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html) is needed.
 
 The openSTARS package can be installed from github using
 
@@ -35,9 +36,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmplENZkj 
-#> location    file77470b3f41e 
-#> mapset      file7741ba963d6 
+#> gisdbase    /tmp/RtmpCtGww3 
+#> location    file38841edb9b7 
+#> mapset      file38844ec810da 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -60,8 +61,8 @@ import_data(dem = dem_path, sites = sites_path)
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmplENZkj 
-#> location    file77470b3f41e 
+#> gisdbase    /tmp/RtmpCtGww3 
+#> location    file38841edb9b7 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -102,7 +103,7 @@ derive_streams()
 
 ```r
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
-#> WARNING: 178 points found, but not requested to be exported. Verify 'type'
+#> WARNING: 172 points found, but not requested to be exported. Verify 'type'
 #>          parameter.
 plot(dem, col = terrain.colors(20))
 lines(streams, col = 'blue')
@@ -124,18 +125,18 @@ edges <- readVECT('edges', ignore.stderr = TRUE)
 head(edges@data)
 #>   cat rid type_code OBJECTID cat_o netID topo_dim    Length sourceDist
 #> 1   1   0         0        0    19    20        2  102.4264   102.4264
-#> 2   2   1         0        1    17    20        2   90.0000    90.0000
+#> 2   2   1         0        1    16    20        2   90.0000    90.0000
 #> 3   3   2         1        2    20    20        1 1081.2489  1183.6753
-#> 4   4   3         0        3    15    15        1 1610.9545  1610.9545
-#> 5   5   4         0        4    23    26        2  504.8528   504.8528
-#> 6   6   5         0        5     7    26        2  607.2792   607.2792
+#> 4   4   3         0        3    21    28        2  504.8528   504.8528
+#> 5   5   4         0        4     7    28        2  607.2792   607.2792
+#> 6   6   5         1        5    28    28        1 1880.9545  2488.2338
 #>     upDist H2OArea rcaArea
-#> 1 1183.675  246.15  100.80
-#> 2 1171.249  246.15   97.65
-#> 3 1081.249  444.60   98.37
-#> 4 1610.955  246.15  178.65
-#> 5 2385.807  246.15  171.63
-#> 6 2488.234  246.15   98.73
+#> 1 1183.675  106.74  100.80
+#> 2 1171.249  106.74   97.65
+#> 3 1081.249  305.19   98.37
+#> 4 2385.807  106.74  171.63
+#> 5 2488.234  106.74   98.73
+#> 6 1880.955  377.10  194.58
 ```
 
 `edges` now holds the derived network plus attributes needed for SSN (segment id, network id, upstream distance ( distance from outlet), watershed area, river contributing area, toplogical dimension, segment length, distance from source)
@@ -162,12 +163,12 @@ points(sites, pch = 16, col = cols)
 ```r
 head(sites@data)
 #>   cat cat_ value       dist       xm       ym pid locID netID rid   upDist
-#> 1   1    1     1  79.907826 631046.1 226074.1   1     1   162 113 22387.92
-#> 2   2    2     2  76.098623 631495.3 225849.5   2     2   162 113 21880.94
-#> 3   3    3     1 112.904797 631787.3 225580.0   3     3   162 113 21511.53
-#> 4   4    4     1  61.158605 632011.9 225175.7   4     4   162 113 21064.54
-#> 5   5    5     1  72.041077 631203.4 224771.5   5     5   162 114 21721.53
-#> 6   6    6     2   4.226159 631540.2 224883.8   6     6   162 114 21256.97
+#> 1   1    1     1  79.907826 631046.1 226074.1   1     1   155 110 22472.77
+#> 2   2    2     2  76.098623 631495.3 225849.5   2     2   155 110 21965.79
+#> 3   3    3     1 112.904797 631787.3 225580.0   3     3   155 110 21596.38
+#> 4   4    4     1  61.158605 632011.9 225175.7   4     4   155 110 21149.39
+#> 5   5    5     1  72.041077 631203.4 224771.5   5     5   155 111 21806.38
+#> 6   6    6     2   4.226159 631540.2 224883.8   6     6   155 111 21341.82
 #>   H2OArea
 #> 1 1047600
 #> 2 1656900
@@ -189,13 +190,13 @@ Now the sites are snapped to the network and additional attributes (pid, locID, 
 ```r
 binaries <- calc_binary()
 head(binaries[[1]])
-#>    rid                   binaryID
-#> 1  113 10001111011110111111000111
-#> 2  110    10001111011110111111001
-#> 3  114 10001111011110111111000110
-#> 6  105         100011110111101011
-#> 8   96                  100011111
-#> 10 119     1000111101111011111101
+#>   rid                 binaryID
+#> 1 107    111000101101101100111
+#> 2 111 111000101101101100110100
+#> 5 110 111000101101101100110101
+#> 6 102         1110001011011110
+#> 8  93                 11100001
+#> 9 116     11100010110110110010
 ```
 
 
@@ -205,14 +206,14 @@ head(binaries[[1]])
 ```r
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 ssn_dir
-#> [1] "/tmp/RtmplENZkj/nc.ssn"
+#> [1] "/tmp/RtmpCtGww3/nc.ssn"
 export_ssn(ssn_dir, binary = binaries)
 list.files(ssn_dir)
 #>  [1] "edges.dbf"    "edges.prj"    "edges.shp"    "edges.shx"   
-#>  [5] "netID111.dat" "netID145.dat" "netID146.dat" "netID149.dat"
-#>  [9] "netID151.dat" "netID15.dat"  "netID160.dat" "netID162.dat"
-#> [13] "netID20.dat"  "netID26.dat"  "netID39.dat"  "netID49.dat" 
-#> [17] "netID53.dat"  "netID5.dat"   "netID62.dat"  "netID88.dat" 
+#>  [5] "netID109.dat" "netID132.dat" "netID134.dat" "netID140.dat"
+#>  [9] "netID144.dat" "netID14.dat"  "netID155.dat" "netID156.dat"
+#> [13] "netID20.dat"  "netID28.dat"  "netID39.dat"  "netID48.dat" 
+#> [17] "netID4.dat"   "netID53.dat"  "netID61.dat"  "netID88.dat" 
 #> [21] "sites.dbf"    "sites.prj"    "sites.shp"    "sites.shx"
 ```
 
