@@ -4,9 +4,6 @@ openSTARS
 
 
 
-[![Build Status](https://travis-ci.org/ropensci/webchem.png)](https://travis-ci.org/edild/openSTARS)
-[![Open Issues](https://img.shields.io/github/issues/edild/openSTARS.svg)](https://github.com/edild/openSTARS/issues)
-
 `openSTARS` is an open source implementation of the STARS toolbox (Peterson & Ver Hoef, 2014) using R and GRASS GIS.
 It prepares the .ssn object needed for the SSN package.
 Currently a DEM is used to derive stream networks (in contrast to STARS, which can clean an existing stream network).
@@ -38,9 +35,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpC5RfNB 
-#> location    file48105b89e0ef 
-#> mapset      file481033bbba5f 
+#> gisdbase    /tmp/RtmpmYsCJI 
+#> location    file19346bedd739 
+#> mapset      file19342bc36299 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -63,8 +60,8 @@ import_data(dem = dem_path, sites = sites_path)
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmpC5RfNB 
-#> location    file48105b89e0ef 
+#> gisdbase    /tmp/RtmpmYsCJI 
+#> location    file19346bedd739 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -193,12 +190,12 @@ Now the sites are snapped to the network and additional attributes (pid, locID, 
 binaries <- calc_binary()
 head(binaries[[1]])
 #>    rid                   binaryID
-#> 1  114 11000001001001110011010110
-#> 2  111    11000001001001110011011
-#> 3  115 11000001001001110011010111
-#> 6  106         110000010010011010
-#> 8   97                  110000011
-#> 10 120     1100000100100111001100
+#> 1  114 11011100110111010111101110
+#> 2  111    11011100110111010111100
+#> 3  115 11011100110111010111101111
+#> 6  106         110111001101110010
+#> 8   97                  110111000
+#> 10 120     1101110011011101011111
 ```
 
 
@@ -208,7 +205,7 @@ head(binaries[[1]])
 ```r
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 ssn_dir
-#> [1] "/tmp/RtmpC5RfNB/nc.ssn"
+#> [1] "/tmp/RtmpmYsCJI/nc.ssn"
 export_ssn(ssn_dir, binary = binaries)
 list.files(ssn_dir)
 #>  [1] "edges.dbf"    "edges.prj"    "edges.shp"    "edges.shx"   
@@ -256,12 +253,11 @@ ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
 
 # non-spatial model
 ssn_obj.glmssn0 <- glmssn(value ~ H2OArea, ssn.object = ssn_obj,
-                            CorModels = NULL, use.nugget = TRUE)
+                            CorModels = NULL)
 summary(ssn_obj.glmssn0)
 #> 
 #> Call:
-#> glmssn(formula = value ~ H2OArea, ssn.object = ssn_obj, CorModels = NULL, 
-#>     use.nugget = TRUE)
+#> glmssn(formula = value ~ H2OArea, ssn.object = ssn_obj, CorModels = NULL)
 #> 
 #> Residuals:
 #>    Min     1Q Median     3Q    Max 
@@ -302,11 +298,12 @@ summary(lm(value ~ H2OArea, getSSNdata.frame(ssn_obj)))
 #> Multiple R-squared:  0.1028,	Adjusted R-squared:  0.0919 
 #> F-statistic:   9.4 on 1 and 82 DF,  p-value: 0.002938
 
+
 # # # spatial model
 # doesn't work
 # ssn_obj.glmssn1 <- glmssn(value ~ H2OArea, ssn.object = ssn_obj,
-#                             CorModels = c("Exponential.tailup","Exponential.taildown","Exponential.Euclid"),
-#                           addfunccol = "computed.afv", use.nugget = TRUE)
+#                             CorModels = c("Exponential.Euclid"),
+#                           addfunccol = "computed.afv")
 ```
 
 
