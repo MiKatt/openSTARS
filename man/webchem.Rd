@@ -10,6 +10,7 @@ GRASS GIS 7.0 (or greater) with installed addons r.stream.basins, r.stream.dista
 is needed.
 }
 \examples{
+\donttest{
 library(openSTARS)
 # Initiate GRASS Sesion
 initGRASS(gisBase = "/usr/lib/grass70/",
@@ -51,5 +52,6 @@ export_ssn(ssn_dir, binary = binaries)
 library(SSN)
 ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 plot(ssn_obj, 'value')
+}
 }
 

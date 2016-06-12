@@ -13,6 +13,7 @@
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #' @examples
+#' \donttest{
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
@@ -28,6 +29,7 @@
 #' ssn_dir <- file.path(tempdir(), 'nc.ssn')
 #' export_ssn(ssn_dir, binary = binaries)
 #' list.files(ssn_dir)
+#' }
 export_ssn <- function(path, binary){
   message('Exporting to ', path)
   # write edges

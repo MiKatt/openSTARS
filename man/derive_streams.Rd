@@ -37,6 +37,7 @@ Intermediate layers cleaned are:
 }
 }
 \examples{
+\donttest{
 library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
@@ -52,6 +53,7 @@ streams <- readVECT('streams_v', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 points(sites, pch = 4)
 lines(streams, col = 'blue')
+}
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}

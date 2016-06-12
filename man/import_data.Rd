@@ -28,6 +28,7 @@ This function load dem and sites data (both required) into the GRASS session.
 A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
+\donttest{
 library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
@@ -39,6 +40,7 @@ import_data(dem = dem_path, sites = sites_path)
 
 dem <- readRAST('dem')
 plot(dem)
+}
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}

@@ -30,6 +30,7 @@
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #' @examples
+#' \donttest{
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
@@ -47,6 +48,7 @@
 #' plot(dem, col = terrain.colors(20))
 #' points(sites, pch = 4)
 #' lines(edges, col = 'blue')
+#' }
 calc_edges <- function(clean = TRUE) {
   vect <- execGRASS("g.list",
                     parameters = list(

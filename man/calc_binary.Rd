@@ -13,6 +13,7 @@ A list of data.frames (for each network one), with rid and the binary code for e
 Calculate binary IDs for each stream network
 }
 \examples{
+\donttest{
 library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
@@ -26,6 +27,7 @@ calc_edges()
 calc_sites()
 binaries <- calc_binary()
 head(binaries[[1]])
+}
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}

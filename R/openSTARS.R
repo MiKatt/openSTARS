@@ -6,6 +6,7 @@
 #' @docType package
 #' @name webchem
 #' @examples
+#' \donttest{
 #' library(openSTARS)
 #' # Initiate GRASS Sesion
 #' initGRASS(gisBase = "/usr/lib/grass70/",
@@ -47,6 +48,7 @@
 #' library(SSN)
 #' ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 #' plot(ssn_obj, 'value')
+#' }
 NULL
 
 

@@ -19,6 +19,7 @@ This function takes the calculated sites, edges and binary IDs and exports them
 to a folder which then can be read using the SSN package.
 }
 \examples{
+\donttest{
 library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
@@ -34,6 +35,7 @@ binaries <- calc_binary()
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 export_ssn(ssn_dir, binary = binaries)
 list.files(ssn_dir)
+}
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}

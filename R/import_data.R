@@ -19,6 +19,7 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
@@ -30,6 +31,7 @@
 #'
 #' dem <- readRAST('dem')
 #' plot(dem)
+#' }
 import_data <- function(dem, sites, streams = NULL, ...) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop('GRASS not initialised. Please run initGRASS().')

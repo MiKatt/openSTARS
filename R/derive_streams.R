@@ -27,6 +27,7 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
@@ -42,6 +43,7 @@
 #' plot(dem, col = terrain.colors(20))
 #' points(sites, pch = 4)
 #' lines(streams, col = 'blue')
+#' }
 
 
 derive_streams <- function(burn = 5, at = 700, clean = TRUE) {

@@ -16,6 +16,7 @@ TRUE or FALSE depending if checks pass.
 This function roughly checks
 }
 \examples{
+\donttest{
 library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
@@ -31,6 +32,7 @@ binaries <- calc_binary()
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 export_ssn(ssn_dir, binary = binaries)
 check_ssn(ssn_dir)
+}
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}

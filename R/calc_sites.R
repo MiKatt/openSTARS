@@ -1,6 +1,7 @@
 #' Calculate sites for SSN.
 #'
 #' @importFrom methods as
+#' @import sp
 #'
 #' @description
 #' Calcuate sites for SSN object.
@@ -19,6 +20,7 @@
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #' @examples
+#' \donttest{
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
@@ -37,6 +39,7 @@
 #' plot(dem, col = terrain.colors(20))
 #' points(sites, pch = 4)
 #' lines(edges, col = 'blue')
+#' }
 calc_sites <- function() {
   vect <- execGRASS("g.list",
                     parameters = list(

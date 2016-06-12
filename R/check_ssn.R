@@ -3,12 +3,14 @@
 #' This function roughly checks
 #'
 #' @importFrom rgdal readOGR
+#' @import SSN
 #' @param path character; path to .ssn object.
 
 #' @return TRUE or FALSE depending if checks pass.
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #' @examples
+#' \donttest{
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
@@ -24,6 +26,7 @@
 #' ssn_dir <- file.path(tempdir(), 'nc.ssn')
 #' export_ssn(ssn_dir, binary = binaries)
 #' check_ssn(ssn_dir)
+#' }
 check_ssn <- function(path) {
   out <- TRUE
 
