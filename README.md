@@ -36,9 +36,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass70/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpCtGww3 
-#> location    file38841edb9b7 
-#> mapset      file38844ec810da 
+#> gisdbase    /tmp/RtmpRDlTAF 
+#> location    file2dae7992e38b 
+#> mapset      file2dae595f59e2 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -61,8 +61,8 @@ import_data(dem = dem_path, sites = sites_path)
 #> WARNING: Raster map <dem> already exists and will be overwritten
 
 gmeta()
-#> gisdbase    /tmp/RtmpCtGww3 
-#> location    file38841edb9b7 
+#> gisdbase    /tmp/RtmpRDlTAF 
+#> location    file2dae7992e38b 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -191,12 +191,12 @@ Now the sites are snapped to the network and additional attributes (pid, locID, 
 binaries <- calc_binary()
 head(binaries[[1]])
 #>   rid                 binaryID
-#> 1 107    111000101101101100111
-#> 2 111 111000101101101100110100
-#> 5 110 111000101101101100110101
-#> 6 102         1110001011011110
-#> 8  93                 11100001
-#> 9 116     11100010110110110010
+#> 1 107    110010011000110011100
+#> 2 111 110010011000110011101101
+#> 5 110 110010011000110011101100
+#> 6 102         1100100110001001
+#> 8  93                 11001010
+#> 9 116     11001001100011001111
 ```
 
 
@@ -206,7 +206,7 @@ head(binaries[[1]])
 ```r
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 ssn_dir
-#> [1] "/tmp/RtmpCtGww3/nc.ssn"
+#> [1] "/tmp/RtmpRDlTAF/nc.ssn"
 export_ssn(ssn_dir, binary = binaries)
 list.files(ssn_dir)
 #>  [1] "edges.dbf"    "edges.prj"    "edges.shp"    "edges.shx"   
@@ -254,79 +254,90 @@ names(ssn_obj)
 ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
 
 # non-spatial model
-ssn_obj.glmssn0 <- glmssn(value ~ 1, ssn.object = ssn_obj,
+ssn_obj.glmssn0 <- glmssn(value ~ upDist, ssn.object = ssn_obj,
                             CorModels = NULL)
 summary(ssn_obj.glmssn0)
 #> 
 #> Call:
-#> glmssn(formula = value ~ 1, ssn.object = ssn_obj, CorModels = NULL)
+#> glmssn(formula = value ~ upDist, ssn.object = ssn_obj, CorModels = NULL)
 #> 
 #> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#>      NA -2.6071 -0.6071  3.3929      NA 
+#>    Min     1Q Median     3Q    Max 
+#>     NA -2.416 -0.214  2.670     NA 
 #> 
 #> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   4.6071     0.3375   13.65   <2e-16 ***
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  6.654e+00  6.863e-01   9.696  < 2e-16 ***
+#> upDist      -1.953e-04  5.801e-05  -3.366  0.00116 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Covariance Parameters:
 #>  Covariance.Model Parameter Estimate
-#>            Nugget   parsill     9.57
+#>            Nugget   parsill     8.51
 #> 
-#> Residual standard error: 3.093002
-#> Generalized R-squared: -4.440892e-16
+#> Residual standard error: 2.916779
+#> Generalized R-squared: 0.1214177
 # same as
-summary(lm(value ~ 1, getSSNdata.frame(ssn_obj)))
+summary(lm(value ~ upDist, getSSNdata.frame(ssn_obj)))
 #> 
 #> Call:
-#> lm(formula = value ~ 1, data = getSSNdata.frame(ssn_obj))
+#> lm(formula = value ~ upDist, data = getSSNdata.frame(ssn_obj))
 #> 
 #> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -3.6071 -2.6071 -0.6071  3.3929  5.3929 
+#>    Min     1Q Median     3Q    Max 
+#> -4.974 -2.416 -0.214  2.670  5.082 
 #> 
 #> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   4.6071     0.3375   13.65   <2e-16 ***
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  6.654e+00  6.863e-01   9.696 2.99e-15 ***
+#> upDist      -1.953e-04  5.801e-05  -3.366  0.00116 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 3.093 on 83 degrees of freedom
+#> Residual standard error: 2.917 on 82 degrees of freedom
 #>   (3 observations deleted due to missingness)
+#> Multiple R-squared:  0.1214,	Adjusted R-squared:  0.1107 
+#> F-statistic: 11.33 on 1 and 82 DF,  p-value: 0.001161
 
 
 # # # spatial model
-# doesn't work
-ssn_obj.glmssn1 <- glmssn(value ~ 1, ssn.object = ssn_obj,
-                            CorModels = c("Exponential.Euclid"),
+ssn_obj.glmssn1 <- glmssn(value ~ upDist , ssn.object = ssn_obj,
+                            CorModels = c("Exponential.taildown", "Exponential.tailup"),
                           addfunccol = "computed.afv")
-# other corModels do not work (taildown, tailup... why?)
 summary(ssn_obj.glmssn1)
 #> 
 #> Call:
-#> glmssn(formula = value ~ 1, ssn.object = ssn_obj, CorModels = c("Exponential.Euclid"), 
-#>     addfunccol = "computed.afv")
+#> glmssn(formula = value ~ upDist, ssn.object = ssn_obj, CorModels = c("Exponential.taildown", 
+#>     "Exponential.tailup"), addfunccol = "computed.afv")
 #> 
 #> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#>      NA -2.8317 -0.8317  3.1683      NA 
+#>    Min     1Q Median     3Q    Max 
+#>     NA -2.753 -1.074  2.316     NA 
 #> 
 #> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   4.8317     0.4594   10.52   <2e-16 ***
+#>               Estimate Std. Error t value Pr(>|t|)   
+#> (Intercept)  6.4026721  2.0380852   3.142  0.00234 **
+#> upDist      -0.0001274  0.0001416  -0.900  0.37088   
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Covariance Parameters:
-#>    Covariance.Model Parameter Estimate
-#>  Exponential.Euclid   parsill     8.71
-#>  Exponential.Euclid     range  1368.31
-#>              Nugget   parsill     1.01
+#>      Covariance.Model Parameter Estimate
+#>    Exponential.tailup   parsill     5.58
+#>    Exponential.tailup     range 24184.62
+#>  Exponential.taildown   parsill     5.08
+#>  Exponential.taildown     range 34631.95
+#>                Nugget   parsill     2.47
 #> 
-#> Residual standard error: 3.118736
-#> Generalized R-squared: 0
+#> Residual standard error: 3.623246
+#> Generalized R-squared: 0.009776394
+varcomp(ssn_obj.glmssn1)
+#>                VarComp  Proportion
+#> 1    Covariates (R-sq) 0.009776394
+#> 2   Exponential.tailup 0.420840844
+#> 3 Exponential.taildown 0.383031555
+#> 4               Nugget 0.186351207
 ```
 
 

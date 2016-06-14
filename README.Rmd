@@ -154,20 +154,19 @@ names(ssn_obj)
 ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
 
 # non-spatial model
-ssn_obj.glmssn0 <- glmssn(value ~ 1, ssn.object = ssn_obj,
+ssn_obj.glmssn0 <- glmssn(value ~ upDist, ssn.object = ssn_obj,
                             CorModels = NULL)
 summary(ssn_obj.glmssn0)
 # same as
-summary(lm(value ~ 1, getSSNdata.frame(ssn_obj)))
+summary(lm(value ~ upDist, getSSNdata.frame(ssn_obj)))
 
 
 # # # spatial model
-# doesn't work
-ssn_obj.glmssn1 <- glmssn(value ~ 1, ssn.object = ssn_obj,
-                            CorModels = c("Exponential.Euclid"),
+ssn_obj.glmssn1 <- glmssn(value ~ upDist , ssn.object = ssn_obj,
+                            CorModels = c("Exponential.taildown", "Exponential.tailup"),
                           addfunccol = "computed.afv")
-# other corModels do not work (taildown, tailup... why?)
 summary(ssn_obj.glmssn1)
+varcomp(ssn_obj.glmssn1)
 ```
 
 
