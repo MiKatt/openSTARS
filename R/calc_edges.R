@@ -104,7 +104,7 @@ calc_edges <- function(clean = TRUE) {
   message('Setting netID...\n')
   # Get basins for outlets
   execGRASS("r.stream.basins",
-            flags = c("overwrite", "l", "quiet"),
+            flags = c("overwrite", "l", "quiet"),          # 'l': only last stream link
             parameters = list(direction = "dirs",
                               stream_rast = "streams_r",
                               basins = "netID"))
@@ -128,17 +128,36 @@ calc_edges <- function(clean = TRUE) {
   message('Calculating stream topology...\n')
   execGRASS("r.stream.order",
             flags = c('overwrite', 'quiet'),
-            parameters = list(stream_rast = 'streams_r',
-                              direction = 'dirs',
-                              elevation = 'dem',
-                              accumulation = 'accums',
-                              stream_vect = 'streams_topo'))
+            parameters = list(stream_rast = 'streams_r',     # input
+                              direction = 'dirs',            # input
+                              elevation = 'dem',             # input
+                              accumulation = 'accums',       # input
+                              stream_vect = 'streams_topo')) # output
 
   # Dirty way to remove points from streams_topo
   streams_topo <- readVECT('streams_topo',
                       type = 'line',
                       ignore.stderr = TRUE)
   writeVECT(streams_topo, 'streams_topo', v.in.ogr_flags = 'overwrite')
+  
+  # MiKatt: Would this be more elegant (and maybe faster for large data sets)?
+  # # get maximum category value plus 1
+  # nocat<-as.character(max(as.numeric(
+  #                                    execGRASS("v.db.select",
+  #                                              parameters = list(
+  #                                                map="streams_topo",
+  #                                                columns="cat"),
+  #                                              intern=T)[-1]
+  #                                    ))+1)
+  # # delete all points
+  # execGRASS("v.edit",
+  #           flags = c("r", "quiet"),    # reverse selection = all
+  #           parameters = list(
+  #             map = 'streams_topo',
+  #             type = "point",
+  #             tool = "delete",
+  #             cats = nocat))
+  
   # copy cat to cat_o
   execGRASS("v.db.addcolumn",
             flags = c('quiet'),
@@ -150,7 +169,8 @@ calc_edges <- function(clean = TRUE) {
               column = 'cat_o',
               value = 'cat'
             ))
-  # add cat_o to streams_topo
+  # add rid from edges to streams_topo
+  # MiKatt: Can one be sure that the tow cat_o columns point to the same object?
   execGRASS("v.db.join",
             parameters = list(
               map = 'streams_topo',
@@ -161,6 +181,7 @@ calc_edges <- function(clean = TRUE) {
             ))
 
   # can join using v.what.vect because no overlap of different networks
+  # MiKatt: Why not in the same way as for 'rid'? Would that not be faster?
   execGRASS("v.db.addcolumn",
             flags = c('quiet'),
             parameters = list(map = 'streams_topo',
@@ -187,6 +208,7 @@ calc_edges <- function(clean = TRUE) {
               other_column = 'cat_o',
               subset_columns = 'length,cum_length,topo_dim,out_dist'
             ))
+  # MiKatt: 2 steps necessary because SQLite is not case sensitive
   execGRASS('v.db.renamecolumn',
             parameters = list(
               map = 'edges',
@@ -211,6 +233,7 @@ calc_edges <- function(clean = TRUE) {
 
   # calculate basins for streams segments --------
   message('Calculating RCA and area...\n')
+  # MiKatt: Could this be done in one step in r.watershed when accumulation map is computed in derive_streams.R?
   execGRASS("r.stream.basins",
             flags = c("overwrite", "quiet"),
             parameters = list(direction = 'dirs',
@@ -220,7 +243,7 @@ calc_edges <- function(clean = TRUE) {
   message('Calculating watershed and area\n')
   # Calculate reach contributing area for each stream segment (=edges.drain_area) --------
   #! Works, but slow
-  #! This is used to to calculate PI via SSN
+  #! This is used to calculate PI via SSN
   # calclate area (in m^2) of basins
   areas <- do.call(rbind,
                    strsplit(execGRASS('r.stats',
@@ -228,7 +251,7 @@ calc_edges <- function(clean = TRUE) {
                                       parameters = list(input = 'rca'),
                                       intern = TRUE),
                             split = ' '))
-  # Last row is totaland not needed
+  # Last row is total and not needed
   areas <- areas[-nrow(areas), ]
   # calculate upstream area per stream segment
   streams <- readVECT('streams_topo',
@@ -237,7 +260,8 @@ calc_edges <- function(clean = TRUE) {
   up_area <- NA
   # for each stream segment
   for (i in seq_len(nrow(streams))) {
-    cat <- streams$cat[1]
+    # MiKatt: must be cat[i], not cat[1]
+    cat <- streams$cat[i]
     # if no upstream segments take area directly
     if (streams@data$prev_str01[i] == 0) {
       up_area[i] <- as.numeric(areas[areas[ , 1] == cat , 2])

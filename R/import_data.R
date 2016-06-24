@@ -7,7 +7,7 @@
 #' @param dem character; path to DEM.
 #' @param sites character; path to sites.
 #' @param streams character, (optional); path to network shape.
-#'  If available it can be to burn into DEM
+#'  If available it can be burnt into DEM
 #' @param ... other paths to raster data to import as predictors
 #'  (currently not implemented)
 #'
@@ -32,6 +32,8 @@
 #' dem <- readRAST('dem')
 #' plot(dem)
 #' }
+#' 
+
 import_data <- function(dem, sites, streams = NULL, ...) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop('GRASS not initialised. Please run initGRASS().')
@@ -40,10 +42,12 @@ import_data <- function(dem, sites, streams = NULL, ...) {
   message('Setting up GRASS Environment...\n')
 
   # Set Projection to input file -------------------------
+  # MiKatt: Make mapset user defined?
+  # MiKatt: Not possible, g.proj gives error: "ERROR: You must select the PERMANENT mapset before updating the current location's projection (current mapset is <01_Test>)"
   execGRASS("g.mapset",
             flags = c('quiet'),
             parameters = list(
-              mapset = "PERMANENT"))
+            mapset = "PERMANENT"))
   execGRASS("g.proj",
             flags = c("c", "quiet"),
             parameters = list(
@@ -65,7 +69,7 @@ import_data <- function(dem, sites, streams = NULL, ...) {
   # Import data -------------------
   message('Loading data into GRASS...\n')
 
-  # reread raster with correct projection
+  # reread raster with correct projection and extent
   execGRASS("r.in.gdal",
             flags = c("overwrite", "quiet"),
             parameters = list(

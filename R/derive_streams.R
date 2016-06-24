@@ -46,7 +46,7 @@
 #' lines(streams, col = 'blue')
 #' }
 
-
+# MiKatt: I would suggest a different parameter name for 'at' because this is often a plotting parameter. Maybe 'accumthresh'?
 derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
   vect <- execGRASS("g.list",
                     parameters = list(
@@ -63,6 +63,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
 
   if (condition) {
     message('Conditioning DEM...\n')
+    # MiKatt: Make 'mod' and 'size' user defined (optionally)?
     execGRASS('r.hydrodem',
               flags = c('overwrite'),
               parameters = list(
@@ -87,6 +88,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
 
     # burn streams into dem -------------
     #! is r.carve?
+    # MiKatt: r.carcve seems to be intended for this use but not yet ready ("The module does not operate yet in latitude-longitude locations. It has not been thoroughly tested, so not all options may work properly - but this was the intention. "). Unclear, what's the meaning of "subtracts a default-depth + additional-depth from a DEM".
     execGRASS("r.mapcalc",
               flags = c('overwrite', 'quiet'),
               parameters = list(
@@ -94,6 +96,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                   paste0('\"dem = if(isnull(streams_or),  dem, dem-',
                          burn, ')\"')
               ))
+    # MiKatt: remove temporary stream raster file 'streams_or'
     if (clean) {
       execGRASS("g.remove",
               flags = c('quiet', 'f'),
@@ -103,14 +106,22 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               ))
     }
   }
+  
+  # MiKatt: Using r.watershed to derive streams, flow directions and accumulation would be faster (plus r.to.vect and v.clean). 
+  # MiKatt: ! Test speed difference with larger dem.
+  # MiKatt: -> produces many very small segments, often close to intersections => Why?
+  # MiKatt: -> that seems to be independent of the convercence value.
+  # MiKatt: -> r.thin does not help much.
+  # MiKatt: Would it make sense to calculate the accumulation raster first with r.watershed (is done down below for stream order) to use the same accumluation here?
+  # MiKatt: -> seems to generate identical results.
   message('Deriving streams from DEM...\n')
   execGRASS("r.stream.extract",
             flags =  c('overwrite', 'quiet'),
             parameters = list(elevation = "dem",
                               threshold = at, # use ATRIC to get this value?
-                              stream_raster = "streams_r",  # raster
-                              stream_vector = "streams_vr",  # vector
-                              direction = 'dirs'))          # flow direction
+                              stream_raster = "streams_r",  # output raster
+                              stream_vector = "streams_vr", # ouput vector
+                              direction = 'dirs'))          # output raster flow direction
 
   # execGRASS('r.info',
   #           parameters = list(
@@ -127,7 +138,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               tool = 'rmline'
             ))
   if (clean) {
-  # remove streams_or
+  # remove streams_vr
   execGRASS("g.remove",
             flags = c('quiet', 'f'),
             parameters = list(
@@ -142,4 +153,4 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               elevation = "dem",
               accumulation = 'accums'
             ))
-}
+} 
