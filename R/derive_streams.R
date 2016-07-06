@@ -46,7 +46,16 @@
 #' lines(streams, col = 'blue')
 #' }
 
-# MiKatt: I would suggest a different parameter name for 'at' because this is often a plotting parameter. Maybe 'accumthresh'?
+### 777 
+# burn <- 5
+# at <- 700
+# condition <- TRUE
+# clean <- TRUE
+# ##777
+
+derive_streams(burn=5, at=700, condition=TRUE, clean = TRUE)
+
+# MiKatt: I would suggest a differnt parameter name for 'at' because this is often a plotting parameter. Maybe 'accumthresh'?
 derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
   vect <- execGRASS("g.list",
                     parameters = list(
@@ -88,7 +97,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
 
     # burn streams into dem -------------
     #! is r.carve?
-    # MiKatt: r.carcve seems to be intended for this use but not yet ready ("The module does not operate yet in latitude-longitude locations. It has not been thoroughly tested, so not all options may work properly - but this was the intention. "). Unclear, what's the meaning of "subtracts a default-depth + additional-depth from a DEM".
+    # MiKatt: r.carcve seems to be intended for this use but not yet ready ("The module does not operate yet in latitude-longitude locations. It has not been thoroughly tested, so not all options may work properly - but this was the intention. "). Unclear, what't the meaning of "subtracts a default-depth + additional-depth from a DEM".
     execGRASS("r.mapcalc",
               flags = c('overwrite', 'quiet'),
               parameters = list(
@@ -108,12 +117,12 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
   }
   
   # MiKatt: Using r.watershed to derive streams, flow directions and accumulation would be faster (plus r.to.vect and v.clean). 
-  # MiKatt: ! Test speed difference with larger dem.
   # MiKatt: -> produces many very small segments, often close to intersections => Why?
-  # MiKatt: -> that seems to be independent of the convercence value.
+  # MiKatt: -> seems to be independent of the convercence value.
   # MiKatt: -> r.thin does not help much.
   # MiKatt: Would it make sense to calculate the accumulation raster first with r.watershed (is done down below for stream order) to use the same accumluation here?
-  # MiKatt: -> seems to generate identical results.
+  # MiKatt: -> seems to generade identical results.
+  # MiKatt: ! Test speed difference with larger dem.
   message('Deriving streams from DEM...\n')
   execGRASS("r.stream.extract",
             flags =  c('overwrite', 'quiet'),
@@ -138,7 +147,8 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               tool = 'rmline'
             ))
   if (clean) {
-  # remove streams_vr
+  # remove streams_or
+  # MiKatt: remove temporary stream raster file 'streams_vr'
   execGRASS("g.remove",
             flags = c('quiet', 'f'),
             parameters = list(
@@ -147,6 +157,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
             ))
   }
   # calculate flow accumulation --------------
+  # MiKatt: Is needed to derive stream topology
   execGRASS("r.watershed",
             flags = c('overwrite', 'quiet'),
             parameters = list(
@@ -154,3 +165,119 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               accumulation = 'accums'
             ))
 } 
+# 
+# ###777
+# 
+# # 1
+# 
+# t1<-Sys.time()
+# # MiKatt: Using r.watershed to derive streams, flow directions and accumulation would be faster (plus r.to.vect and v.clean). 
+# # MiKatt: However, it produces many very small segments, often close to intersections => Why?
+# # MiKatt: This seems to be independent of the convercence value.
+# # MiKatt: r.thin does not help much.
+# message('Deriving streams from DEM...\n')
+# execGRASS("r.stream.extract",
+#           flags =  c('overwrite', 'quiet'),
+#           parameters = list(elevation = "dem",
+#                             threshold = at, # use ATRIC to get this value?
+#                             stream_raster = "streams_r",  # raster
+#                             stream_vector = "streams_vr",  # vector
+#                             direction = 'dirs'))          # flow direction
+# print(Sys.time()-t1)
+# 
+# t1<-Sys.time()
+# execGRASS("r.stream.extract",
+#           flags =  c('overwrite', 'quiet'),
+#           parameters = list(elevation = "dem",
+#                             accumulation = "accums",
+#                             threshold = at, # use ATRIC to get this value?
+#                             stream_raster = "streams_rb",  # output raster
+#                             stream_vector = "streams_vrb", # ouput vector
+#                             direction = 'dirsb'))          # output raster flow direction
+# print(Sys.time()-t1)
+# 
+# # execGRASS('r.info',
+# #           parameters = list(
+# #             map = 'streams_r'
+# #           ))
+# 
+# # remove segments without length ------------
+# execGRASS("v.clean",
+#           flags = c('overwrite', 'quiet'),
+#           parameters = list(
+#             input = "streams_vrb",
+#             output = "streams_vb",
+#             type = 'line',
+#             tool = 'rmline'
+#           ))
+# if (clean) {
+#   # remove streams_or
+#   # MiKatt: remove temporary stream raster file 'streams_vr'
+#   execGRASS("g.remove",
+#             flags = c('quiet', 'f'),
+#             parameters = list(
+#               type = 'vector',
+#               name = 'streams_vrb'
+#             ))
+# }
+# # calculate flow accumulation --------------
+# execGRASS("r.watershed",
+#           flags = c('overwrite', 'quiet'),
+#           parameters = list(
+#             elevation = "dem",
+#             accumulation = 'accums'
+#           ))
+# print(Sys.time()-t1)
+# 
+# #2
+# 
+# 
+# t2<-Sys.time()
+# execGRASS("r.watershed",
+#           flags = c('overwrite', 'quiet'),
+#           parameters = list(
+#             elevation = "dem",
+#             accumulation = 'accums_2b',
+#             drainage = "dirs_2b",
+#             basin = "netID_2b",
+#             stream = "streams_r_2b",
+#             threshold=at,
+#             convergence = 2
+#           ))
+# 
+# 
+# execGRASS("r.thin", 
+#           flags = c('overwrite', 'quiet'),
+#           parameters = list(
+#             input = 'streams_r_2b',
+#             output = 'streams_rt_2b'))
+# 
+# execGRASS("r.to.vect",
+#           flags = c('overwrite', 'quiet'),
+#           parameters = list(
+#             input = "streams_rt_2b",
+#             output = "streams_vr_2b",
+#             type="line"
+#           ))
+# 
+# # remove segments without length ------------
+# execGRASS("v.clean",
+#           flags = c('overwrite', 'quiet'),
+#           parameters = list(
+#             input = "streams_vr_2b",
+#             output = "streams_v_2b",
+#             type = 'line',
+#             tool = 'rmline'
+#           ))
+# 
+# if (clean) {
+#   execGRASS("g.remove",
+#             flags = c('quiet', 'f'),
+#             parameters = list(
+#               type = 'vector',
+#               name = 'streams_vr_2b'
+#             ))
+# }
+# 
+# print(Sys.time()-t2)
+# ###777

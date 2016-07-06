@@ -34,6 +34,27 @@
 #' }
 #' 
 
+## 777
+library(rgrass7)
+initGRASS(gisBase = "/usr/lib/grass70/",
+  home = tempdir(),#"/home/mira/_Backup/05_Serior/02_openStars/Grass",
+  gisDbase = "/home/mira/_Backup/05_Serior/02_openSTARS/Grass/GRASSDB",
+  location = "testdata_Edi",
+  remove_GISRC = T,
+  override = TRUE)
+#gmeta()
+#dem <-  "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nrw/dem_nrw.tif"
+#sites <- "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nrw/psm_sites_2005_nrw.shp"
+dem <-  "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/elev_ned_30m.tif"
+sites <- "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/sites_nc.shp"
+streams = NULL
+import_data(dem = dem, sites = sites)
+#dem <- readRAST('dem')
+#plot(dem)
+
+## 777
+
+
 import_data <- function(dem, sites, streams = NULL, ...) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop('GRASS not initialised. Please run initGRASS().')
@@ -51,8 +72,12 @@ import_data <- function(dem, sites, streams = NULL, ...) {
   execGRASS("g.proj",
             flags = c("c", "quiet"),
             parameters = list(
-              georef = sites
+            georef = sites
             ))
+  
+  ## 77
+  execGRASS("g.region", flags=c('p'))
+  ## 77
 
   # set Region -----------------
   # read raster to set region
@@ -64,12 +89,13 @@ import_data <- function(dem, sites, streams = NULL, ...) {
   execGRASS("g.region",
             flags = c('quiet'),
             parameters = list(
-              raster = "dem"))
+            raster = "dem"))
 
   # Import data -------------------
   message('Loading data into GRASS...\n')
 
-  # reread raster with correct projection and extent
+  # reread raster with correct extent 
+  # MiKatt: Is this necessary? It seems to produce exactly the same dem
   execGRASS("r.in.gdal",
             flags = c("overwrite", "quiet"),
             parameters = list(
