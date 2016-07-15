@@ -35,20 +35,20 @@
 #' 
 
 ## 777
-library(rgrass7)
-initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir(),#"/home/mira/_Backup/05_Serior/02_openStars/Grass",
-  gisDbase = "/home/mira/_Backup/05_Serior/02_openSTARS/Grass/GRASSDB",
-  location = "testdata_Edi",
-  remove_GISRC = T,
-  override = TRUE)
-#gmeta()
-#dem <-  "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nrw/dem_nrw.tif"
-#sites <- "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nrw/psm_sites_2005_nrw.shp"
-dem <-  "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/elev_ned_30m.tif"
-sites <- "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/sites_nc.shp"
-streams = NULL
-import_data(dem = dem, sites = sites)
+# library(rgrass7)
+# initGRASS(gisBase = "/usr/lib/grass70/",
+#   home = tempdir(),#"/home/mira/_Backup/05_Serior/02_openStars/Grass",
+#   gisDbase = "/home/mira/_Backup/05_Serior/02_openSTARS/Grass/GRASSDB",
+#   location = "testdata_Edi",
+#   remove_GISRC = T,
+#   override = TRUE)
+# #gmeta()
+# #dem <-  "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nrw/dem_nrw.tif"
+# #sites <- "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nrw/psm_sites_2005_nrw.shp"
+# dem <-  "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/elev_ned_30m.tif"
+# sites <- "/home/mira/_Backup/05_Serior/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/sites_nc.shp"
+# streams = NULL
+# import_data(dem = dem, sites = sites)
 #dem <- readRAST('dem')
 #plot(dem)
 
@@ -76,7 +76,7 @@ import_data <- function(dem, sites, streams = NULL, ...) {
             ))
   
   ## 77
-  execGRASS("g.region", flags=c('p'))
+  #execGRASS("g.region", flags=c('p'))
   ## 77
 
   # set Region -----------------

@@ -1,4 +1,3 @@
-#' Calculate edges for SSN.
 #'
 #' @description
 #' Calcuate edges for SSN object.
@@ -49,7 +48,11 @@
 #' points(sites, pch = 4)
 #' lines(edges, col = 'blue')
 #' }
+
+calc_edges()
+
 calc_edges <- function(clean = TRUE) {
+  require(data.table)
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = 'vect'
@@ -62,6 +65,28 @@ calc_edges <- function(clean = TRUE) {
                     intern = TRUE)
   if (!'streams_v' %in% vect)
     stop('Missing data. Did you run derive_streams()?')
+  
+  #' Calculate upstream area of every stream segment and assign unique id for each network
+  #' Recursive function to calculate total upstream area of stream segments
+  #' data.table dt.streams must be present containing topological information and area of the respective area per segment
+  #' Should be run for all outlets in the network ( = most downstream segments) and fills the total area for all segments
+  #' '<<-' "call by reference" assigns to global variable
+  #' Must be defined within function, otherwise it doea not know dt.streams
+  #' @param id cat of the stream segment
+  #' @param net ID network ID
+  #' @keywords internal
+  calcTotalArea_assignNetID<-function(id,netID){
+    if(dt.streams[id]$prev_str01 == 0){  # check only one of prev01 and prev02 because they are always both 0
+      dt.streams[id]$total_area <<- dt.streams[id]$area
+      dt.streams[id]$netID <<- netID
+    } else {
+      a1 <- calcTotalArea_assignNetID(dt.streams[id]$prev_str01,netID)
+      a2 <- calcTotalArea_assignNetID(dt.streams[id]$prev_str02,netID)
+      dt.streams[id]$total_area <<- a1 + a2 + dt.streams[id]$area
+      dt.streams[id]$netID <<- netID
+    }
+    return(dt.streams[id]$total_area)
+  }
 
   # MiKatt: Can all be done based on streams_topo
   # message('Assigning rid...\n')
@@ -129,14 +154,14 @@ calc_edges <- function(clean = TRUE) {
 
   # calculate stream topology ----------
   message('Calculating stream topology...\n')
-  # MiKatt: Is accumulation needed here? r.stream.order: "This map is an option only if Horton's or Hack's ordering is performed."
+  # MiKatt: Is accumulation needed here? r.stream.order: "This map is an option only if Horton's or Hack's ordering is performed." Yes, does not work without.
   execGRASS("r.stream.order",
             flags = c('overwrite', 'quiet','z','m'),
             parameters = list(stream_rast = 'streams_r',     # input
                               direction = 'dirs',            # input
                               elevation = 'dem',             # input
                               accumulation = 'accums',       # input
-                              stream_vect = 'edges')) # output
+                              stream_vect = 'edges'))        # output
 
   # # Dirty way to remove points from streams_topo
   # streams_topo <- readVECT('streams_topo',
@@ -190,7 +215,7 @@ calc_edges <- function(clean = TRUE) {
   #           ))
 
   # can join using v.what.vect because no overlap of different networks
-  # MiKatt: Why not some way as for rid?
+  # MiKatt: Why not same way as for rid?
   # MiKatt: Can be done when total upstream area is calculated
   # execGRASS("v.db.addcolumn",
   #           flags = c('quiet'),
@@ -251,13 +276,14 @@ calc_edges <- function(clean = TRUE) {
   # calculate basins for streams segments --------
   message('Calculating RCA and area...\n')
   # MiKatt: Could this be done in one step in r.watershed when accumulation map is computed in derive_streams.R?
+  # MiKatt: ! Check if that would be faster
   execGRASS("r.stream.basins",
             flags = c("overwrite", "quiet"),
             parameters = list(direction = 'dirs',
                               stream_rast = 'streams_r',
                               basins = "rca"))
 
-  message('Calculating watershed and area\n')
+  message('Calculating upstream watershed areas \n')
   # Calculate reach contributing area for each stream segment (=edges.drain_area) --------
   #! Works, but slow
   #! This is used to calculate PI via SSN
@@ -271,45 +297,47 @@ calc_edges <- function(clean = TRUE) {
                             split = ' '))
   # Last row is total and not needed
   areas <- areas[-nrow(areas), ]
+  
   # calculate upstream area per stream segment
+  
+  #t1<-Sys.time()
+  
+  # MiKatt: db.select is faster than readVECT but how to get back data to vector attribute data table?
+  # d<-execGRASS('db.select',
+  #              flags = 'c',
+  #              parameters = list(
+  #              sql = 'select cat,next_stream,prev_str01,prev_str02 from edges',
+  #              separator = ','
+  #              ), intern = TRUE)
+  # 
+  # d<-do.call(rbind,strsplit(d,split=","))
+  # d<-apply(d,2,as.numeric)
+  # d<-cbind(d,0,-1)
+  # colnames(d)<-c("cat","next_stream","prev_str01","prev_str02","total_area","netID")
+  # dt.streams<-as.data.table(d)
+  # a<-data.table(as.numeric(areas[,1]),as.numeric(areas[,2]))
+  # names(a)<-c("cat","area")
+  # dt.streams<-merge(dt.streams,a,by="cat")
+  # setkey(dt.streams,cat)
+  
   streams <- readVECT('edges',
                       type = 'line',
                       ignore.stderr = TRUE)
 
-  #1<-Sys.time()
-  
-  require(data.table)
-  dt.streams<-data.table(streams@data[c("cat","next_stream","prev_str01","prev_str02")],total_area=0, netID=-1)
+  dt.streams<-data.table(streams@data[c("cat","stream","next_stream","prev_str01","prev_str02")],total_area=0, netID=-1)
   a<-data.table(as.numeric(areas[,1]),as.numeric(areas[,2]))
   names(a)<-c("cat","area")
   dt.streams<-merge(dt.streams,a,by="cat")
-  setkey(dt.streams,cat)
-
-  # MiKatt: recursive function to calculate total upstream area of stream segments
-  # MiKatt: data.talbe dt.streams must be present containing topological information and area of the respective area per segment
-  # MiKatt: should be run for all outlets in the network ( = most downstream segments) and fills the total area for all segments
-  # MiKatt '<<-' "call by reference" assigns to global variable
-  calcTotalArea_assignNetID<-function(id,netID){
-    if(dt.streams[id]$prev_str01 == 0){  # check only one of prev01 and prev02 because they are always both 0
-      dt.streams[id]$total_area <<- dt.streams[id]$area
-      dt.streams[id]$netID <<- netID
-    } else {
-      a1 <- calcTotalArea_assignNetID(dt.streams[id]$prev_str01,netID)
-      a2 <- calcTotalArea_assignNetID(dt.streams[id]$prev_str02,netID)
-      dt.streams[id]$total_area <<- a1 + a2 + dt.streams[id]$area
-      dt.streams[id]$netID <<- netID
-    }
-    return(dt.streams[id]$total_area)
-  }
+  setkey(dt.streams,stream)
 
   # MiKatt: Segments without a next segment are outlets of watersheds
-  outlets <- dt.streams[next_stream == -1]$cat
+  # MiKatt: Recursive function to calculate total upstream area of stream segments
+  outlets <- dt.streams[next_stream == -1]$stream
   netID <- 1
   for(i in outlets){
     calcTotalArea_assignNetID(id=i, netID)
     netID <- netID + 1
   }
-
   
   #print(Sys.time()-t1) # 13 min
 
@@ -337,7 +365,7 @@ calc_edges <- function(clean = TRUE) {
   #     up_area[i] <- sum(area_upseg , self_area)
   #   }
   # }
-  # #print(Sys.time()-t1) #2.3 hours
+  # #print(Sys.time()-t1) #2.3 hoursgrass db.execute merge
   # areas <- data.frame(rid = streams@data$rid,
   #                     H2OArea = round(up_area / 10000, 2),
   #                     rcaArea = as.numeric(areas[, 2]) / 10000)
@@ -345,14 +373,25 @@ calc_edges <- function(clean = TRUE) {
   #edges <- readVECT('edges', type = 'line', ignore.stderr = TRUE)
 
   streams@data <- merge(streams@data, dt.streams, by = 'cat')
-  streams@data <- streams@data[,c('cat','netID','length','cum_length','out_dist','total_area','area')]
-  streams@data[,'total_area'] <- round(streams@data[,'total_area']/10000,2)
-  streams@data[,'area'] <- streams@data[,'area']/10000
-  colnames(streams@data) <- c('rid','netID','Length','sourceDist','upDist','H2OArea','racArea')
+  streams@data <- streams@data[,c('cat','stream.x', 'next_stream.x', 'prev_str01.x', 'prev_str02.x','netID','length','cum_length','out_dist','total_area','area')]
+  # MiKatt: Why divide by 10000?'
+  streams@data[,'total_area'] <- round(streams@data[,'total_area'],2) #/10000,2)
+  #streams@data[,'area'] <- streams@data[,'area']#/10000
+  colnames(streams@data) <- c('cat_orig','stream', 'next_stream', 'prev_str01', 'prev_str02','netID','Length','sourceDist','upDist','H2OArea','rcaArea')
+  streams@data$rid <- seq_len(nrow(streams@data)) - 1 # streams@data$stream
+  streams@data$OBJECTID <- streams@data$stream
   
-  writeVECT(streams, 'edges2',
+  # MiKatt: Creates new cat column and would move original cat to cat_ 
+  writeVECT(streams, 'edges',
             v.in.ogr_flags = c('overwrite', 'quiet'),
             ignore.stderr = TRUE)
+  
+  # MiKatt: Retrieve orininal cat (=cat_orig) (needed for extraction in v.distance and later intersection with sites)
+  execGRASS("v.db.update",
+            flags = c('quiet'),
+            parameters = list(map = 'edges',
+                              column = 'cat',
+                              value = 'cat_orig'))
 
   if (clean) {
     # execGRASS("g.remove",
@@ -369,3 +408,4 @@ calc_edges <- function(clean = TRUE) {
               ))
   }
 }
+

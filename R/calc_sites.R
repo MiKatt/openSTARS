@@ -1,4 +1,5 @@
-#' Calculate sites for SSN.
+,
+,#' Calculate sites for SSN.
 #'
 #' @importFrom methods as
 #' @import sp
@@ -62,20 +63,21 @@ calc_sites <- function() {
 
   # Snap sites to streams --------
   message('Snapping sites to streams...\n')
-  # add 2 columns holding distance id and coordinates of nearest streams
+  # add 4 columns holding: cat, distance id and coordinates of nearest streams
   execGRASS("v.db.addcolumn",
             parameters = list(
               map = "sites",
-              columns = "dist double precision, xm double precision, ym double precision"
+              columns = "cat_edges int, dist double precision, xm double precision, ym double precision"
             ))
   # calc distance
+  # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
   execGRASS("v.distance",
             flags = c("overwrite", 'quiet'),
             parameters = list(from = 'sites',
                               to = 'edges',
-                              output = 'connectors',
-                              upload = 'dist,to_x,to_y',
-                              column = 'dist,xm,ym'))
+                              #output = 'connectors',
+                              upload = 'cat,dist,to_x,to_y',
+                              column = 'cat_edges,dist,xm,ym'))
   #! This is in R faster than in GRASS!? (which has to write to hard-drive)
   #! Other possibilities in GRASS to change coordinates?
   #! use r.stream.snap alternatively?
@@ -93,17 +95,17 @@ calc_sites <- function() {
 
   ### Setting pid -----------
   #! pid and locID identical???
+  # MiKatt: pid is for "repeated measurements at a singel location" (Peterson & Ver Hoef, 2014: Stars_ An ArcGIS Toolset Used to Calculate the Spatial Information Neede to Fit SPatial Statistical Models to Stream Network Data, p. 13)
+  # MiKatt: Hence locID = pid seems to be ok
+  # MiKatt: ! Use a different (user defined) column as site ID
   message('Setting pid and locID...\n')
   execGRASS("v.db.addcolumn",
             parameters = list(map = 'sites',
-                              columns = 'pid int'))
+                              columns = 'pid int, locID int'))
   execGRASS("v.db.update",
             parameters = list(map = 'sites',
                               column = 'pid',
                               value = 'cat'))
-  execGRASS("v.db.addcolumn",
-            parameters = list(map = 'sites',
-                              columns = 'locID int'))
   execGRASS("v.db.update",
             parameters = list(map = 'sites',
                               column = 'locID',
@@ -111,29 +113,50 @@ calc_sites <- function() {
 
   # Set netID and rid from network ---------
   message('Assigning netID and rid...\n')
+  # execGRASS("v.db.addcolumn",
+  #           flags = c('quiet'),
+  #           parameters = list(map = 'sites',
+  #                             columns = 'netID int, rid int'))
+  # execGRASS("v.what.vect",
+  #           parameters = list(map = 'sites',
+  #                             column = 'netID',
+  #                             query_map = 'edges',
+  #                             query_column = 'netID',
+  #                             dmax = 5))
+  # execGRASS("v.what.vect",
+  #           parameters = list(map = 'sites',
+  #                             column = 'rid',
+  #                             query_map = 'edges',
+  #                             query_column = 'rid',
+  #                             dmax = 5))
 
+  # MiKatt: This seems to be faster
   execGRASS("v.db.addcolumn",
             flags = c('quiet'),
             parameters = list(map = 'sites',
-                              columns = 'netID int'))
-  execGRASS("v.what.vect",
-            parameters = list(map = 'sites',
-                              column = 'netID',
-                              query_map = 'edges',
-                              query_column = 'netID',
-                              dmax = 5))
-  execGRASS("v.db.addcolumn",
-            flags = c('quiet'),
-            parameters = list(map = 'sites',
-                              columns = 'rid int'))
-  execGRASS("v.what.vect",
-            parameters = list(map = 'sites',
-                              column = 'rid',
-                              query_map = 'edges',
-                              query_column = 'rid',
-                              dmax = 5))
+                              columns = 'netID int, rid int'))
+  
+  execGRASS('db.execute',
+            parameters = list(
+              sql="UPDATE sites SET rid=(SELECT rid FROM edges WHERE sites.cat_edges=edges.cat)"
+              ))
+  
+  execGRASS('db.execute',
+            parameters = list(
+              sql="UPDATE sites SET netID=(SELECT netID FROM edges WHERE sites.cat_edges=edges.cat)"
+            ))
+  
+  # d<-execGRASS('db.select',
+  #              parameters = list(
+  #              sql = 'select * from sites',
+  #              separator = ','
+  #              ), intern = TRUE)
+  # 
+  # d<-do.call(rbind,strsplit(d,split=","))
+  
 
   # Calculate and upDist ---------
+  # MiKatt: Distance of every raster cell from the outlet
   message('Calculating upDist...\n')
   execGRASS('r.stream.distance',
             flags = c('overwrite', 'quiet', 'o'),
@@ -153,8 +176,10 @@ calc_sites <- function() {
               raster = 'upDist',
               column = 'upDist'
             ))
+  # MiKatt: ! Round up Dist to m
 
   # Calculate and H20predictors for each site -----
+  # MiKatt: ! There might be a faster way to do that
   message('Calculating H20Area...\n')
   sites <- readVECT('sites', ignore.stderr = FALSE)
   take_area <- NA
@@ -180,6 +205,7 @@ calc_sites <- function() {
                                     parameters = list(input = 'take_area'),
                                     intern = TRUE)[1], split = ' ')[[1]][[2]]
   }
+  # MiKatt: For edges, area was divided by 10000. Changed it there to have the same units 
   sites$H2OArea <- round(as.numeric(take_area), 2)
   sites$cat_ <- NULL
   writeVECT(sites, vname = 'sites',

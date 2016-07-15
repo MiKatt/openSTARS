@@ -33,6 +33,16 @@
 export_ssn <- function(path, binary){
   message('Exporting to ', path)
   # write edges
+  
+  # MiKatt: Drop colums no longer needed
+  #execGRASS('db.columns',parameters = list(table = 'edges'))
+  execGRASS('v.db.dropcolumn',
+            flags = 'quiet', 
+            parameters = list(
+              map = 'edges',
+              columns = 'cat_orig,stream,next_stream,prev_str01,prev_str02'
+            ))
+  
   execGRASS('v.out.ogr',
             c('overwrite', 'quiet'),
             parameters = list(

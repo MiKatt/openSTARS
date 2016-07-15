@@ -1,8 +1,8 @@
 #' Calculate binary IDs for each stream network
 #' @importFrom stats aggregate
 #'
-#' @return A list of data.frames (for each network one), with rid and the binary code for each segment.
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
+#' @return Nothing. The function writes a data file to disk for each network containing rid and binaryID :
+#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}; Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
 #' @examples
 #' \donttest{
@@ -20,7 +20,28 @@
 #' binaries <- calc_binary()
 #' head(binaries[[1]])
 #' }
+
 calc_binary <- function(){
+  
+  #' Recursive function to assign binary id to stream segments
+  #' data.table dt.streams must be present containing topological information for the edges
+  #' Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments
+  #' '<<-' "call by reference" assigns to global variable
+  #' Must be defined within function, otherwise it does not know dt.streams
+  #' @param id: stream segment
+  #' @param binID: binary ID
+  #' @param lastbit: last char to be added (0 or 1)
+  #' @keywords internal
+  assign_binIDs<-function(id,binID,lastbit){
+    if(dt.streams[id]$prev_str01 == 0){  # check only one of prev01 and prev02 because they are always both 0
+      dt.streams[id]$binaryID <<- paste0(binID,lastbit)
+    } else {
+      dt.streams[id]$binaryID <<- paste0(binID,lastbit)
+      assign_binIDs(dt.streams[id]$prev_str01,dt.streams[id]$binaryID,0)
+      assign_binIDs(dt.streams[id]$prev_str02,dt.streams[id]$binaryID,1)
+    }
+  }
+  
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = 'vect'
@@ -34,46 +55,77 @@ calc_binary <- function(){
     stop('sites not found. Did you run calc_sites()?')
 
   # for each network ------
-  streams <- readVECT('streams_topo', type = 'line', ignore.stderr = TRUE)
+  # t1<-Sys.time()
+  # streams <- readVECT('streams_topo', type = 'line', ignore.stderr = TRUE)
+  # 
+  # # for each segment -----
+  # bins <- lapply(unique(streams$netID), function(y) {
+  #   calc_binary_horse(streams[streams$netID == y, ])
+  # })
+  # names(bins) <- unique(streams$netID)
+  # print(Sys.time()-t1)
+ 
+  # MiKatt: Might be faster (no need to read in topography)
+  #t2<-Sys.time()
+  d<-execGRASS('db.select',
+               flags = 'c',
+               parameters = list(
+               sql = 'select rid,stream,next_stream,prev_str01,prev_str02,netID from edges',
+               separator = ','
+               ), intern = TRUE)
 
-  # for each segment -----
-  bins <- lapply(unique(streams$netID), function(y) {
-    calc_binary_horse(streams[streams$netID == y, ])
-  })
-  names(bins) <- unique(streams$netID)
-  return(bins)
-}
+  d<-do.call(rbind,strsplit(d,split=","))
+  colnames(d)<-c("rid","stream","next_stream","prev_str01","prev_str02","netID")
+  d<-apply(d,2,as.numeric)
+  dt.streams<-as.data.table(d)
+  rm(d)
+  setkey(dt.streams,stream)
+  dt.streams$binaryID<-"0"
+  outlets <- dt.streams[next_stream == -1]$stream
 
-#' workhorse for calc_binary
-#' @param network network ID
-#' @keywords internal
-calc_binary_horse <- function(network) {
-  # empty id cols
-  network$bin_id <- rep(NA, nrow(network))
-  # for each topological dimension
-  for (i in sort(unique(network$topo_dim))) {
-    rows <- which(network$topo_dim == i)
-    # first segment set to one
-    if (i == 1) {
-      network$bin_id[rows] <- 1
-    } else {
-      # actual segments
-      take_segments <- network[rows, ]@data
-      # downstream segments
-      take_down <- network[network$topo_dim == i - 1, ]@data
-      names(take_down)[2] <- 'stream_down'
-      # merge dwn (with bin_id) and actual
-      take_merge <- merge(take_down[ , c('stream_down', 'bin_id')],
-                          take_segments, by.x = 'stream_down', by.y = 'next_stream')
-      # assign 0/1 and paste with downstream id
-      take_merge[ , 'bin_id'] <-  c(aggregate(bin_id.x ~ stream_down, data = take_merge,
-                FUN = function(x) paste0(x, sample(c(0, 1), 2)))[ , 'bin_id.x'])
-      take_merge$bin_id.x <- NULL
-      take_merge$bin_id.y <- NULL
-      network$bin_id[rows] <- take_merge$bin_id
-    }
+  for(i in outlets){
+    assign_binIDs(id=i,1,NULL)
   }
-  out <- network@data[ , c('rid', 'bin_id')]
-  names(out) <- c("rid", "binaryID")
-  return(out)
+  #print(dt.streams)
+  bins2<-lapply(outlets, function(x) dt.streams[netID == dt.streams[x]$netID, list(rid,binaryID)])
+  names(bins2)<-  dt.streams[outlets]$netID
+  #print(bins2)
+  #print(Sys.time()-t2)
+  return(bins2)
 }
+
+
+# #' workhorse for calc_binary
+# #' @param network network ID
+# #' @keywords internal
+# 
+# calc_binary_horse <- function(network) {
+#    # empty id cols
+#    network$bin_id <- rep(NA, nrow(network))
+#    # for each topological dimension
+#    for (i in sort(unique(network$topo_dim))) {
+#      rows <- which(network$topo_dim == i)
+#      # first segment set to one
+#      if (i == 1) {
+#        network$bin_id[rows] <- 1
+#      } else {
+#        # actual segments
+#        take_segments <- network[rows, ]@data
+#        # downstream segments
+#        take_down <- network[network$topo_dim == i - 1, ]@data
+#        names(take_down)[2] <- 'stream_down'
+#        # merge dwn (with bin_id) and actual
+#        take_merge <- merge(take_down[ , c('stream_down', 'bin_id')],
+#                            take_segments, by.x = 'stream_down', by.y = 'next_stream')
+#        # assign 0/1 and paste with downstream id
+#        take_merge[ , 'bin_id'] <-  c(aggregate(bin_id.x ~ stream_down, data = take_merge,
+#                  FUN = function(x) paste0(x, sample(c(0, 1), 2)))[ , 'bin_id.x'])
+#        take_merge$bin_id.x <- NULL
+#        take_merge$bin_id.y <- NULL
+#        network$bin_id[rows] <- take_merge$bin_id
+#      }
+#    }
+#    out <- network@data[ , c('rid', 'bin_id')]
+#    names(out) <- c("rid", "binaryID")
+#    return(out)
+#  }

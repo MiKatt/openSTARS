@@ -53,7 +53,7 @@
 # clean <- TRUE
 # ##777
 
-derive_streams(burn=5, at=700, condition=TRUE, clean = TRUE)
+#derive_streams(burn=5, at=700, condition=TRUE, clean = TRUE)
 
 # MiKatt: I would suggest a differnt parameter name for 'at' because this is often a plotting parameter. Maybe 'accumthresh'?
 derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
@@ -116,6 +116,17 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
     }
   }
   
+  # calculate flow accumulation --------------
+  # MiKatt: Is needed to derive stream topology
+  # MiKatt: moved here from last step in function so it can be used as input for r.stream.extract (-> faster + identical streams?)
+  # MiKatt: flow directions raster is slightly different, streams seem to be identical
+  execGRASS("r.watershed",
+            flags = c('overwrite', 'quiet'),
+            parameters = list(
+              elevation = "dem",
+              accumulation = 'accums'
+            ))
+  
   # MiKatt: Using r.watershed to derive streams, flow directions and accumulation would be faster (plus r.to.vect and v.clean). 
   # MiKatt: -> produces many very small segments, often close to intersections => Why?
   # MiKatt: -> seems to be independent of the convercence value.
@@ -127,6 +138,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
   execGRASS("r.stream.extract",
             flags =  c('overwrite', 'quiet'),
             parameters = list(elevation = "dem",
+                              accumulation = "accums",
                               threshold = at, # use ATRIC to get this value?
                               stream_raster = "streams_r",  # output raster
                               stream_vector = "streams_vr", # ouput vector
@@ -156,14 +168,6 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               name = 'streams_vr'
             ))
   }
-  # calculate flow accumulation --------------
-  # MiKatt: Is needed to derive stream topology
-  execGRASS("r.watershed",
-            flags = c('overwrite', 'quiet'),
-            parameters = list(
-              elevation = "dem",
-              accumulation = 'accums'
-            ))
 } 
 # 
 # ###777
