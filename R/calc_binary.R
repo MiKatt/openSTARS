@@ -1,9 +1,16 @@
-#' Calculate binary IDs for each stream network
-#' @importFrom stats aggregate
-#'
-#' @return Nothing. The function writes a data file to disk for each network containing rid and binaryID :
+#' Calculate binary IDs for each stream network.
+#' 
+#' @import data.table
+#' 
+#' @return A list with one slot for each network id containing a data frame
+#' with 'rid' and 'binaryID' for each segment belonging to this network.
+#' 
+#' @note \code{\link{import_data}}, \code{\link{derive_streams}}, 
+#'   \code{\link{calc_edges}} and code{\link{calc_sites}} must be run before.
+#' 
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}; Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' 
 #' @examples
 #' \donttest{
 #' library(rgrass7)
@@ -15,6 +22,10 @@
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' import_data(dem = dem_path, sites = sites_path)
 #' derive_streams()
+#' cj <- check_compl_junctions()
+#' if(cj){
+#'   correct_compl_junctions()
+#' }
 #' calc_edges()
 #' calc_sites()
 #' binaries <- calc_binary()
@@ -22,26 +33,6 @@
 #' }
 
 calc_binary <- function(){
-  
-  #' Recursive function to assign binary id to stream segments
-  #' data.table dt.streams must be present containing topological information for the edges
-  #' Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments
-  #' '<<-' "call by reference" assigns to global variable
-  #' Must be defined within function, otherwise it does not know dt.streams
-  #' @param id: stream segment
-  #' @param binID: binary ID
-  #' @param lastbit: last char to be added (0 or 1)
-  #' @keywords internal
-  assign_binIDs<-function(id,binID,lastbit){
-    if(dt.streams[id]$prev_str01 == 0){  # check only one of prev01 and prev02 because they are always both 0
-      dt.streams[id]$binaryID <<- paste0(binID,lastbit)
-    } else {
-      dt.streams[id]$binaryID <<- paste0(binID,lastbit)
-      assign_binIDs(dt.streams[id]$prev_str01,dt.streams[id]$binaryID,0)
-      assign_binIDs(dt.streams[id]$prev_str02,dt.streams[id]$binaryID,1)
-    }
-  }
-  
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = 'vect'
@@ -54,44 +45,64 @@ calc_binary <- function(){
   if (!'sites' %in% vect)
     stop('sites not found. Did you run calc_sites()?')
 
-  # for each network ------
-  # t1<-Sys.time()
-  # streams <- readVECT('streams_topo', type = 'line', ignore.stderr = TRUE)
-  # 
-  # # for each segment -----
-  # bins <- lapply(unique(streams$netID), function(y) {
-  #   calc_binary_horse(streams[streams$netID == y, ])
-  # })
-  # names(bins) <- unique(streams$netID)
-  # print(Sys.time()-t1)
- 
-  # MiKatt: Might be faster (no need to read in topography)
-  #t2<-Sys.time()
-  d<-execGRASS('db.select',
+  dt.streams<-execGRASS('db.select',
                flags = 'c',
                parameters = list(
                sql = 'select rid,stream,next_stream,prev_str01,prev_str02,netID from edges',
                separator = ','
                ), intern = TRUE)
 
-  d<-do.call(rbind,strsplit(d,split=","))
-  colnames(d)<-c("rid","stream","next_stream","prev_str01","prev_str02","netID")
-  d<-apply(d,2,as.numeric)
-  dt.streams<-as.data.table(d)
-  rm(d)
-  setkey(dt.streams,stream)
-  dt.streams$binaryID<-"0"
-  outlets <- dt.streams[next_stream == -1]$stream
+  dt.streams<-do.call(rbind,strsplit(dt.streams,split=","))
+  dt.streams<-apply(dt.streams,2,as.numeric)
+  colnames(dt.streams)<-c("rid","stream","next_stream","prev_str01","prev_str02","netID")
+  dt.streams <- data.frame(dt.streams)
+  setDT(dt.streams)
+  dt.streams[, binaryID := "0"]
+  outlets <- dt.streams[next_stream == -1, stream]
 
   for(i in outlets){
-    assign_binIDs(id=i,1,NULL)
+    assign_binIDs(dt = dt.streams, id=i, 1, NULL)
   }
-  #print(dt.streams)
-  bins2<-lapply(outlets, function(x) dt.streams[netID == dt.streams[x]$netID, list(rid,binaryID)])
-  names(bins2)<-  dt.streams[outlets]$netID
-  #print(bins2)
-  #print(Sys.time()-t2)
-  return(bins2)
+  
+  bins<-lapply(outlets, function(x) dt.streams[netID == dt.streams[stream == x, netID], list(rid,binaryID)])
+  names(bins)<-  dt.streams[stream %in% outlets, netID]
+  return(bins)
+}
+
+
+# #' Recursive function to assign binary id to stream segments
+# #' data.table dt.streams must be present containing topological information for the edges
+# #' Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments
+# #' '<<-' "call by reference" assigns to global variable
+# #' Must be defined within function, otherwise it does not know dt.streams
+# #' @param id: stream segment
+# #' @param binID: binary ID
+# #' @param lastbit: last char to be added (0 or 1)
+# #' @keywords internal
+# assign_binIDs<-function(id,binID,lastbit){
+#   if(dt.streams[id]$prev_str01 == 0){  # check only one of prev01 and prev02 because they are always both 0
+#     dt.streams[id]$binaryID <<- paste0(binID,lastbit)
+#   } else {
+#     dt.streams[id]$binaryID <<- paste0(binID,lastbit)
+#     assign_binIDs(dt.streams[id]$prev_str01,dt.streams[id]$binaryID,0)
+#     assign_binIDs(dt.streams[id]$prev_str02,dt.streams[id]$binaryID,1)
+#   }
+# }
+# 
+#' Recursive function to assign binary id to stream segments
+#' Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments
+#' @param id: stream segment
+#' @param binID: binary ID
+#' @param lastbit: last char to be added (0 or 1)
+#' @keywords internal
+assign_binIDs <- function(dt, id, binID, lastbit){
+  if(dt[stream == id,prev_str01] == 0){  # check only one of prev01 and prev02 because they are always both 0
+    dt[stream == id, binaryID := paste0(binID, lastbit)]
+  } else {
+    dt[stream == id, binaryID := paste0(binID,lastbit)]
+    assign_binIDs(dt, dt[stream == id,prev_str01], dt[stream==id, binaryID], 0)
+    assign_binIDs(dt, dt[stream == id,prev_str02], dt[stream == id, binaryID], 1)
+  }
 }
 
 
