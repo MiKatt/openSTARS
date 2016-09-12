@@ -1,10 +1,12 @@
-#' openSTARS: An open source implementation of the STARS toolbox.
-#'
-#' GRASS GIS 7.0 (or greater) with installed addons r.stream.basins, r.stream.distance and r.stream.order
+#' openSTARS: An open source implementation of the ArcGIS toolbox STARS.
+#' 
+#' openSTARS provides funcitons to prepare data so that it can be imported by the
+#' \code{\link[SSN]{SSN}} package for spatial modelling on stream networks.
+#' GRASS GIS 7.0 (or greater) with installed addons r.stream.basins, r.stream.distance, r.stream.order and r.hydrodem
 #' is needed.
 #'
 #' @docType package
-#' @name webchem
+#' @name openSTARS
 #' @examples
 #' \donttest{
 #' library(openSTARS)
@@ -20,13 +22,20 @@
 #' gmeta()
 #'
 #' # Derive streams from DEM
-#' derive_streams()
+#' derive_streams(burn=0, at=700, condition=TRUE, clean = TRUE)
+#' 
+#' # Test for and correct colplex junctions
+#' cp <- check_compl_junctions()
+#' if (cp)
+#'   correct_compl_junctions(clean=T)
 #'
 #' # Prepare edges
 #' calc_edges()
 #'
 #' # Prepare site
 #' calc_sites()
+#' # Calculate H2OArea
+#' calc_sites_attributes()
 #'
 #' # Calculate binary IDs
 #' binaries <- calc_binary()
@@ -43,9 +52,12 @@
 #' # Write SSN Folder
 #' ssn_dir <- file.path(tempdir(), 'nc.ssn')
 #' export_ssn(ssn_dir, binary = binaries)
+#' 
+#' # Check if all files are ok
+#'  library(SSN)
+#' check_ssn(ssn_dir)
 #'
 #' # Load into SSN-package
-#' library(SSN)
 #' ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 #' plot(ssn_obj, 'value')
 #' }
