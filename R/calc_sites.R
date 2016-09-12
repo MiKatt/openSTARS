@@ -1,11 +1,10 @@
-,
-,#' Calculate sites for SSN.
+#' Calculate sites for SSN.
 #'
 #' @importFrom methods as
 #' @import sp
 #'
 #' @description
-#' Calcuate sites for SSN object.
+#' Calcuate sites for SSN object and assign several attributes.
 #'
 #' Steps include:
 #' \itemize{
@@ -16,9 +15,11 @@
 #'  \item{Calculate watershed for each point, 'H2Oarea'}
 #'  \item{Calculate watershed predictors for each point from raster files [currently not implemented]}
 #' }
+#' 
+#' @note \code{\link{import_data}}, \code{\link{derive_streams}} and 
+#'   \code{\link{calc_edges}} must be run before.
 #'
-#'
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
+#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel \email{kattwinkel-mira@@uni-landau.de}
 #' @export
 #' @examples
 #' \donttest{
@@ -31,6 +32,10 @@
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' import_data(dem = dem_path, sites = sites_path)
 #' derive_streams()
+#' cj <- check_compl_junctions()
+#' if(cj){
+#'   correct_compl_junctions()
+#' } 
 #' calc_edges()
 #' calc_sites()
 
@@ -41,6 +46,7 @@
 #' points(sites, pch = 4)
 #' lines(edges, col = 'blue')
 #' }
+
 calc_sites <- function() {
   vect <- execGRASS("g.list",
                     parameters = list(
@@ -63,7 +69,7 @@ calc_sites <- function() {
 
   # Snap sites to streams --------
   message('Snapping sites to streams...\n')
-  # add 4 columns holding: cat, distance id and coordinates of nearest streams
+  # add 4 columns holding: stream, distance and coordinates of nearest streams
   execGRASS("v.db.addcolumn",
             parameters = list(
               map = "sites",
@@ -91,13 +97,15 @@ calc_sites <- function() {
   writeVECT(sites, vname = 'sites',
             v.in.ogr_flags = c('overwrite', 'quiet'),
             ignore.stderr = TRUE)
-
+  nsites <- nrow(sites)
+  sites.coor <- data.table(sites$cat,sites$xm,sites$ym)
+  rm(sites)
 
   ### Setting pid -----------
   #! pid and locID identical???
-  # MiKatt: pid is for "repeated measurements at a singel location" (Peterson & Ver Hoef, 2014: Stars_ An ArcGIS Toolset Used to Calculate the Spatial Information Neede to Fit SPatial Statistical Models to Stream Network Data, p. 13)
+  # MiKatt: pid is for "repeated measurements at a singel location" (Peterson & Ver Hoef, 2014: Stars: An ArcGIS Toolset Used to Calculate the Spatial Information Neede to Fit SPatial Statistical Models to Stream Network Data, p. 13)
   # MiKatt: Hence locID = pid seems to be ok
-  # MiKatt: ! Use a different (user defined) column as site ID
+  # MiKatt: Also keep user defined site IDs / site names
   message('Setting pid and locID...\n')
   execGRASS("v.db.addcolumn",
             parameters = list(map = 'sites',
@@ -113,49 +121,22 @@ calc_sites <- function() {
 
   # Set netID and rid from network ---------
   message('Assigning netID and rid...\n')
-  # execGRASS("v.db.addcolumn",
-  #           flags = c('quiet'),
-  #           parameters = list(map = 'sites',
-  #                             columns = 'netID int, rid int'))
-  # execGRASS("v.what.vect",
-  #           parameters = list(map = 'sites',
-  #                             column = 'netID',
-  #                             query_map = 'edges',
-  #                             query_column = 'netID',
-  #                             dmax = 5))
-  # execGRASS("v.what.vect",
-  #           parameters = list(map = 'sites',
-  #                             column = 'rid',
-  #                             query_map = 'edges',
-  #                             query_column = 'rid',
-  #                             dmax = 5))
-
+ 
   # MiKatt: This seems to be faster
   execGRASS("v.db.addcolumn",
             flags = c('quiet'),
             parameters = list(map = 'sites',
                               columns = 'netID int, rid int'))
-  
   execGRASS('db.execute',
             parameters = list(
               sql="UPDATE sites SET rid=(SELECT rid FROM edges WHERE sites.cat_edges=edges.cat)"
               ))
-  
   execGRASS('db.execute',
             parameters = list(
               sql="UPDATE sites SET netID=(SELECT netID FROM edges WHERE sites.cat_edges=edges.cat)"
             ))
   
-  # d<-execGRASS('db.select',
-  #              parameters = list(
-  #              sql = 'select * from sites',
-  #              separator = ','
-  #              ), intern = TRUE)
-  # 
-  # d<-do.call(rbind,strsplit(d,split=","))
-  
-
-  # Calculate and upDist ---------
+  # Calculate upDist ---------
   # MiKatt: Distance of every raster cell from the outlet
   message('Calculating upDist...\n')
   execGRASS('r.stream.distance',
@@ -176,39 +157,148 @@ calc_sites <- function() {
               raster = 'upDist',
               column = 'upDist'
             ))
-  # MiKatt: ! Round up Dist to m
-
-  # Calculate and H20predictors for each site -----
-  # MiKatt: ! There might be a faster way to do that
-  message('Calculating H20Area...\n')
-  sites <- readVECT('sites', ignore.stderr = FALSE)
-  take_area <- NA
-  #! add here more predictors!
-  for (i in seq_along(sites@data$pid)) {
-    take <- sites@data$pid[i]
-    # subset sites
-    execGRASS('v.extract',
-              flags = c("overwrite", "quiet"),
-              parameters = list(
-                input = 'sites',
-                where = paste0('pid=', take),
-                output = 'take_site'))
-    # calc drainage area
-    execGRASS("r.stream.basins",
-              flags = c("overwrite", "l", "quiet"),
-              parameters = list(direction = "dirs",
-                                points = 'take_site',
-                                basins = "take_area"))
-    # calc drainage area size
-    take_area[i] <- strsplit(execGRASS('r.stats',
-                                    flags = c('a', 'quiet'),
-                                    parameters = list(input = 'take_area'),
-                                    intern = TRUE)[1], split = ' ')[[1]][[2]]
-  }
-  # MiKatt: For edges, area was divided by 10000. Changed it there to have the same units 
-  sites$H2OArea <- round(as.numeric(take_area), 2)
-  sites$cat_ <- NULL
-  writeVECT(sites, vname = 'sites',
-            v.in.ogr_flags = c('overwrite', 'quiet'),
-            ignore.stderr = TRUE)
+  # MiKatt: ! Round upDist to m
+  
+  # MiKatt: Moved to function calculate_sites_attributes
+  # # Calculate and H20predictors for each site -----
+  # # MiKatt: ! There might be a faster way to do that
+  # message('Calculating H20Area...\n')
+  # 
+  # sites <- readVECT('sites', ignore.stderr = FALSE)
+  # take_area <- NA
+  # take_avg_slope <- NA
+  # #! add here more predictors!
+  # for (i in seq_along(sites@data$pid)) {
+  #   take <- sites@data$pid[i]
+  #   # subset sites
+  #   execGRASS('v.extract',
+  #             flags = c("overwrite", "quiet"),
+  #             parameters = list(
+  #               input = 'sites',
+  #               where = paste0('pid=', take),
+  #               output = 'take_site'))
+  #   # calc drainage area
+  #   execGRASS("r.stream.basins",
+  #             flags = c("overwrite", "l", "quiet"),
+  #             parameters = list(direction = "dirs",
+  #                               points = 'take_site',
+  #                               basins = "take_area"))
+  #   # calc drainage area size
+  #   take_area[i] <- strsplit(execGRASS('r.stats',
+  #                                   flags = c('a', 'quiet'),
+  #                                   parameters = list(input = 'take_area'),
+  #                                   intern = TRUE)[1], split = ' ')[[1]][[2]]
+  #   
+  #   # calc average slope per watershed
+  #   # set mask to the current basin
+  #   execGRASS("r.mask",
+  #             flags = c("overwrite", "quiet"),
+  #             parameters = list(
+  #               raster = "take_area"))
+  #   avg <- execGRASS("r.univar",
+  #             flags = c("overwrite", "quiet","g"),
+  #             parameters = list(
+  #               map = "slope"), intern = TRUE)
+  #   avg <- setDT(data.frame(do.call(rbind,strsplit(avg,"="))))
+  #   take_avg_slope[i] <- avg[X1 == "mean",as.numeric(as.character(X2))]
+  #   execGRASS("r.mask",
+  #             flags = c("r", "quiet"))
+  #   
+  # }
+  # # MiKatt: For edges, area was divided by 10000. Changed it there to have the same units 
+  # sites$H2OArea <- round(as.numeric(take_area), 2)
+  # sites$avgSlope <- round(as.numeric(take_avg_slope), 2)
+  # sites$cat_ <- NULL
+  # writeVECT(sites, vname = 'sites',
+  #           v.in.ogr_flags = c('overwrite', 'quiet'),
+  #           ignore.stderr = TRUE)
+  
+  #####
+  # # MiKatt does not work!
+  # execGRASS("g.copy",
+  #           flags = c('overwrite', 'quiet'),
+  #           parameters = list(
+  #             vector = 'edges,edges_e'))
+  # 
+  # # additionally break streams at sites
+  # dt.coord<-do.call(rbind,strsplit(
+  #   execGRASS("v.to.db", flags =c("p","quiet"),
+  #             parameters = list(
+  #               map = "sites",
+  #               option = "coor"
+  #             ),intern=T),
+  #   split = '\\|'))
+  # colnames(dt.coord)<-c("cat","x","y","z")
+  # dt.coord <- data.table(dt.coord[,-4])
+  # dt.coord[,':='(x = as.numeric(x), y = as.numeric(y),cat = as.numeric(cat))]
+  # 
+  # execGRASS("v.edit",
+  #           flags = c('quiet',"overwrite"),
+  #           parameters = list(
+  #             map = 'edges_e',
+  #             type = 'line',
+  #             tool = 'break',
+  #             threshold = 1,
+  #             #where = paste0('stream = ',df.junctions[i,"stream"]),
+  #             coords = c(dt.coord[,c(x,y),by=cat][,V1])
+  #               #c(dt.coord[,x],dt.coord[,y]) # c(3506012.25,5778000,3502071.75,5771477.75) # #paste0("c(",paste(dt.coord[,x],dt.coord[,y],collapse = ",",sep=","),")")
+  #           ))
+  # execGRASS("v.category", flags=c("overwrite"),
+  #           parameters = list(
+  #             input = "edges_e",
+  #             output = "edges_e2",
+  #             cat = -1,
+  #             option = "del"
+  #           ))
+  # 
+  # execGRASS("v.category", flags=c("overwrite","quiet"),
+  #           parameters = list(
+  #             input = "edges_e2",
+  #             output = "edges_e",
+  #             option = "add"
+  #           ), ignore.stderr = T)
+  # 
+  # execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
+  #           parameters = list(
+  #             input = "edges_e",
+  #             type = "line",
+  #             output = "edges_re",
+  #             use = "cat"
+  #           ))
+  # execGRASS("r.stream.basins",
+  #           flags = c("overwrite", "quiet"),
+  #           parameters = list(direction = 'dirs',
+  #                             stream_rast = 'edges_re',
+  #                             basins = "rca_e"))
+  # areas <- do.call(rbind,
+  #                  strsplit(execGRASS('r.stats',
+  #                                     flags = c('a', 'quiet'),          # MiKatt: a -> m²
+  #                                     parameters = list(input = 'rca_e'),
+  #                                     intern = TRUE),
+  #                           split = ' '))
+  # # last row is total and not needed
+  # areas <- areas[-nrow(areas), ]
+  # 
+  # dt.streams <- do.call(rbind,strsplit(
+  #   execGRASS("db.select",
+  #             parameters = list(
+  #               sql = "select cat,stream, next_stream, prev_str01,prev_str02,rid,H2OArea from edges_e"
+  #             ),intern = T),
+  #   split = '\\|'))
+  # colnames(dt.streams)<-dt.streams[1,]
+  # dt.streams<-data.table(dt.streams[-1,])
+  # dt.streams[, ':=' (cat = as.numeric(cat),stream = as.numeric(stream), next_stream = as.numeric(next_stream), 
+  #                    prev_str01 = as.numeric(prev_str01), prev_str02 = as.numeric(prev_str02),
+  #                    rid = as.numeric(rid), H2OArea = as.numeric(H2OArea))]
+  # a<-data.table(as.numeric(areas[,1]),as.numeric(areas[,2]))
+  # names(a)<-c("cat","area")
+  # dt.streams<-merge(dt.streams,a,by="cat",all=T)
+  # setkey(dt.streams,stream)
+  # 
+  # sites.rid <- as.numeric(execGRASS("db.select",
+  #                                   parameters = list(
+  #                                     sql = "select rid from sites"
+  #                                   ),intern = T)[-1])
+  
 }
+
