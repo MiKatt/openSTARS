@@ -27,6 +27,42 @@
 #' export_ssn(ssn_dir, binary = binaries)
 #' check_ssn(ssn_dir)
 #' }
+
+# # Windows:
+# initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.0.3", #"/usr/lib/grass70/",
+#           home = tempdir(), #"f:/Landau/02_openSTARS/openSTARS-master_MK/Grass/test",
+#           gisDbase = "f:/Landau/02_openSTARS/Grass/GRASSDB",
+#           location = "testdata_Edi2",
+#           remove_GISRC = T,
+#           override = TRUE)
+# 
+# dem_path <-  "f:/Landau/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/elev_ned_30m.tif"
+# sites_path <- "f:/Landau/02_openSTARS/openSTARS-master_MK/inst/extdata/nc/sites_nc.shp"
+# streams = NULL
+# 
+# import_data(dem = dem_path, sites = sites_path)
+# dem <- readRAST('dem')
+# plot(dem)
+# 
+# derive_streams(burn=5, at=700, condition=TRUE, clean = TRUE)
+# calc_edges()
+# streams<-readVECT('edges')
+# plot(streams,add=T,col="green")
+# 
+# calc_sites()
+# streams<-readVECT('sites')
+# plot(streams,add=T,col="red")
+# streams<-readVECT('sites_o')
+# plot(streams,add=T,col="yellow")
+# 
+# binaries <- calc_binary()
+# ssn_dir <- file.path(tempdir(), 'nc.ssn')
+# export_ssn(ssn_dir, binary = binaries)
+# require('rgdal')
+# require('SSN')
+# check_ssn(ssn_dir)
+
+
 check_ssn <- function(path) {
   out <- TRUE
 
@@ -124,6 +160,7 @@ check_ssn <- function(path) {
 
 
 # Binary ids --------------------------------------------------------------
+  message('Checking Binary files...')
   if (all(as.numeric(gsub('netID(.*)\\.dat', '\\1', bin_files)) %in% unique(edges@data$netID))) {
     message('\tBinary files...OK')
   } else {
