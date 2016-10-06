@@ -2,15 +2,20 @@
 % Please edit documentation in R/calc_binary.R
 \name{calc_binary}
 \alias{calc_binary}
-\title{Calculate binary IDs for each stream network}
+\title{Calculate binary IDs for each stream network.}
 \usage{
 calc_binary()
 }
 \value{
-A list of data.frames (for each network one), with rid and the binary code for each segment.
+A list with one slot for each network id containing a data frame
+with 'rid' and 'binaryID' for each segment belonging to this network.
 }
 \description{
-Calculate binary IDs for each stream network
+Calculate binary IDs for each stream network built up by '0' and '1'.
+}
+\note{
+\code{\link{import_data}}, \code{\link{derive_streams}},
+  \code{\link{calc_edges}} and code{\link{calc_sites}} must be run before.
 }
 \examples{
 \donttest{
@@ -21,8 +26,13 @@ initGRASS(gisBase = "/usr/lib/grass70/",
 gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
 derive_streams()
+cj <- check_compl_junctions()
+if(cj){
+  correct_compl_junctions()
+}
 calc_edges()
 calc_sites()
 binaries <- calc_binary()
@@ -30,6 +40,6 @@ head(binaries[[1]])
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}
+Eduard Szoecs, \email{eduardszoecs@gmail.com}; Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
 

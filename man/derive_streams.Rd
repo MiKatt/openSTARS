@@ -7,36 +7,37 @@
 derive_streams(burn = 5, at = 700, condition = TRUE, clean = TRUE)
 }
 \arguments{
-\item{burn}{numeric; How many meters should the streams be burned in DEM.}
+\item{burn}{numeric; how many meters should the streams be burned into the DEM?}
 
-\item{at}{numeric; accumulation threshold to use.}
+\item{at}{integer; accumulation threshold to use (i.e. minimum flow
+accumulation value that will initiate a new stream).}
 
-\item{condition}{logical; should conditioning using r.hydrodem run?}
+\item{condition}{logical; should the DEM be conditioned using
+\href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?}
 
-\item{clean}{logical; Should intermediate layer be removed from GRASS session?}
+\item{clean}{logical; should intermediate raster layer of imported
+streams ("streams_or") be removed from GRASS session?}
 }
 \value{
 Nothing. The function produces the following maps:
 \itemize{
- \item{"streams_r"}{derived streams (raster)}
- \item{"streams_v"}{derived streams (vector)}
- \item{"dirs"}{flow directions (raster)}
- \item{"accums"}{accumulation values (raster)}
-}
+ \item{"streams_r"} {derived streams (raster)}
+ \item{"streams_v"} {derived streams with topology (vector)}
+ \item{"dirs"} {flow directions (raster)}
+ \item{"accums"} {accumulation values (raster)}
+} Additionally, "dem" is modified if condition = TURE and / or burn > 0.
 }
 \description{
 Streams are derived from a DEM using
 \href{https://grass.osgeo.org/grass70/manuals/r.stream.extract.html}{r.stream.extract}.
 If a stream network is available (see \code{\link{import_data}}) and
 burn > 0 it will be first burned into DEM.
+Stream topolology is derived using
+\href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
 }
 \note{
-\code{\link{import_data}} must be run before.
-Intermediate layers cleaned are:
-\itemize{
- \item{"streams_or"}{raster of imported streams (raster)}
- \item{"streams_vr"}{uncleaned vector of derived network (vector)}
-}
+\code{\link{setup_grass_environment}} and \code{\link{import_data}}
+  must be run before.
 }
 \examples{
 \donttest{
@@ -47,6 +48,7 @@ initGRASS(gisBase = "/usr/lib/grass70/",
 gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
 derive_streams()
 dem <- readRAST('dem', ignore.stderr = TRUE)
@@ -58,6 +60,6 @@ lines(streams, col = 'blue')
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}
+Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel \email{mira.kattwinkel@gmx.net}
 }
 

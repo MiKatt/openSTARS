@@ -2,22 +2,36 @@
 % Please edit documentation in R/calc_sites.R
 \name{calc_sites}
 \alias{calc_sites}
-\title{Calculate sites for SSN.}
+\title{Calculate sites for SSN object.}
 \usage{
 calc_sites()
 }
 \description{
-Calcuate sites for SSN object.
-
+A vector (points) map 'sites' is derived and several attributes are assigned.
+}
+\details{
 Steps include:
 \itemize{
- \item{Snap points to derived network. 'dist' give the distance to streams.}
+ \item{Snap points to derived network. 'dist' gives the distance of the original position to the closest streams segement.}
  \item{Assign unique 'pid' and 'locID'.}
- \item{Set underlying 'rid' and 'netID' from stream network.}
- \item{Calculate upstream distance for each point ('upDist')}
- \item{Calculate watershed for each point, 'H2Oarea'}
- \item{Calculate watershed predictors for each point from raster files [currently not implemented]}
+ \item{Get 'rid' and 'netID' of the stream segment the site intersects with (from map 'edges').}
+ \item{Calculate upstream distance for each point ('upDist').}
+ \item{Calculate distance ratio ('distRatio) between position of site on edge
+   (distance traveled from lower end of theedge to the site) and the total
+    length of the edge.}
 }
+Often, survey sites do not lay exactly on the stream network (due to GPS
+inprecision, stream representation as lines, derivation of streams from dem, etc.).
+To assigne an exact position of the sites on the network they are moved to
+the closest stream segment (snapped) using
+\href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance}.
+
+'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
+#' \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+}
+\note{
+\code{\link{import_data}}, \code{\link{derive_streams}} and
+  \code{\link{calc_edges}} must be run before.
 }
 \examples{
 \donttest{
@@ -28,8 +42,13 @@ initGRASS(gisBase = "/usr/lib/grass70/",
 gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
 derive_streams()
+cj <- check_compl_junctions()
+if(cj){
+  correct_compl_junctions()
+}
 calc_edges()
 calc_sites()
 dem <- readRAST('dem', ignore.stderr = TRUE)
@@ -41,6 +60,6 @@ lines(edges, col = 'blue')
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}
+Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel \email{mira.kattwinkel@gmx.net}
 }
 

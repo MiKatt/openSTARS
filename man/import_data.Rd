@@ -4,28 +4,34 @@
 \alias{import_data}
 \title{Import data into GRASS.}
 \usage{
-import_data(dem, sites, streams = NULL, ...)
+import_data(dem, sites, streams = NULL, snap_streams = FALSE, ...)
 }
 \arguments{
-\item{dem}{character; path to DEM.}
+\item{dem}{character; path to DEM raster file.}
 
-\item{sites}{character; path to sites.}
+\item{sites}{character; path to sites vector file.}
 
-\item{streams}{character, (optional); path to network shape.
-If available it can be to burn into DEM}
+\item{streams}{character (optional); path to network vector file.
+If available it can be burnt into DEM.}
+
+\item{snap_streams}{boolean (optional); snap line ends.
+If TRUE line ends of the streams are snapped to the next feature if they are
+ unconncted with threshold of 10 m using GRASS function v.clean.}
 
 \item{...}{other paths to raster data to import as predictors
-(currently not implemented)}
+(not yet implemented).}
 }
 \value{
 Nothing, the data is loaded into the GRASS session.
 The DEM is stored as raster 'dem' and sites as vector 'sites_o' within GRASS.
 }
 \description{
-This function load dem and sites data (both required) into the GRASS session.
+This function loads dem and sites data (both required) into the GRASS session.
+Optionally, streams data is loaded and the streams may be corrected by
+snapping to prevent lose ends.
 }
 \note{
-A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
+A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
 \donttest{
@@ -36,11 +42,12 @@ initGRASS(gisBase = "/usr/lib/grass70/",
 gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-
 dem <- readRAST('dem')
 plot(dem)
 }
+
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}

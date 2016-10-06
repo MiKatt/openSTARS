@@ -2,41 +2,40 @@
 % Please edit documentation in R/calc_edges.R
 \name{calc_edges}
 \alias{calc_edges}
-\title{Calculate edges for SSN.}
+\title{Calcuate edges for SSN object.}
 \usage{
 calc_edges(clean = TRUE)
 }
 \arguments{
-\item{clean}{logical; Should intermediate layer be removed from GRASS session?}
+\item{clean}{logical; should intermediate layer (rca, reach contributing area)
+be removed from GRASS session?}
 }
 \value{
-Nothing. The function produces the following maps:
+Nothing. The function produces the following map:
 \itemize{
- \item{"edges"}{derived stream with computed attributes needed for SSN (vector)}
- \item{"stream_topo"}{stream topology measures (vector)}
+ \item{'edges'} {derived stream segments with computed attributes needed for SSN (vector)}
 }
 }
 \description{
-Calcuate edges for SSN object.
-
+A vector (lines) map 'edges' is derived from 'streams_v' and several
+ attributes are assigned.
+}
+\details{
 Steps include:
 \itemize{
- \item{Assigning unique "rid" and "OBJECTID" to each stream segment}
- \item{Finding different stream networks in the region and assigning "netID"}
- \item{Calculation of stream topology, "topo_dim"}
- \item{Calculation of segments upstream distance ("upDist")}
- \item{Calculation of river contributing areas (RCA) per segment, "rcaArea"}
- \item{Calculation of watershed areas, "H2OArea"}
+ \item{Assign unique 'rid' and 'OBJECTID' to each stream segment}
+ \item{Find different stream networks in the region and assign 'netID'}
+ \item{Calculate segments upstream distance, 'upDist' = flow length
+  to the outlet of the network}
+ \item{Calculate reach contributing areas (RCA ) per segment, 'rcaArea'
+  = subcatchment area of each segment}
+ \item{Calculate catchment areas; 'H2OArea' = total catchment area of each
+ segment}
+ All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
 }
 }
 \note{
-\code{\link{import_data}} and \code{\link{derive_streams}} must be run before.
-Intermediate layers cleaned are:
-\itemize{
- \item{"netID_v"}{network IDs (vector)}
- \item{"netID"}{network IDs (raster)}
- \item{"rca"}{RCA per segement (raster)}
-}
+\code{\link{setup_grass_environment}}, \code{\link{import_data}} and \code{\link{derive_streams}} must be run before.
 }
 \examples{
 \donttest{
@@ -47,8 +46,13 @@ initGRASS(gisBase = "/usr/lib/grass70/",
 gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
 derive_streams()
+#' cj <- check_compl_junctions()
+if(cj){
+  correct_compl_junctions()
+}
 calc_edges()
 edges <- readVECT('edges', ignore.stderr = TRUE)
 head(edges@data)
@@ -60,6 +64,6 @@ lines(edges, col = 'blue')
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}
+Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
 
