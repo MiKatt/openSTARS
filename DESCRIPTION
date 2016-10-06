@@ -4,24 +4,26 @@ Title: An open source implementation of the STARS toolbox
 Description: An open source implementation of the STARS toolbox
     (Peterson & Ver Hoef, 2014)) using R and GRASS GIS.
     It prepares the .ssn object needed for the SSN package.
-    Currently a DEM is used to derive stream networks (in contrast to STARS, which can clean an existing stream network).
+    Currently a DEM is used to derive stream networks (in contrast to STARS, which can clean 
+    an existing stream network).
 Version: 0.0.1.9000
-License: MIT + file LICENSE
+Authors@R:c(person("Mira", "Kattwinkel", role = c("aut","cre"),
+              email = "mira.kattwinkel@gmx.net"),
+	    person("Eduard", "Szöcs", role = c("aut"),
+             email = "eduardszoecs@gmail.com"))
 URL: https://github.com/EDiLD/openSTARS
-BugReports: https://github.com/EDiLD/openSTARS/issues
-Authors@R: c(person("Eduard", "Szöcs", role = c("aut", "cre"),
-    email = "eduardszoecs@gmail.com"))
-Maintainer: Eduard Szöcs <eduardszoecs@gmail.com>
-Encoding: UTF-8
-LazyLoad: yes
-LazyData: yes
 Depends:
-    R (>= 3.2.1),
+    R (>= 3.3.1),
     rgrass7
-Imports:
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyLoad: true
+LazyData: true
+Imports: 
+    data.table,
+    methods,
+    progress,
     rgdal,
-    raster,
-    SSN,
     sp,
-    methods
+    SSN
 RoxygenNote: 5.0.1
