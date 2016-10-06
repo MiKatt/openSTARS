@@ -1,12 +1,17 @@
 #' openSTARS: An open source implementation of the ArcGIS toolbox STARS.
-#' 
+#'
 #' openSTARS provides funcitons to prepare data so that it can be imported by the
 #' \code{\link[SSN]{SSN}} package for spatial modelling on stream networks.
 #' GRASS GIS 7.0 (or greater) with installed addons r.stream.basins, r.stream.distance, r.stream.order and r.hydrodem
 #' is needed.
 #'
+#' @import rgrass7
+#' @import data.table
+#'
 #' @docType package
 #' @name openSTARS
+#' @import rgrass7
+#'
 #' @examples
 #' \donttest{
 #' library(openSTARS)
@@ -18,13 +23,14 @@
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+#'  setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
 #' gmeta()
 #'
 #' # Derive streams from DEM
 #' derive_streams(burn=0, at=700, condition=TRUE, clean = TRUE)
-#' 
-#' # Test for and correct colplex junctions
+#'
+#' # Test for and correct complex junctions
 #' cp <- check_compl_junctions()
 #' if (cp)
 #'   correct_compl_junctions(clean=T)
@@ -35,7 +41,7 @@
 #' # Prepare site
 #' calc_sites()
 #' # Calculate H2OArea
-#' calc_sites_attributes()
+#' calc_attributes_sites_exact()
 #'
 #' # Calculate binary IDs
 #' binaries <- calc_binary()
@@ -49,12 +55,12 @@
 #' cols <- colorRampPalette(c("blue", 'red'))(length(sites$value))[rank(sites$value)]
 #' points(sites, pch = 16, col = cols)
 #'
-#' # Write SSN Folder
+#' # Write data to SSN Folder
 #' ssn_dir <- file.path(tempdir(), 'nc.ssn')
 #' export_ssn(ssn_dir, binary = binaries)
-#' 
+#'
 #' # Check if all files are ok
-#'  library(SSN)
+#' library(SSN)
 #' check_ssn(ssn_dir)
 #'
 #' # Load into SSN-package

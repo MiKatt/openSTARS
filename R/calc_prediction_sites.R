@@ -1,0 +1,277 @@
+#' Calculate prediction sites for SSN object.
+#'
+#' @description
+#' A vector (points) map of prediction sites is derived and several attributes are assigned.
+#'
+#' @param predictions string giving the name for the predictions map.
+#' @param dist number giving the distance between the points to create in map units.
+#' @param nsites integer giving the approximate number of sites to create
+#' @param netIDs integer (optional): create predictions points only on streams
+#'  with these netID(s).
+#'
+#'@details
+#'Either \code{dist} or \code{nsites} must be provided. If \code{dist} is NULL,
+#' it is estimated by deviding the total stream length in the map by  \code{nsites};
+#' the actually derived number of sites might therefore be a bit smaller than
+#' \code{nsites}.
+#'
+#' Steps include:
+#' \itemize{
+#'  \item{Place points on edges with given distance form each other}
+#'  \item{Assign unique 'pid' and 'locID'.}
+#'  \item{Get 'rid' and 'netID' of the stream segment the site intersects with (from map 'edges').}
+#'  \item{Calculate upstream distance for each point ('upDist').}
+#'  \item{Calculate distance ratio ('distRatio') between position of the site on
+#'  the edge (= distance traveled from lower end of the edge to the site) and
+#'  the total length of the edge.}
+#' }
+#'
+#' 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
+#' \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+#' Points are created using \href{https://grass.osgeo.org/grass73/manuals/v.segment.html}{v.segment}.
+#'
+#' @note \code{\link{import_data}}, \code{\link{derive_streams}} and
+#'   \code{\link{calc_edges}} must be run before.
+#'
+#' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
+#' @export
+#' @examples
+#' \donttest{
+#' library(rgrass7)
+#' initGRASS(gisBase = "/usr/lib/grass70/",
+#'   home = tempdir(),
+#'   override = TRUE)
+#' gmeta()
+#' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
+#' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+#' setup_grass_environment(dem = dem_path, sites = sites_path)
+#' import_data(dem = dem_path, sites = sites_path)
+#' derive_streams()
+#' cj <- check_compl_junctions()
+#' if(cj){
+#'   correct_compl_junctions()
+#' }
+#' calc_edges()
+#' calc_sites()
+#' calc_prediction_sites(predictions = "preds", dist = 2500)
+#'
+#' dem <- readRAST('dem', ignore.stderr = TRUE)
+#' sites <- readVECT('sites_o', ignore.stderr = TRUE)
+#' preds <- readVECT('preds', ignore.stderr = TRUE)
+#' edges <- readVECT('edges', ignore.stderr = TRUE)
+#' plot(dem, col = terrain.colors(20))
+#' points(sites, pch = 4)
+#' points(preds, pch = 1, col = "darkgreen", cex = 0.75)
+#' lines(edges, col = 'blue')
+#' }
+
+calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs = NULL) {
+  vect <- execGRASS("g.list",
+                    parameters = list(
+                      type = 'vect'
+                    ),
+                    intern = TRUE)
+  if (!'edges' %in% vect)
+    stop('Edges not found. Did you run calc_edges()?')
+  if(predictions %in% vect)
+    execGRASS("g.remove",
+              flags = c('quiet', 'f'),
+              parameters = list(
+                type = 'vector',
+                name = predictions
+              ))
+
+  if(all(is.null(c(dist, nsites))))
+    stop("Either the distance between prediction sites (dist) or the number of
+         prediction sites (nsites) must be given.")
+
+  dt.streams <- do.call(rbind,strsplit(
+    execGRASS("db.select",
+              parameters = list(
+                sql = "select cat, stream, next_stream, prev_str01,prev_str02,netID,Length from edges"
+              ),intern = T),
+    split = '\\|'))
+  colnames(dt.streams) <- dt.streams[1,]
+  dt.streams <- data.table(dt.streams[-1,])
+  dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
+  dt.streams[, offset := 0]
+
+  # omit all segements that do not belong to the netIDs given
+  if(!is.null(netIDs)){
+    dt.streams[!(netID %in% netIDs), offset := NA]
+    dt.streams <- na.omit(dt.streams, cols = "offset")
+  }
+  if(nrow(dt.streams) == 0)
+    stop("No streams to place prediction points on.")
+
+  if(is.null(dist))
+    dist <- ceiling(sum(dt.streams[,Length]) / nsites)
+
+  message("Calculating point positions...\n")
+  outlets <- dt.streams[next_stream == -1, stream]
+  for(i in outlets){
+    calc_offset(dt.streams, id=i, offs = 0, dist)
+  }
+
+  pt <- 1
+  str1 <- NULL
+  for(i in 1:nrow(dt.streams)){
+    offs <- dt.streams[i, "offset", with = FALSE]
+    while(offs > 0){
+      str1 <- paste0(str1, "\n", paste("P", pt, dt.streams[i, "cat", with = FALSE], offs, sep=" "))
+      offs <- offs - dist
+      pt <- pt + 1
+    }
+  }
+  str1 <- substring(str1, 2)
+  dir.create("temp")
+  write(str1, "temp/pt.txt")
+
+  execGRASS("v.segment", flags = c("overwrite", "quiet"),
+            parameters = list(
+              input = "edges",
+              output = predictions,
+              rules = "temp/pt.txt"
+            ))
+
+  message("Creating attribute table...\n")
+  execGRASS("v.db.addtable", flags = c("quiet"),
+            parameters = list(
+              map = predictions,
+              columns = "cat_edge int, dist double precision, pid int, loc int,
+                         net int, rid int, out_dist double, distr double precision"
+           ))
+
+  # MiKatt: Necessary to get upper and lower case column names
+  execGRASS("v.db.renamecolumn", flags = "quiet",
+            parameters = list(
+              map = predictions,
+              column = "loc,locID"
+            ))
+  execGRASS("v.db.renamecolumn", flags = "quiet",
+            parameters = list(
+              map = predictions,
+              column = "net,netID"
+            ))
+  execGRASS("v.db.renamecolumn", flags = "quiet",
+            parameters = list(
+              map = predictions,
+              column = "out_dist,upDist"
+            ))
+  execGRASS("v.db.renamecolumn", flags = "quiet",
+            parameters = list(
+              map = predictions,
+              column = "distr,distRatio"
+            ))
+
+  execGRASS("v.distance",
+            flags = c("overwrite", 'quiet'),
+            parameters = list(from = predictions,
+                              to = 'edges',
+                              #output = 'connectors',
+                              upload = 'cat,dist',
+                              column = 'cat_edge,dist'))
+
+  message('Setting pid and locID...\n')
+  execGRASS("v.db.update",
+            parameters = list(map = predictions,
+                              column = 'pid',
+                              value = 'cat'))
+  execGRASS("v.db.update",
+            parameters = list(map = predictions,
+                              column = 'locID',
+                              value = 'pid'))
+
+  # Set netID and rid from network ---------
+  message('Assigning netID and rid...\n')
+
+  sql_str<- paste0("UPDATE ", predictions, " SET rid=(SELECT rid FROM edges WHERE ",
+                   predictions,".cat_edge=edges.cat)")
+  execGRASS('db.execute',
+            parameters = list(
+              sql = sql_str
+            ))
+  sql_str<- paste0("UPDATE ", predictions, " SET netID=(SELECT netID FROM edges WHERE ",
+                   predictions,".cat_edge=edges.cat)")
+  execGRASS('db.execute',
+            parameters = list(
+              sql = sql_str
+            ))
+
+  # Calculate upDist ---------
+  message('Calculating upDist...\n')
+  execGRASS('r.stream.distance',
+            flags = c('overwrite', 'quiet', 'o'),
+            parameters = list(
+              stream_rast = 'streams_r',
+              direction = 'dirs',
+              method = 'downstream',
+              distance = 'upDist'
+            ))
+
+  execGRASS('v.what.rast',
+            flags = c('quiet'),
+            parameters = list(
+              map = predictions,
+              raster = 'upDist',
+              column = 'upDist'
+            ))
+  # MiKatt: ! Round upDist to m
+
+  # Calculate distRatio = distance from lower end of edge to site / length edge
+  message('Calculating distance ratio...\n')
+
+  sql_str <- paste0("UPDATE ", predictions, " SET distRatio=1-",
+                    "round((((SELECT upDist FROM edges WHERE edges.cat=",
+                    predictions, ".cat_edge)-upDist)),2)/",
+                    "(SELECT Length FROM edges WHERE edges.cat=",
+                    predictions, ".cat_edge)")
+  execGRASS('db.execute',
+            parameters = list(
+              sql=sql_str
+            ))
+
+  # delete temporary files
+  unlink("temp", recursive =T, force = TRUE)
+}
+
+#' @description Recursive function to calculate the offset from the downstream
+#' junction needed to place points with fixed distance along the streams.
+#' It is called by \code{\link{calc_prediction_sites}} for each
+#' outlet and should not be called by the user.
+#'
+#' @param dt data.table containing the attributes of the stream segments
+#' @param id integer; 'stream' of the stream segment
+#' @param offs number; offset from outlet of the stream segment (downstream);
+#' equals the length of the segment if the point shall be placed directly at the
+#' downstream junction.
+#' @param dist number giving the distance between the points to create in map units.
+#' @keywords internal
+#'
+#' @return Nothing; change 'offset' in dt.
+#'
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+#'
+#'@examples
+#'\dontrun{
+#'  outlets <- dt.streams[next_stream == -1, stream]
+#'  netID <- 1
+#'  for(i in outlets){
+#'    calc_offset(dt.streams, id = i, offs = 0, dist = 200)
+#'  }
+#'}
+
+calc_offset <- function(dt, id, offs, dist){
+  if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
+     dt[stream == id, offset := floor(Length - offs)]
+  } else {
+    dt[stream == id, offset := floor(Length - offs)]
+    if(offs < 0){
+      offs <- offs + dt[stream == id, Length]
+      } else {
+      offs <- dist - (dt[stream == id, Length - offs] %% dist)
+    }
+    calc_offset(dt, dt[stream == id, prev_str01], offs, dist)
+    calc_offset(dt, dt[stream == id, prev_str02] ,offs, dist)
+  }
+}

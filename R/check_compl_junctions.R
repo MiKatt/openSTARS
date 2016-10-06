@@ -1,17 +1,16 @@
-#' Check, if there are more than two prev_str0x columns in the streams attribute table.
-#' 
-#' It is checked, if there are columns names "prev_str03","prev_str04" and 
-#' "prev_str05" in the attribute table of streams_v derived with r.stream.order,
+#' Check if there are more than two inflows to an outflow.
+#'
+#' It is checked, if there are columns named 'prev_str03', 'prev_str04' and
+#' 'prev_str05' in the attribute table of streams_v derived with
+#' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order},
 #' hence, if there are more than two inflows to a junction.
 #'
-#' @param none.
-#'
 #' @return TRUE if there are complex junctions.
-#' 
-#' @note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and 
-#' \colde{\ling{derive_streams}} must be run before.
-#' 
-#' @author Mira Kattwinkel \email{kattwinkel-mira@@uni-landau.de}
+#'
+#' @note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
+#' \code{\link{derive_streams}} must be run before.
+#'
+#' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
 #' @export
 #'
 #' @examples

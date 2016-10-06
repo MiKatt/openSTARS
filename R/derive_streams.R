@@ -5,28 +5,28 @@
 #' If a stream network is available (see \code{\link{import_data}}) and
 #' burn > 0 it will be first burned into DEM.
 #' Stream topolology is derived using
-#' \href{https://grass.osgeo.org/grass70/manuals/r.stream.order.html}{r.stream.order}. 
+#' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
 #'
 #' @param burn numeric; how many meters should the streams be burned into the DEM?
-#' @param at numeric; accumulation threshold to use.
-#' @param condition logical; should the DEM be conditioned using r.hydrodem?
-#' @param clean logical; should intermediate layer be removed from GRASS session?
+#' @param at integer; accumulation threshold to use (i.e. minimum flow
+#'  accumulation value that will initiate a new stream).
+#' @param condition logical; should the DEM be conditioned using
+#'   \href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?
+#' @param clean logical; should intermediate raster layer of imported
+#'   streams ("streams_or") be removed from GRASS session?
 #'
 #' @return Nothing. The function produces the following maps:
 #' \itemize{
-#'  \item{"streams_r"}{derived streams (raster)}
-#'  \item{"streams_v"}{derived streams with topology (vector)}
-#'  \item{"dirs"}{flow directions (raster)}
-#'  \item{"accums"}{accumulation values (raster)}
-#' }
+#'  \item{"streams_r"} {derived streams (raster)}
+#'  \item{"streams_v"} {derived streams with topology (vector)}
+#'  \item{"dirs"} {flow directions (raster)}
+#'  \item{"accums"} {accumulation values (raster)}
+#' } Additionally, "dem" is modified if condition = TURE and / or burn > 0.
 #'
-#' @note \code{\link{setup_grass_environment}} and \code{\link{import_data}} 
-#' must be run before.
-#' Intermediate layers cleaned are:
-#' \itemize{
-#'  \item{"streams_or"}{raster of imported streams (raster)}
-#' }
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel \email{kattwinkel-mira@@uni-landau.de}
+#' @note \code{\link{setup_grass_environment}} and \code{\link{import_data}}
+#'   must be run before.
+
+#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
 #' @export
 #'
 #' @examples
@@ -86,19 +86,19 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                 use = 'val',
                 value = 1
               ))
-    
+
     # burn streams into dem -------------
     #! is r.carve?
-    # MiKatt: r.carve seems to be intended for this use but not yet ready 
-    #  ("The module does not operate yet in latitude-longitude locations. 
-    #  It has not been thoroughly tested, so not all options may work properly - 
-    #  but this was the intention. "). Unclear, what't the meaning of 
+    # MiKatt: r.carve seems to be intended for this use but not yet ready
+    #  ("The module does not operate yet in latitude-longitude locations.
+    #  It has not been thoroughly tested, so not all options may work properly -
+    #  but this was the intention. "). Unclear, what't the meaning of
     #  "subtracts a default-depth + additional-depth from a DEM".
-    
+
     # MiKatt: On Windows r.mapcalc produces warings when trying to overwrite dem:
     # MiKatt: Unable to rename null file '.../PERMANENT/.tmp/unknown/548.1' to '.../PERMANENT/cell_misc/dem/null': File exists
     # MiKatt: Unable to rename cell file '.../PERMANENT/.tmp/unknown/548.0' to '.../PERMANENT/fcell/dem':  File exists
-    # MiKatt: Solution: 1) write r.mapcalc results to dem2, 2) copy dem2 to dem, 3) delete dem2 
+    # MiKatt: Solution: 1) write r.mapcalc results to dem2, 2) copy dem2 to dem, 3) delete dem2
     if(.Platform$OS.type == "windows"){
       execGRASS("r.mapcalc",
                 flags = c('overwrite', 'quiet'),
@@ -117,7 +117,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                   type = 'raster',
                   name = 'dem2'
                 ))
-    } else{ 
+    } else{
       execGRASS("r.mapcalc",
                 flags = c('overwrite', 'quiet'),
                 parameters = list(
@@ -136,10 +136,10 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                 ))
     }
   }
-  
+
   # calculate flow accumulation --------------
   # MiKatt: Is needed to derive stream topology (r.stream.order)
-  # MiKatt: moved here from last step in this function so it can be used as 
+  # MiKatt: moved here from last step in this function so it can be used as
   #  input for r.stream.extract (-> faster + identical streams?)
   # MiKatt: flow directions raster is slightly different, streams seem to be identical
   execGRASS("r.watershed",
@@ -148,8 +148,8 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               elevation = "dem",
               accumulation = 'accums'
             ))
-  
-  # MiKatt: Using r.watershed to derive streams, flow directions and accumulation might be faster (plus r.to.vect and v.clean). 
+
+  # MiKatt: Using r.watershed to derive streams, flow directions and accumulation might be faster (plus r.to.vect and v.clean).
   # MiKatt: -> produces many very small segments, often close to intersections => Why?
   # MiKatt: -> seems to be independent of the convercence value.
   # MiKatt: -> r.thin does not help much.
@@ -167,11 +167,11 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                               d8cut = ncell,
                               stream_raster = "streams_r",  # output raster
                               direction = 'dirs'))          # output raster flow direction
-    
+
     # MiKatt: Moved here from calc_edges() to be able to test for complex confluences after derive_streams()
     # calculate stream topology ----------
     message('Calculating stream topology...\n')
-    # MiKatt: Is accumulation needed here? r.stream.order: "This map is an option only if Horton's or Hack's ordering is performed." 
+    # MiKatt: Is accumulation needed here? r.stream.order: "This map is an option only if Horton's or Hack's ordering is performed."
     # MiKatt: Yes, does not work without.
     execGRASS("r.stream.order",
               flags = c('overwrite', 'quiet','z','m'),
@@ -181,7 +181,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                                 accumulation = 'accums',       # input
                                 stream_vect = 'streams_v'),    # output
               ignore.stderr=T)
-              
+
     # delete unused columns
     execGRASS("v.db.dropcolumn", flags = c("quiet"),
               parameters = list(

@@ -1,16 +1,18 @@
 #' Calculate binary IDs for each stream network.
-#' 
+#'
+#' Calculate binary IDs for each stream network built up by '0' and '1'.
+#'
 #' @import data.table
-#' 
+#'
 #' @return A list with one slot for each network id containing a data frame
 #' with 'rid' and 'binaryID' for each segment belonging to this network.
-#' 
-#' @note \code{\link{import_data}}, \code{\link{derive_streams}}, 
+#'
+#' @note \code{\link{import_data}}, \code{\link{derive_streams}},
 #'   \code{\link{calc_edges}} and code{\link{calc_sites}} must be run before.
-#' 
+#'
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}; Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
-#' 
+#'
 #' @examples
 #' \donttest{
 #' library(rgrass7)
@@ -20,6 +22,7 @@
 #' gmeta()
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+#' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
 #' derive_streams()
 #' cj <- check_compl_junctions()
@@ -63,7 +66,7 @@ calc_binary <- function(){
   for(i in outlets){
     assign_binIDs(dt = dt.streams, id=i, 1, NULL)
   }
-  
+
   bins<-lapply(outlets, function(x) dt.streams[netID == dt.streams[stream == x, netID], list(rid,binaryID)])
   names(bins)<-  dt.streams[stream %in% outlets, netID]
   return(bins)
@@ -88,20 +91,22 @@ calc_binary <- function(){
 #     assign_binIDs(dt.streams[id]$prev_str02,dt.streams[id]$binaryID,1)
 #   }
 # }
-# 
+#
 #' Recursive function to assign binary id to stream segments
 #' Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments
 #' @param id: stream segment
 #' @param binID: binary ID
 #' @param lastbit: last char to be added (0 or 1)
 #' @keywords internal
+#'
+# MiKatt
 assign_binIDs <- function(dt, id, binID, lastbit){
-  if(dt[stream == id,prev_str01] == 0){  # check only one of prev01 and prev02 because they are always both 0
+  if(dt[stream == id, prev_str01 ] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, binaryID := paste0(binID, lastbit)]
   } else {
     dt[stream == id, binaryID := paste0(binID,lastbit)]
-    assign_binIDs(dt, dt[stream == id,prev_str01], dt[stream==id, binaryID], 0)
-    assign_binIDs(dt, dt[stream == id,prev_str02], dt[stream == id, binaryID], 1)
+    assign_binIDs(dt, dt[stream == id, prev_str01], dt[stream == id, binaryID], 0)
+    assign_binIDs(dt, dt[stream == id, prev_str02], dt[stream == id, binaryID], 1)
   }
 }
 
@@ -109,7 +114,7 @@ assign_binIDs <- function(dt, id, binID, lastbit){
 # #' workhorse for calc_binary
 # #' @param network network ID
 # #' @keywords internal
-# 
+#
 # calc_binary_horse <- function(network) {
 #    # empty id cols
 #    network$bin_id <- rep(NA, nrow(network))

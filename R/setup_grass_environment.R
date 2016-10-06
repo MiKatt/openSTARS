@@ -1,14 +1,14 @@
 #' Setup GRASS environment.
 #'
-#' This function sets the GRASS mapset to PERMANENT, its projection and extension.
+#' This function sets the GRASS mapset to PERMANENT and sets its projection and extension.
 #'
 #' @import rgrass7
 #'
 #' @param dem character; path to DEM.
 #' @param sites character; path to sites.
 #'
-#' @return Nothing, the GRASS mapset is set to PERMANENT, 
-#' projection is set to the one of the sites shape, the extent of the region is set to the one of the dem
+#' @return Nothing, the GRASS mapset is set to PERMANENT,
+#' projection is set to the one of the sites shape, the extent of the region is set to the one of the dem.
 #'
 #' @note A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
@@ -25,7 +25,7 @@
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' }
-#' 
+#'
 
 setup_grass_environment <- function(dem, sites) {
   if (nchar(get.GIS_LOCK()) == 0)
@@ -44,13 +44,13 @@ setup_grass_environment <- function(dem, sites) {
             parameters = list(
             georef = sites
             ))
- 
+
   # set Region -----------------
   # read raster to set region
   # MiKatt: flag "o": Override projection check. Necessary for Windows, otherwise DEM is not imported
   if(.Platform$OS.type == "windows"){
     execGRASS("r.in.gdal",
-              flags = c("overwrite","quiet","o"), 
+              flags = c("overwrite","quiet","o"),
               parameters = list(
                 input = dem,
                 output = "dem_temp"))
@@ -58,7 +58,7 @@ setup_grass_environment <- function(dem, sites) {
                    Please verify that they are identical.",sep=""))
   } else{
     execGRASS("r.in.gdal",
-              flags = c("overwrite","quiet"), 
+              flags = c("overwrite","quiet"),
               parameters = list(
                 input = dem,
                 output = "dem_temp"))
