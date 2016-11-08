@@ -27,27 +27,38 @@
 #' }
 #'
 
-setup_grass_environment <- function(dem, sites) {
+setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop('GRASS not initialised. Please run initGRASS().')
-  if (is.null(dem) | is.null(sites))
-    stop('DEM and sites are needed.')
+  if (is.null(dem) | (is.null(sites) & is.null(epsg)))
+    stop('DEM and sites or epsg code are needed.')
   message('Setting up GRASS Environment...\n')
-
+  
   # Set Projection to input file -------------------------
-   execGRASS("g.mapset",
+  execGRASS("g.mapset",
             flags = c('quiet'),
             parameters = list(
-            mapset = "PERMANENT"))
-  execGRASS("g.proj",
-            flags = c("c"),#, "quiet"),
-            parameters = list(
-            georef = sites
-            ))
-
+              mapset = "PERMANENT"))
+  if(!is.null(sites)){
+    execGRASS("g.proj",
+              flags = c("c"),#, "quiet"),
+              parameters = list(
+                georef = sites
+              ))
+  } else
+  {
+    execGRASS("g.proj",
+              flags = c("c"),#, "quiet"),
+              parameters = list(
+                epsg = epsg
+              ))
+  }
+  
   # set Region -----------------
   # read raster to set region
   # MiKatt: flag "o": Override projection check. Necessary for Windows, otherwise DEM is not imported
+  # MiKatt: it is necassary to set the region with g.region; using flag "e" when importing the dem does not work
+  #         (r.hydrodem produces very huge raster)
   if(.Platform$OS.type == "windows"){
     execGRASS("r.in.gdal",
               flags = c("overwrite","quiet","o"),
@@ -66,7 +77,7 @@ setup_grass_environment <- function(dem, sites) {
   execGRASS("g.region",
             flags = c('quiet'),
             parameters = list(
-            raster = "dem_temp"))
+              raster = "dem_temp"))
 
   # remove temporary dem file
   execGRASS("g.remove",

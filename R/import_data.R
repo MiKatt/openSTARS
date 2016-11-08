@@ -49,6 +49,9 @@ import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE, ...) {
   message('Loading data into GRASS...\n')
 
   # reread raster with correct extent
+  # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
+  #         using flag "e" when importing the dem does not work
+  #         (r.hydrodem produces very huge raster)
   if(.Platform$OS.type == "windows"){
     execGRASS("r.in.gdal",
               flags = c("overwrite","quiet","o"),

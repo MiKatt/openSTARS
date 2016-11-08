@@ -294,13 +294,23 @@ correct_compl_junctions <- function(clean = TRUE){
   df.junctions <- merge(df.junctions, dt.smallcut[,.(stream,cat_small)],by="stream")
   df.junctions <- merge(df.junctions, dt.largecut[,.(stream,cat_large)],by="stream")
 
-  # change prev_str0X if it was also cut_stream to new stream id
+  # change prev_str0X if it was also cat_small of cut_stream to new stream id
   i_cut <- which(df.junctions$cat_small %in% unlist(df.junctions[paste0("prev_str0",1:3)]))
-  i_prev <- do.call(rbind,lapply(i_cut, function(x) which(df.junctions[paste0("prev_str0",1:3)] == df.junctions$cat_small[x], arr.ind = TRUE)))
-  df.junctions[paste0("prev_str0",1:3)][i_prev] <- df.junctions[i_prev[,"row"],"cat_large"]
-  i_cut <- which(df.junctions$cat_large %in% unlist(df.junctions[paste0("prev_str0",1:3)]))
-  i_prev <- do.call(rbind,lapply(i_cut, function(x) which(df.junctions[paste0("prev_str0",1:3)] == df.junctions$cat_small[x], arr.ind = TRUE)))
-  df.junctions[paste0("prev_str0",1:3)][i_prev] <- df.junctions[i_prev[,"row"],"cat_small"]
+  if(length(i_cut) > 0){
+    # find where cat_small is previous stream
+    i_prev <- do.call(rbind,lapply(i_cut, function(x) which(df.junctions[paste0("prev_str0",1:3)] == df.junctions$cat_small[x], arr.ind = TRUE)))
+    # change previous stream to cat_large
+    df.junctions[paste0("prev_str0",1:3)][i_prev] <- df.junctions[i_cut,"cat_large"]
+  }
+
+  # change move_stream if it was also cat_small of cut_stream to new stream id
+  i_cut <- which(df.junctions$cat_small %in% df.junctions["move_stream"])
+  if(length(i_cut) > 0){
+    # find where cat_small is move stream
+    i_mov <- do.call(rbind,lapply(i_cut, function(x) which(df.junctions["move_stream"] == df.junctions$cat_small[x])))
+    # change move stream to cat_large
+    df.junctions["move_stream"][i_mov] <- df.junctions[i_cut,"cat_large"]
+  }
 
   # assign updated cat_ value to 'stream' for cut stream segments
   str1<-paste(c(dt.smallcut[,cat_small],dt.largecut[,cat_large]),collapse = ",")
