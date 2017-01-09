@@ -6,11 +6,12 @@
 #'
 #' @param dem character; path to DEM.
 #' @param sites character; path to sites.
+#' @param epsg number; EPSG code for the spatial reference to be used
 #'
 #' @return Nothing, the GRASS mapset is set to PERMANENT,
-#' projection is set to the one of the sites shape, the extent of the region is set to the one of the dem.
+#' projection is set to the one of the sites shape or to the epsg code provided, the extent of the region is set to the one of the dem.
 #'
-#' @note A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
+#' @note Either \code{sites} or \code{epsg} must be provided. A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
 #'
@@ -33,7 +34,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
   if (is.null(dem) | (is.null(sites) & is.null(epsg)))
     stop('DEM and sites or epsg code are needed.')
   message('Setting up GRASS Environment...\n')
-  
+
   # Set Projection to input file -------------------------
   execGRASS("g.mapset",
             flags = c('quiet'),
@@ -53,7 +54,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
                 epsg = epsg
               ))
   }
-  
+
   # set Region -----------------
   # read raster to set region
   # MiKatt: flag "o": Override projection check. Necessary for Windows, otherwise DEM is not imported

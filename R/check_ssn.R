@@ -140,7 +140,7 @@ check_ssn <- function(path) {
     message('\tadditive function value range...FAIL!')
   }
 
-  message('\tsegment PI value range...not implemented!')
+  #message('\tsegment PI value range...not implemented!')
 
 
   # ggplot(edges@data, aes(x = topo_dim, y = upDist-Length)) +
@@ -151,12 +151,12 @@ check_ssn <- function(path) {
   # columns
 
 # Obs. sites -------------------------------------------------------------------
-  message('Checking sites.shp...')
+  #message('Checking sites.shp...')
 
 
 
 # Prediction sites -------------------------------------------------------------------
-  message('Checking Prediction sites...')
+  #message('Checking Prediction sites...')
 
 
 

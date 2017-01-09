@@ -1,7 +1,7 @@
 #' Calcuate attributes of the sites.
 #'
 #' For each site (observation or prediction) the total catchment area is
-#' calculated ('H2Oarea'). Additionally, other attributes (predictor variables)
+#' calculated ('H2OArea'). Additionally, other attributes (predictor variables)
 #' can be derived based on given raster maps. This fuction calculates
 #' exact values for catchments derived with
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
@@ -10,15 +10,15 @@
 
 #' @import progress
 #'
-#' @param sites_map string giving the name of the sites the attributes shall be
-#' calculated for. "sites" refers to the observation sites.
+#' @param sites_map character:name of the sites the attributes shall be
+#' calculated for. "sites" refers to the observation or prediction sites.
 #' @param input_raster character vector (optional); name of additional raster
 #'   maps to calculate attributes from.
 #' @param stat character vector (optional); statistics to be calulated, one of:
 #'   min, max, mean, stddev, variance, sum, median or precentile_X (where X
 #'   gives the desired percentile e.g. 25 for the first).
 #' @param attr_name character vector (optional); column name for the attributes
-#'   to be caculated. Attribute names must not be longer than 10 characters.
+#'   to be calculated. Attribute names must not be longer than 10 characters.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
@@ -71,7 +71,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
                 length(stat), ") and attribute names (", length(attr_name),")."))
 
-  if(any(stat %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat)) == 0) # TRUE = 1, FALSE = 0
+  if(!is.null(stat) & any(stat %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat)) == 0) # TRUE = 1, FALSE = 0
     stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "precentile_X" or "precent".')
 
   if(length(round_dig) == 1)
@@ -98,28 +98,20 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   colnames(dat) <- c("H2OArea", attr_name,"pid")
   for (i in seq_along(d.sites@data$pid)) {
     #message(i)
-    take <- d.sites@data$pid[i]
-    dat[i,"pid"] <- take
-    coord <- coordinates(d.sites[i,])
-    # MiKatt: no need to write point vector to hard drive; just use coordinates as outlet
-    # subset sites
-    # execGRASS('v.extract',
-    #           flags = c("overwrite", "quiet"),
-    #           parameters = list(
-    #             input = sites,
-    #             where = paste0('pid=', take),
-    #             output = 'take_site'))
+    pid <- d.sites@data$pid[i]
+    dat[i,"pid"]  <- pid
 
+    coord <- coordinates(d.sites[i,])
     # always calculate drainage area in km^2
     execGRASS("r.stream.basins",
               flags = c("overwrite", "l", "quiet"),
               parameters = list(direction = "dirs",
-                               # points = 'take_site',
                                coordinates = coord,
-                                basins = paste0("catchm_",i)))
-    dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(execGRASS('r.stats',
+                               basins = paste0("catchm_",pid)))
+    dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
+                            execGRASS('r.stats',
                                    flags = c('a', 'quiet'),
-                                   parameters = list(input = paste0('catchm_',i)),
+                                   parameters = list(input = paste0('catchm_',pid)),
                                    intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
 
     # calculate unviriate statitics per watershed
@@ -127,7 +119,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     execGRASS("r.mask",
               flags = c("overwrite", "quiet"),
               parameters = list(
-                raster = paste0("catchm_",i)))
+                raster = paste0("catchm_",pid)))
     if(length(stat) > 0){
       for(j in 1:length(stat)){
         if(stat[j] == "median"){
@@ -156,8 +148,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           if(grepl("percent", stat[j]))
             # if codes as 1 and 0, "mean" gives ratio
             dat[i,j+1] <- round(st[X1 == "mean",X2],round_dig[j+1])
-          # This does not work
-            #dat[i,j+1] <- round((st[X1 == "cells", X2] - st[X1 == "null_cells", X2])/
+            # This does not work
+            # dat[i,j+1] <- round((st[X1 == "cells", X2] - st[X1 == "null_cells", X2])/
             #                      st[X1 == "cells", X2], round_dig[j+1])
           else
             dat[i,j+1] <- round(st[X1 == stat[j],X2],round_dig[j+1])
@@ -175,7 +167,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 flags = c('quiet', 'f'),
                 parameters = list(
                   type = 'raster',
-                  name = paste0('catchm_',i)
+                  name = paste0('catchm_',pid)
                 ))
     }
     pb$tick()

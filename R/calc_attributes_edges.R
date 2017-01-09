@@ -1,6 +1,6 @@
 #' Calcuate attributes of the edges
 #'
-#' For each edge, additional attributes (predictor variables) are derived based
+#' For each edge additional attributes (predictor variables) are derived based
 #' on given raster maps.
 #'
 #' @param input_raster name or character vector of names of the raster map(s)
@@ -14,7 +14,7 @@
 #' @param clean logical; should intermediate files be deleted
 
 #' @return Nothing. The function appends new columns to the 'edges' attribute
-#'   table with column names given in \code{attr_name}. For each attribute, tow
+#'   table with column names given in \code{attr_name}. For each attribute, two
 #'   columns are appended: one giving the attribute for the rca of the edge
 #'   ("attribute_name_e") and one for the attribute of the total catchment of
 #'   the edge ("attribute_name_c").
@@ -128,7 +128,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
   dt.streams <- do.call(rbind,strsplit(
     execGRASS("db.select",
               parameters = list(
-                sql = "select cat, stream, next_stream, prev_str01,prev_str02,netID from edges"
+                sql = "select cat, stream, next_str, prev_str01, prev_str02, netID from edges"
               ),intern = T),
     split = '\\|'))
   colnames(dt.streams) <- dt.streams[1,]
@@ -139,7 +139,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
   ind <- which(!stat %in% c("min", "max"))
   if(length(ind) > 0){
     for(i in ind)
-      dt.streams[which(is.na(dt.streams[, attr_name[i], with = FALSE])),attr_name[i] := 0, with = FALSE]
+      dt.streams[which(is.na(dt.streams[, attr_name[i], with = FALSE])),attr_name[i] := 0]
   }
   dt.streams[is.na(non_null_cells), non_null_cells := 0]
 
@@ -149,7 +149,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
 
 
   # Delete unneeded columns
-  dt.streams[, c("stream", "next_stream", "prev_str01", "prev_str02", "netID", "non_null_cells","cumsum_cells") := NULL]
+  dt.streams[, c("stream", "next_str", "prev_str01", "prev_str02", "netID", "non_null_cells","cumsum_cells") := NULL]
   setnames(dt.streams, attr_name, paste0(attr_name, "_e"))
 
   # Join attributes to edges attribute table
@@ -185,6 +185,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
   }
 }
 
+#' calc_catchment_attributes
 #' Aggregate attributes for the total catchment of each stream segment.
 #'
 #' This function aggregates the attributes of each segment for the total
@@ -202,7 +203,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
 #' @return Nothing. The function changes the values of the columns attr_name in dt.
 
 calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
-  outlets <- dt[next_stream == -1, stream]
+  outlets <- dt[next_str == -1, stream]
   dt[, paste0(attr_name,"_c") := dt[, attr_name, with = FALSE]]
   for(i in outlets){
     calc_catchment_attributes_rec(dt, id=i, stat, paste0(attr_name,"_c"))
@@ -217,6 +218,7 @@ calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
   setcolorder(dt, c(colnames(dt)[!colnames(dt) %in% newcols], newcols))
 }
 
+#' calc_catchment_attributes_rec
 #' Aggregate attributes for the total catchment of each stream segment.
 #'
 #' @description Recursive function to calculate the catchment attributes of each stream
@@ -231,9 +233,10 @@ calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
 #'   to be caculated.
 #'
 #' @return One row data.table with the cummulative number of cells of the total
-#'  catchment of each segment and the values for each attribute.
+#'  catchment of each segment and the values for each attribute and changes the
+#'  values in dt.
 #'
-#' @note The values for stas "mean" and "percent" need to be devided by the cummulative
+#' @note The values for stats "mean" and "percent" need to be devided by the cummulative
 #'  number of cells of the total catchment in a subsequent step.
 #'
 calc_catchment_attributes_rec <- function(dt, id, stat, attr_name){

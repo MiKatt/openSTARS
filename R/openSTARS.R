@@ -1,6 +1,6 @@
 #' openSTARS: An open source implementation of the ArcGIS toolbox STARS.
 #'
-#' openSTARS provides funcitons to prepare data so that it can be imported by the
+#' openSTARS provides functions to prepare data so that it can be imported by the
 #' \code{\link[SSN]{SSN}} package for spatial modelling on stream networks.
 #' GRASS GIS 7.0 (or greater) with installed addons r.stream.basins, r.stream.distance, r.stream.order and r.hydrodem
 #' is needed.
@@ -15,7 +15,7 @@
 #' @examples
 #' \donttest{
 #' library(openSTARS)
-#' # Initiate GRASS Sesion
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'     home = tempdir(),
 #'     override = TRUE)

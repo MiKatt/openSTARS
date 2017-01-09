@@ -11,10 +11,15 @@
 #' @param predictions name(s) of prediction map(s) (optional).
 #'
 #' @return Nothing. Files are written to the specified folder
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}
+#'
+#' @details First it is checked if one of the column names is longer than 10
+#' characters (which cannot be exported to shape).
+#'
+#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel,\email{mira.kattwinkel@gmx.net}
 #' @export
 #' @examples
 #' \donttest{
+#'
 #' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
@@ -35,7 +40,36 @@
 #' export_ssn(ssn_dir, binary = binaries)
 #' list.files(ssn_dir)
 #' }
-export_ssn <- function(path, binary, predictions = NULL){
+export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
+  if(file.exists(path) & delete_directory == FALSE)
+    stop(paste(path, "already exists. To delete it use 'delete_directory = TRUE'."))
+  if(file.exists(path) & delete_directory == TRUE)
+    unlink(path, recursive = T)
+  cnames<-execGRASS("db.columns",
+                    parameters = list(
+                      table = "edges"
+                    ), intern=T)
+
+  cnames<-c(cnames,execGRASS("db.columns",
+                    parameters = list(
+                      table = "sites"
+                    ), intern=T))
+
+  if(!is.null(predictions)){
+    cnames <- NULL
+    for(i in 1:length(predictions)){
+    cnames<-c(cnames,c(cnames,execGRASS("db.columns",
+                               parameters = list(
+                                 table = predictions[i]
+                               ), intern=T)))
+    }
+  }
+
+  if(any(unlist(lapply(cnames,nchar)) > 10))
+    stop(paste("Some column names are longer than 10 characters and cannot be exported
+         to shape files; please correct. Nothing exported.\n",
+               paste(cnames[unlist(lapply(cnames,nchar)) > 10], collapse = ", ")))
+
   message('Exporting to ', path)
   # write edges
   # MiKatt first copy edges and drop attributes not needed for ssn
@@ -43,12 +77,13 @@ export_ssn <- function(path, binary, predictions = NULL){
             flags = c('overwrite', 'quiet'),
             parameters = list(
               vector = 'edges,edges2'))
-  execGRASS('v.db.dropcolumn',
-            flags = 'quiet',
-            parameters = list(
-              map = 'edges2',
-              columns = 'stream,next_stream,prev_str01,prev_str02'
-            ))
+  # execGRASS('v.db.dropcolumn',
+  #           flags = 'quiet',
+  #           parameters = list(
+  #             map = 'edges2',
+  #             columns = 'stream,next_str,prev_str01,prev_str02'
+  #           ))
+
   execGRASS('v.out.ogr',
             c('overwrite', 'quiet'),
             parameters = list(
@@ -75,7 +110,7 @@ export_ssn <- function(path, binary, predictions = NULL){
             ))
 
   # write preds
-  if(length(predictions) > 0){
+  if(!is.null(predictions)){
     for(i in seq_along(predictions))
       execGRASS('v.out.ogr',
                 c('overwrite', 'quiet'),
@@ -86,6 +121,9 @@ export_ssn <- function(path, binary, predictions = NULL){
                   output_layer = predictions[i]
                 ))
   }
+
+  # create binary
+  binary <- calc_binary()
 
   # write binary files
   # temporarly turn off scientific notation

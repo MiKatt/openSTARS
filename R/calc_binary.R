@@ -1,6 +1,8 @@
 #' Calculate binary IDs for each stream network.
 #'
 #' Calculate binary IDs for each stream network built up by '0' and '1'.
+#' This function is called by \code{\link{export_ssn}} and there is no need for it
+#' be called by the users.
 #'
 #' @import data.table
 #'
@@ -8,7 +10,7 @@
 #' with 'rid' and 'binaryID' for each segment belonging to this network.
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
-#'   \code{\link{calc_edges}} and code{\link{calc_sites}} must be run before.
+#'   \code{\link{calc_edges}} and \code{\link{calc_sites}} must be run before.
 #'
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}; Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
@@ -51,17 +53,17 @@ calc_binary <- function(){
   dt.streams<-execGRASS('db.select',
                flags = 'c',
                parameters = list(
-               sql = 'select rid,stream,next_stream,prev_str01,prev_str02,netID from edges',
+               sql = 'select rid,stream,next_str,prev_str01,prev_str02,netID from edges',
                separator = ','
                ), intern = TRUE)
 
   dt.streams<-do.call(rbind,strsplit(dt.streams,split=","))
   dt.streams<-apply(dt.streams,2,as.numeric)
-  colnames(dt.streams)<-c("rid","stream","next_stream","prev_str01","prev_str02","netID")
+  colnames(dt.streams)<-c("rid","stream","next_str","prev_str01","prev_str02","netID")
   dt.streams <- data.frame(dt.streams)
   setDT(dt.streams)
   dt.streams[, binaryID := "0"]
-  outlets <- dt.streams[next_stream == -1, stream]
+  outlets <- dt.streams[next_str == -1, stream]
 
   for(i in outlets){
     assign_binIDs(dt = dt.streams, id=i, 1, NULL)
@@ -132,7 +134,7 @@ assign_binIDs <- function(dt, id, binID, lastbit){
 #        names(take_down)[2] <- 'stream_down'
 #        # merge dwn (with bin_id) and actual
 #        take_merge <- merge(take_down[ , c('stream_down', 'bin_id')],
-#                            take_segments, by.x = 'stream_down', by.y = 'next_stream')
+#                            take_segments, by.x = 'stream_down', by.y = 'next_str')
 #        # assign 0/1 and paste with downstream id
 #        take_merge[ , 'bin_id'] <-  c(aggregate(bin_id.x ~ stream_down, data = take_merge,
 #                  FUN = function(x) paste0(x, sample(c(0, 1), 2)))[ , 'bin_id.x'])

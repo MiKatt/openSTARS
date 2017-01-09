@@ -3,12 +3,12 @@
 #' For each site (observations or predictions) attributes (predictor variables)
 #' are derived based on the values caluclated for the edge the site lies on.
 #' This fuction calculates approximate values for site catchments as described
-#' in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Tollset Used to Calculate the
-#' Spatial Infromation Needed to Fit Spatial Statistical Models to Stream
+#' in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Toolset Used to Calculate the
+#' Spatial Information Needed to Fit Spatial Statistical Models to Stream
 #' Network Data. J. Stat. Softw., 56 (2).
 #'
-#' @param sites_map string giving the name of the sites the attributes shall be
-#' calculated for. "sites" refers to the observation sites.
+#' @param sites_map character; name of the sites the attributes shall be
+#' calculated for. "sites" refers to the observation or prediction sites.
 #' @param input_attr_name character vector; input column name in the edges
 #'   attribute data table.
 #' @param output_attr_name character vector (optional); output column name appended

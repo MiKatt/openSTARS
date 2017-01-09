@@ -1,17 +1,21 @@
 #' Derive stream network from DEM.
 #'
-#' Streams are derived from a DEM using
+#' Streams are derived from a digital elevation model (DEM) using
 #' \href{https://grass.osgeo.org/grass70/manuals/r.stream.extract.html}{r.stream.extract}.
 #' If a stream network is available (see \code{\link{import_data}}) and
-#' burn > 0 it will be first burned into DEM.
+#' burn > 0 it will be first burnt into the digital elevation model (DEM).
 #' Stream topolology is derived using
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
 #'
 #' @param burn numeric; how many meters should the streams be burned into the DEM?
-#' @param at integer; accumulation threshold to use (i.e. minimum flow
-#'  accumulation value that will initiate a new stream).
+#' @param accum_threshold integer; accumulation threshold to use (i.e. minimum flow
+#'  accumulation value in cells that will initiate a new stream).
+#' @param min_stream_length integer: minimum stream length in number of DEM raster
+#'  cells; shorter first order stream segments are deleted; default: 0
 #' @param condition logical; should the DEM be conditioned using
 #'   \href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?
+#' @param dem_name character vector, optional; default: "dem"; usefull if
+#' conditioned and / or burnt in DEM raster from previous runs shall be used.
 #' @param clean logical; should intermediate raster layer of imported
 #'   streams ("streams_or") be removed from GRASS session?
 #'
@@ -21,12 +25,14 @@
 #'  \item{"streams_v"} {derived streams with topology (vector)}
 #'  \item{"dirs"} {flow directions (raster)}
 #'  \item{"accums"} {accumulation values (raster)}
-#' } Additionally, "dem" is modified if condition = TURE and / or burn > 0.
+#'  \item{"dem_cond"} {conditioned dem (raster) if condition it true}
+#'  \item{"dem_[cond]_burn[X]"} {burned in DEM (raster) if burn is > 0}
+#' } The original "dem" is not modified if condition = TRUE and / or burn > 0.
 #'
 #' @note \code{\link{setup_grass_environment}} and \code{\link{import_data}}
 #'   must be run before.
 
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
+#' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}, Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #'
 #' @examples
@@ -49,8 +55,18 @@
 #' lines(streams, col = 'blue')
 #' }
 
-# MiKatt: I would suggest a differnt parameter name for 'at' because this is often a plotting parameter. Maybe 'accumthresh'?
-derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
+derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE, min_stream_length = 0, dem_name = NULL, clean = TRUE) {
+
+  if(condition == TRUE & (ifelse(is.null(dem_name), FALSE, dem_name != "dem")))
+    stop("Only an unmodified DEM should be used for conditioning.")
+
+  if(burn != 0 & (ifelse(is.null(dem_name), FALSE, grepl("burn", dem_name))))
+    stop("Only an unburned DEM should be used for burn in")
+
+  if(is.null(dem_name))
+    dem_name <- "dem"
+  dem_name_out <- dem_name
+
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = 'vect'
@@ -61,8 +77,9 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                       type = 'rast'
                     ),
                     intern = TRUE)
-  if (!'dem' %in% rast)
+  if (!dem_name %in% rast)
     stop('DEM not found. Did you run import_data()?')
+
 
   if (condition) {
     message('Conditioning DEM...\n')
@@ -70,9 +87,11 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
     execGRASS('r.hydrodem',
               flags = c('overwrite'),
               parameters = list(
-                input = 'dem',
-                output = 'dem'
+                input = dem_name,
+                output = "dem_cond"
               ))
+    dem_name <- "dem_cond"
+    dem_name_out <- "dem_cond"
   }
   if ('streams_o' %in% vect & burn > 0) {
     message('Burning streams into DEM...\n')
@@ -86,6 +105,8 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                 use = 'val',
                 value = 1
               ))
+
+    dem_name_out <- paste0(dem_name, "_burn", burn)
 
     # burn streams into dem -------------
     #! is r.carve?
@@ -104,13 +125,16 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                 flags = c('overwrite', 'quiet'),
                 parameters = list(
                   expression =
-                    paste0('\"dem2 = if(isnull(streams_or),  dem, dem-',
-                           burn, ')\"')
+                    #paste0('\"dem2 = if(isnull(streams_or),  dem, dem-',
+                    #       burn, ')\"')
+                    paste0('\"dem2 = if(isnull(streams_or),  ', dem_name, ', ', dem_name,'-',
+                         burn, ')\"')
                 ))
       execGRASS("g.copy",
                 flags = c('overwrite', 'quiet'),
                 parameters = list(
-                  raster = 'dem2,dem'))
+                  raster = paste0("dem2,", dem_name_out)
+                  ))
       execGRASS("g.remove",
                 flags = c('quiet', 'f'),
                 parameters = list(
@@ -122,7 +146,9 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
                 flags = c('overwrite', 'quiet'),
                 parameters = list(
                   expression =
-                    paste0('\"dem = if(isnull(streams_or),  dem, dem-',
+                    #paste0('\"dem = if(isnull(streams_or),  dem, dem-',
+                    #       burn, ')\"')
+                    paste0('\"',dem_name_out,' = if(isnull(streams_or),  ', dem_name, ', ', dem_name,'-',
                            burn, ')\"')
                 ))
     }
@@ -145,7 +171,7 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
   execGRASS("r.watershed",
             flags = c('overwrite', 'quiet'),
             parameters = list(
-              elevation = "dem",
+              elevation = dem_name_out,
               accumulation = 'accums'
             ))
 
@@ -161,10 +187,11 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
     ncell <- as.numeric(unlist(strsplit(ncell[grep("cells",ncell)],split=":"))[2])
     execGRASS("r.stream.extract",
             flags =  c('overwrite', 'quiet'),
-            parameters = list(elevation = "dem",
+            parameters = list(elevation = dem_name_out,
                               accumulation = "accums",
-                              threshold = at, # use ATRIC to get this value?
+                              threshold = accum_threshold, # use ATRIC to get this value?
                               d8cut = ncell,
+                              stream_length = min_stream_length,
                               stream_raster = "streams_r",  # output raster
                               direction = 'dirs'))          # output raster flow direction
 
@@ -177,10 +204,23 @@ derive_streams <- function(burn = 5, at = 700, condition = TRUE, clean = TRUE) {
               flags = c('overwrite', 'quiet','z','m'),
               parameters = list(stream_rast = 'streams_r',     # input
                                 direction = 'dirs',            # input
-                                elevation = 'dem',             # input
+                                elevation = dem_name_out,             # input
                                 accumulation = 'accums',       # input
                                 stream_vect = 'streams_v'),    # output
               ignore.stderr=T)
+
+    # MiKatt: ESRI shape files must not have column names with more than 10 characters
+    execGRASS("v.db.renamecolumn", flags = "quiet",
+              parameters = list(
+                map = "streams_v",
+                column = "next_stream,next_str"
+              ))
+    # to keep column "next_str" next to prev_str
+    execGRASS("v.db.renamecolumn", flags = "quiet",
+              parameters = list(
+                map = "streams_v",
+                column = "flow_accum,flow_accu"
+              ))
 
     # delete unused columns
     execGRASS("v.db.dropcolumn", flags = c("quiet"),

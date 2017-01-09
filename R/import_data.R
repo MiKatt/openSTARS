@@ -17,7 +17,8 @@
 #'  (not yet implemented).
 #'
 #' @return Nothing, the data is loaded into the GRASS session.
-#' The DEM is stored as raster 'dem' and sites as vector 'sites_o' within GRASS.
+#' The DEM is stored as raster 'dem', sites as vector 'sites_o' and streams as
+#' vector 'streams_o' in the GRASS location (mapset PERMANENT).
 #'
 #' @note A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}

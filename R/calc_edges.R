@@ -11,11 +11,11 @@
 #'  \item{Calculate segments upstream distance, 'upDist' = flow length
 #'   to the outlet of the network}
 #'  \item{Calculate reach contributing areas (RCA ) per segment, 'rcaArea'
-#'   = subcatchment area of each segment}
+#'   = subcatchment area of each segment in square km}
 #'  \item{Calculate catchment areas; 'H2OArea' = total catchment area of each
-#'  segment}
-#'  All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
+#'  segment in square km}
 #' }
+#'  All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
 #'
 #' @param clean logical; should intermediate layer (rca, reach contributing area)
 #'  be removed from GRASS session?
@@ -118,7 +118,7 @@ calc_edges <- function(clean = TRUE) {
   # calculate area (in m^2) of basins
   areas <- do.call(rbind,
                    strsplit(execGRASS('r.stats',
-                                      flags = c('a', 'quiet'),          # MiKatt: a -> m²
+                                      flags = c('a', 'quiet'),          # MiKatt: a -> m², not in map units
                                       parameters = list(input = 'rca'),
                                       intern = TRUE),
                             split = ' '))
@@ -131,7 +131,7 @@ calc_edges <- function(clean = TRUE) {
   dt.streams <- do.call(rbind,strsplit(
     execGRASS("db.select",
               parameters = list(
-                sql = "select cat, stream, next_stream, prev_str01,prev_str02 from edges"
+                sql = "select cat, stream, next_str, prev_str01,prev_str02 from edges"
               ),intern = T),
     split = '\\|'))
   colnames(dt.streams) <- dt.streams[1,]
@@ -146,21 +146,24 @@ calc_edges <- function(clean = TRUE) {
 
   # MiKatt: Segments without a next segment (= -1) are outlets of catchments
   # MiKatt: Recursive function to calculate total upstream area of stream segments
-  outlets <- dt.streams[next_stream == -1, stream]
+  outlets <- dt.streams[next_str == -1, stream]
   netID <- 1
   for(i in outlets){
     calcCatchmArea_assignNetID(dt.streams, id=i, netID)
     netID <- netID + 1
   }
 
+  # MiKatt: area is in m² -> convert to km²
   dt.streams[,area := round(area / 1000000, 4)]
   dt.streams[,total_area := round(total_area / 1000000, 4)]
   dt.streams[, rid := seq_len(nrow(dt.streams)) - 1]
   dt.streams[, OBJECTID := stream]
-  dt.streams[,':=' (cat = NULL, next_stream = NULL, prev_str01 = NULL, prev_str02 = NULL)]
+  dt.streams[,':=' (cat = NULL, next_str = NULL, prev_str01 = NULL, prev_str02 = NULL)]
   dir.create("temp")
   write.csv(dt.streams, file.path("temp","stream_network.csv"),row.names = F)
-  write.table(t(gsub("numeric","Integer",sapply(dt.streams,class))),file.path("temp","stream_network.csvt"),quote=T,sep=",",row.names = F,col.names = F)
+  dtype <- t(gsub("numeric","Integer",sapply(dt.streams,class)))
+  dtype[,c("total_area","area")] <- c("Real", "Real")
+  write.table(dtype, file.path("temp", "stream_network.csvt"), quote = T, sep = ",", row.names = F, col.names = F)
   execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
             parameters = list(
               input = file.path("temp","stream_network.csv"),
@@ -173,6 +176,7 @@ calc_edges <- function(clean = TRUE) {
               other_table = "stream_network",
               other_column = "stream"
             ))
+
   execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
@@ -235,7 +239,7 @@ calc_edges <- function(clean = TRUE) {
   # streams <- readVECT('edges',
   #                     type = 'line',
   #                     ignore.stderr = TRUE)
-  # dt.streams<-data.table(streams@data[c("cat","stream","next_stream","prev_str01","prev_str02")],total_area=0, netID=-1)
+  # dt.streams<-data.table(streams@data[c("cat","stream","next_str","prev_str01","prev_str02")],total_area=0, netID=-1)
   # a<-data.table(as.numeric(areas[,1]),as.numeric(areas[,2]))
   # names(a)<-c("stream","area")
   # dt.streams<-merge(dt.streams,a,by="stream",all=T)
@@ -245,7 +249,7 @@ calc_edges <- function(clean = TRUE) {
   #
   # # MiKatt: Segments without a next segment (= -1) are outlets of watersheds
   # # MiKatt: Recursive function to calculate total upstream area of stream segments
-  # outlets <- dt.streams[next_stream == -1]$stream
+  # outlets <- dt.streams[next_str == -1]$stream
   # netID <- 1
   # for(i in outlets){
   #   calcTotalArea_assignNetID(id=i, netID)
@@ -255,9 +259,9 @@ calc_edges <- function(clean = TRUE) {
   # streams@data <- merge(streams@data, dt.streams[,.(stream,total_area,area,netID)], by = 'stream')
   # # MiKatt: Why divide by 10000?'
   # streams@data[,'total_area'] <- round(streams@data[,'total_area'],2) #/10000,2)
-  # streams@data <- streams@data[,c("stream","next_stream","prev_str01","prev_str02","cum_length","out_dist","length","total_area","area","netID")]
+  # streams@data <- streams@data[,c("stream","next_str","prev_str01","prev_str02","cum_length","out_dist","length","total_area","area","netID")]
   # #streams@data[,'area'] <- streams@data[,'area']#/10000
-  # colnames(streams@data) <- c('stream', 'next_stream', 'prev_str01', 'prev_str02','sourceDist','upDist','Length','H2OArea','rcaArea','netID')
+  # colnames(streams@data) <- c('stream', 'next_str', 'prev_str01', 'prev_str02','sourceDist','upDist','Length','H2OArea','rcaArea','netID')
   # streams@data$rid <- seq_len(nrow(streams@data)) - 1 # streams@data$stream
   # streams@data$OBJECTID <- streams@data$stream
   #
@@ -277,6 +281,7 @@ calc_edges <- function(clean = TRUE) {
   }
 }
 
+#' calcCatchmArea_assignNetID
 #' @title Calculate total catchment area of a stream segment and assign a network id.
 #'
 #' @description Recursive function to calculate the upstream area of each stream segment and
@@ -294,7 +299,7 @@ calc_edges <- function(clean = TRUE) {
 #'
 #'@examples
 #'\dontrun{
-#'  outlets <- dt.streams[next_stream == -1, stream]
+#'  outlets <- dt.streams[next_str == -1, stream]
 #'  netID <- 1
 #'  for(i in outlets){
 #'    calcCatchmArea_assignNetID(dt.streams, id = i, netID)

@@ -1,18 +1,18 @@
 #' Calculate prediction sites for SSN object.
 #'
 #' @description
-#' A vector (points) map of prediction sites is derived and several attributes are assigned.
+#' A vector (points) map of prediction sites is created and several attributes are assigned.
 #'
-#' @param predictions string giving the name for the predictions map.
+#' @param predictions string giving the name for the prediction sites map.
 #' @param dist number giving the distance between the points to create in map units.
 #' @param nsites integer giving the approximate number of sites to create
-#' @param netIDs integer (optional): create predictions points only on streams
+#' @param netIDs integer (optional): create prediction sites only on streams
 #'  with these netID(s).
 #'
 #'@details
 #'Either \code{dist} or \code{nsites} must be provided. If \code{dist} is NULL,
 #' it is estimated by deviding the total stream length in the map by  \code{nsites};
-#' the actually derived number of sites might therefore be a bit smaller than
+#' the number of sites actually derived might therefore be a bit smaller than
 #' \code{nsites}.
 #'
 #' Steps include:
@@ -88,7 +88,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
   dt.streams <- do.call(rbind,strsplit(
     execGRASS("db.select",
               parameters = list(
-                sql = "select cat, stream, next_stream, prev_str01,prev_str02,netID,Length from edges"
+                sql = "select cat, stream, next_str, prev_str01,prev_str02,netID,Length from edges"
               ),intern = T),
     split = '\\|'))
   colnames(dt.streams) <- dt.streams[1,]
@@ -102,13 +102,13 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
     dt.streams <- na.omit(dt.streams, cols = "offset")
   }
   if(nrow(dt.streams) == 0)
-    stop("No streams to place prediction points on.")
+    stop("No streams to place prediction points on. Please check netIDs.")
 
   if(is.null(dist))
     dist <- ceiling(sum(dt.streams[,Length]) / nsites)
 
   message("Calculating point positions...\n")
-  outlets <- dt.streams[next_stream == -1, stream]
+  outlets <- dt.streams[next_str == -1, stream]
   for(i in outlets){
     calc_offset(dt.streams, id=i, offs = 0, dist)
   }
@@ -134,12 +134,12 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
               rules = "temp/pt.txt"
             ))
 
+  # MiKatt: No line break in long strings on Windows!
   message("Creating attribute table...\n")
   execGRASS("v.db.addtable", flags = c("quiet"),
             parameters = list(
               map = predictions,
-              columns = "cat_edge int, dist double precision, pid int, loc int,
-                         net int, rid int, out_dist double, distr double precision"
+              columns = "cat_edge int,dist double precision,pid int,loc int,net int,rid int,out_dist double,distr double precision"
            ))
 
   # MiKatt: Necessary to get upper and lower case column names
@@ -235,6 +235,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
   unlink("temp", recursive =T, force = TRUE)
 }
 
+#' Calculate offset
 #' @description Recursive function to calculate the offset from the downstream
 #' junction needed to place points with fixed distance along the streams.
 #' It is called by \code{\link{calc_prediction_sites}} for each
@@ -254,7 +255,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
 #'
 #'@examples
 #'\dontrun{
-#'  outlets <- dt.streams[next_stream == -1, stream]
+#'  outlets <- dt.streams[next_str == -1, stream]
 #'  netID <- 1
 #'  for(i in outlets){
 #'    calc_offset(dt.streams, id = i, offs = 0, dist = 200)

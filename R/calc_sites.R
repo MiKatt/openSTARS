@@ -11,10 +11,10 @@
 #' \itemize{
 #'  \item{Snap points to derived network. 'dist' gives the distance of the original position to the closest streams segement.}
 #'  \item{Assign unique 'pid' and 'locID'.}
-#'  \item{Get 'rid' and 'netID' of the stream segment the site intersects with (from map 'edges').}
+#'  \item{Get 'rid' and 'netID' of the stream segment the site intersects with (from map "edges").}
 #'  \item{Calculate upstream distance for each point ('upDist').}
 #'  \item{Calculate distance ratio ('distRatio) between position of site on edge
-#'    (distance traveled from lower end of theedge to the site) and the total
+#'    (distance traveled from lower end of the edge to the site) and the total
 #'     length of the edge.}
 #' }
 #' Often, survey sites do not lay exactly on the stream network (due to GPS
@@ -24,7 +24,7 @@
 #' \href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance}.
 #'
 #' 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
-#' #' \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+#' \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}} and
 #'   \code{\link{calc_edges}} must be run before.
@@ -84,7 +84,7 @@ calc_sites <- function() {
   execGRASS("v.db.addcolumn",
             parameters = list(
               map = "sites",
-              columns = "cat_edge int, dist double precision, xm double precision, ym double precision"
+              columns = "cat_edge int,dist double precision,xm double precision,ym double precision"
             ))
   # calc distance
   # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
@@ -120,7 +120,7 @@ calc_sites <- function() {
   message('Setting pid and locID...\n')
   execGRASS("v.db.addcolumn",
             parameters = list(map = 'sites',
-                              columns = 'pid int, locID int'))
+                              columns = 'pid int,locID int'))
   execGRASS("v.db.update",
             parameters = list(map = 'sites',
                               column = 'pid',
@@ -314,12 +314,12 @@ calc_sites <- function() {
   # dt.streams <- do.call(rbind,strsplit(
   #   execGRASS("db.select",
   #             parameters = list(
-  #               sql = "select cat,stream, next_stream, prev_str01,prev_str02,rid,H2OArea from edges_e"
+  #               sql = "select cat,stream, next_str, prev_str01,prev_str02,rid,H2OArea from edges_e"
   #             ),intern = T),
   #   split = '\\|'))
   # colnames(dt.streams)<-dt.streams[1,]
   # dt.streams<-data.table(dt.streams[-1,])
-  # dt.streams[, ':=' (cat = as.numeric(cat),stream = as.numeric(stream), next_stream = as.numeric(next_stream),
+  # dt.streams[, ':=' (cat = as.numeric(cat),stream = as.numeric(stream), next_str = as.numeric(next_str),
   #                    prev_str01 = as.numeric(prev_str01), prev_str02 = as.numeric(prev_str02),
   #                    rid = as.numeric(rid), H2OArea = as.numeric(H2OArea))]
   # a<-data.table(as.numeric(areas[,1]),as.numeric(areas[,2]))
