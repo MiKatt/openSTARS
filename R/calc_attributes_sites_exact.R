@@ -22,8 +22,9 @@
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
-
-#' @return Nothing. The function appends new columns to the 'sites' attribute table
+#' @param temp_dir string; temporary directory to store intermediate files.
+#'
+#' @return Nothing. The function appends new columns to the \code{sites_map} attribute table
 #' \itemize{
 #'  \item{'H2OArea':} {Total watershed area of the watershed upstream of each site.}
 #'  \item{attr_name:} {Additional optional attributes calculated based on input_raster maps.}
@@ -37,27 +38,51 @@
 #' @export
 #' @examples
 #' \donttest{
-#' library(rgrass7)
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass70/",
-#'   home = tempdir(),
-#'   override = TRUE)
-#' gmeta()
+#'     home = tempdir(),
+#'     override = TRUE)
+#'
+#' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
-#' derive_streams()
-#' #' cj <- check_compl_junctions()
-#' if(cj)
-#'   correct_compl_junctions()
+#' gmeta()
+#'
+#' # Derive streams from DEM
+#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+#'
+#' # Prepare edges
 #' calc_edges()
-#' calc_sites()
 #' execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
 #' parameters = list(
 #'   elevation = "dem",
 #'   slope = "slope"
 #'   ))
-#' calc_sites_attributes(input_raster = "slope",  stat = "mean", attr_name = "avgSlopeP")
+#' calc_attributes_edges(input_raster = "slope", stat = "max", attr_name = "maxSlo")
+#'
+#' # Prepare sites
+#' calc_sites()
+#' calc_attributes_sites_approx(input_attr_name = "maxSlo", stat = "max")
+#' calc_attributes_sites_exact(input_raster = "slope", attr_name = "maxSloE", stat = "max")
+#'
+#' # Plot data
+#' dem <- readRAST('dem', ignore.stderr = TRUE)
+#' edges <- readVECT('edges', ignore.stderr = TRUE)
+#' sites <- readVECT('sites', ignore.stderr = TRUE)
+#' plot(dem, col = terrain.colors(20))
+#' mm <- range(c(edges$maxSlo_e,sites$maxSlo,sites$maxSloE))
+#' b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
+#' c_ramp <- colorRampPalette(c("blue", "red"))
+#' cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e,breaks = b,right=F))]
+#' plot(edges,col=cols,add=T, lwd=2)
+#' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSlo,breaks = b,right=F))]
+#' points(sites, pch = 19, col = cols)
+#' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right=F))]
+#' points(sites, pch = 21,bg = cols,cex=0.7)
+#' # points in the middle of the map indicate a difference in max slope between
+#' # approximate and exact calculation
 #' }
 
 calc_attributes_sites_exact <- function(sites_map = "sites",
@@ -65,7 +90,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                         stat = NULL,
                                         attr_name = NULL,
                                         round_dig = 2,
-                                        keep_basins = FALSE){
+                                        keep_basins = FALSE,
+                                        temp_dir = "temp"){
 
   if(length(input_raster) != length(stat) | length(input_raster) != length(attr_name) | length(attr_name) != length(stat))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -81,7 +107,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
   rast <- execGRASS("g.list",
                     parameters = list(
-                      type = 'rast'
+                      type = "rast"
                     ),
                     intern = TRUE)
   if ("MASK" %in% rast)
@@ -109,9 +135,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                coordinates = coord,
                                basins = paste0("catchm_",pid)))
     dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
-                            execGRASS('r.stats',
-                                   flags = c('a', 'quiet'),
-                                   parameters = list(input = paste0('catchm_',pid)),
+                            execGRASS("r.stats",
+                                   flags = c("a", "quiet"),
+                                   parameters = list(input = paste0("catchm_",pid)),
                                    intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
 
     # calculate unviriate statitics per watershed
@@ -164,10 +190,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     # Delete watershed raster
     if (!keep_basins) {
       execGRASS("g.remove",
-                flags = c('quiet', 'f'),
+                flags = c("quiet", "f"),
                 parameters = list(
-                  type = 'raster',
-                  name = paste0('catchm_',pid)
+                  type = "raster",
+                  name = paste0("catchm_",pid)
                 ))
     }
     pb$tick()
@@ -175,12 +201,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
   # Join attributes to edges attribute table
   message("Joining tables...")
-  dir.create("temp")
-  write.csv(dat, file.path("temp","sites_attributes_exact.csv"),row.names = F)
-  write.table(t(gsub("numeric","Real",apply(dat,2,class))),file.path("temp","sites_attributes_exact.csvt"),quote=T,sep=",",row.names = F,col.names = F)
+  dir.create(temp_dir)
+  utils::write.csv(dat, file.path(temp_dir,"sites_attributes_exact.csv"),row.names = F)
+  write.table(t(gsub("numeric","Real",apply(dat,2,class))),file.path(temp_dir,"sites_attributes_exact.csvt"),quote=T,sep=",",row.names = F,col.names = F)
   execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
             parameters = list(
-              input = file.path("temp","sites_attributes_exact.csv"),
+              input = file.path(temp_dir,"sites_attributes_exact.csv"),
               output = "sites_attributes_exact"
             ),ignore.stderr = T)
   execGRASS("v.db.join", flags = "quiet",
@@ -190,17 +216,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
               other_table = "sites_attributes_exact",
               other_column = "pid"
             ))
-  unlink("temp", recursive = TRUE, force = TRUE)
+  unlink(temp_dir, recursive = TRUE, force = TRUE)
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
               table = "sites_attributes_exact"
             ))
-
-  ## MiKatt: Gives WARNING "Width for column XX set to 255 (was not specified by OGR),
-  ##   some strings may be truncated!
-  # d.sites@data <- merge(d.sites@data, dat, by="pid")
-  # d.sites$cat_ <- NULL
-  # writeVECT(d.sites, vname = 'sites',
-  #          v.in.ogr_flags = c('overwrite', 'quiet'),
-  #          ignore.stderr = TRUE)
 }

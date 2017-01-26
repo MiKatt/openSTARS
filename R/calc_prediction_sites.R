@@ -1,83 +1,84 @@
-#' Calculate prediction sites for SSN object.
+#'Calculate prediction sites for SSN object.
 #'
-#' @description
-#' A vector (points) map of prediction sites is created and several attributes are assigned.
+#'@description A vector (points) map of prediction sites is created and several
+#'attributes are assigned.
 #'
-#' @param predictions string giving the name for the prediction sites map.
-#' @param dist number giving the distance between the points to create in map units.
-#' @param nsites integer giving the approximate number of sites to create
-#' @param netIDs integer (optional): create prediction sites only on streams
-#'  with these netID(s).
+#'@param predictions string giving the name for the prediction sites map.
+#'@param dist number giving the distance between the points to create in map
+#'  units.
+#'@param nsites integer giving the approximate number of sites to create
+#'@param netIDs integer (optional): create prediction sites only on streams with
+#'  these netID(s).
+#'@param temp_dir string; temporary directory to store intermediate files.
 #'
-#'@details
-#'Either \code{dist} or \code{nsites} must be provided. If \code{dist} is NULL,
-#' it is estimated by deviding the total stream length in the map by  \code{nsites};
-#' the number of sites actually derived might therefore be a bit smaller than
-#' \code{nsites}.
+#'@details Either \code{dist} or \code{nsites} must be provided. If \code{dist}
+#'is NULL, it is estimated by deviding the total stream length in the map by
+#'\code{nsites}; the number of sites actually derived might therefore be a bit
+#'smaller than \code{nsites}.
 #'
-#' Steps include:
-#' \itemize{
-#'  \item{Place points on edges with given distance form each other}
-#'  \item{Assign unique 'pid' and 'locID'.}
-#'  \item{Get 'rid' and 'netID' of the stream segment the site intersects with (from map 'edges').}
-#'  \item{Calculate upstream distance for each point ('upDist').}
-#'  \item{Calculate distance ratio ('distRatio') between position of the site on
-#'  the edge (= distance traveled from lower end of the edge to the site) and
-#'  the total length of the edge.}
-#' }
+#'Steps include: \itemize{ \item{Place points on edges with given distance form
+#'each other} \item{Assign unique identifiers (neede by the SSN package) 'pid'
+#'and 'locID'.} \item{Get 'rid' and 'netID' of the stream segment the site
+#'intersects with (from map 'edges').} \item{Calculate upstream distance for
+#'each point ('upDist').} \item{Calculate distance ratio ('distRatio') between
+#'position of the site on the edge (= distance traveled from lower end of the
+#'edge to the site) and the total length of the edge.} }
 #'
-#' 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
-#' \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
-#' Points are created using \href{https://grass.osgeo.org/grass73/manuals/v.segment.html}{v.segment}.
+#''pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
+#'\href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+#'Points are created using
+#'\href{https://grass.osgeo.org/grass73/manuals/v.segment.html}{v.segment}.
 #'
-#' @note \code{\link{import_data}}, \code{\link{derive_streams}} and
-#'   \code{\link{calc_edges}} must be run before.
+#'@note \code{\link{import_data}}, \code{\link{derive_streams}} and
+#'  \code{\link{calc_edges}} must be run before.
 #'
-#' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
-#' @export
+#'@author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
+#'@export
 #' @examples
 #' \donttest{
-#' library(rgrass7)
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass70/",
-#'   home = tempdir(),
-#'   override = TRUE)
-#' gmeta()
+#'     home = tempdir(),
+#'     override = TRUE)
+#'
+#' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
-#' derive_streams()
-#' cj <- check_compl_junctions()
-#' if(cj){
-#'   correct_compl_junctions()
-#' }
+#' gmeta()
+#'
+#' # Derive streams from DEM
+#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+#'
 #' calc_edges()
 #' calc_sites()
 #' calc_prediction_sites(predictions = "preds", dist = 2500)
 #'
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
-#' sites <- readVECT('sites_o', ignore.stderr = TRUE)
+#' sites <- readVECT('sites', ignore.stderr = TRUE)
 #' preds <- readVECT('preds', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
+#' lines(edges, col = 'blue', lwd = 2)
 #' points(sites, pch = 4)
-#' points(preds, pch = 1, col = "darkgreen", cex = 0.75)
-#' lines(edges, col = 'blue')
+#' points(preds, pch = 19, col = "steelblue")
 #' }
 
-calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs = NULL) {
+calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
+                                  netIDs = NULL, temp_dir = "temp") {
   vect <- execGRASS("g.list",
                     parameters = list(
-                      type = 'vect'
+                      type = "vect"
                     ),
                     intern = TRUE)
-  if (!'edges' %in% vect)
-    stop('Edges not found. Did you run calc_edges()?')
+  if (!"edges" %in% vect)
+    stop("Edges not found. Did you run calc_edges()?")
   if(predictions %in% vect)
     execGRASS("g.remove",
-              flags = c('quiet', 'f'),
+              flags = c("quiet", "f"),
               parameters = list(
-                type = 'vector',
+                type = "vector",
                 name = predictions
               ))
 
@@ -99,7 +100,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
   # omit all segements that do not belong to the netIDs given
   if(!is.null(netIDs)){
     dt.streams[!(netID %in% netIDs), offset := NA]
-    dt.streams <- na.omit(dt.streams, cols = "offset")
+    dt.streams <- stats::na.omit(dt.streams, cols = "offset")
   }
   if(nrow(dt.streams) == 0)
     stop("No streams to place prediction points on. Please check netIDs.")
@@ -124,14 +125,14 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
     }
   }
   str1 <- substring(str1, 2)
-  dir.create("temp")
-  write(str1, "temp/pt.txt")
+  dir.create(temp_dir)
+  write(str1, file.path(temp_dir,"pt.txt"))
 
   execGRASS("v.segment", flags = c("overwrite", "quiet"),
             parameters = list(
               input = "edges",
               output = predictions,
-              rules = "temp/pt.txt"
+              rules = file.path(temp_dir,"pt.txt")
             ))
 
   # MiKatt: No line break in long strings on Windows!
@@ -165,74 +166,74 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10, netIDs 
             ))
 
   execGRASS("v.distance",
-            flags = c("overwrite", 'quiet'),
+            flags = c("overwrite", "quiet"),
             parameters = list(from = predictions,
-                              to = 'edges',
-                              #output = 'connectors',
-                              upload = 'cat,dist',
-                              column = 'cat_edge,dist'))
+                              to = "edges",
+                              #output = "connectors",
+                              upload = "cat,dist",
+                              column = "cat_edge,dist"))
 
-  message('Setting pid and locID...\n')
+  message("Setting pid and locID...\n")
   execGRASS("v.db.update",
             parameters = list(map = predictions,
-                              column = 'pid',
-                              value = 'cat'))
+                              column = "pid",
+                              value = "cat"))
   execGRASS("v.db.update",
             parameters = list(map = predictions,
-                              column = 'locID',
-                              value = 'pid'))
+                              column = "locID",
+                              value = "pid"))
 
   # Set netID and rid from network ---------
-  message('Assigning netID and rid...\n')
+  message("Assigning netID and rid...\n")
 
   sql_str<- paste0("UPDATE ", predictions, " SET rid=(SELECT rid FROM edges WHERE ",
                    predictions,".cat_edge=edges.cat)")
-  execGRASS('db.execute',
+  execGRASS("db.execute",
             parameters = list(
               sql = sql_str
             ))
   sql_str<- paste0("UPDATE ", predictions, " SET netID=(SELECT netID FROM edges WHERE ",
                    predictions,".cat_edge=edges.cat)")
-  execGRASS('db.execute',
+  execGRASS("db.execute",
             parameters = list(
               sql = sql_str
             ))
 
   # Calculate upDist ---------
-  message('Calculating upDist...\n')
-  execGRASS('r.stream.distance',
-            flags = c('overwrite', 'quiet', 'o'),
+  message("Calculating upDist...\n")
+  execGRASS("r.stream.distance",
+            flags = c("overwrite", "quiet", "o"),
             parameters = list(
-              stream_rast = 'streams_r',
-              direction = 'dirs',
-              method = 'downstream',
-              distance = 'upDist'
+              stream_rast = "streams_r",
+              direction = "dirs",
+              method = "downstream",
+              distance = "upDist"
             ))
 
-  execGRASS('v.what.rast',
-            flags = c('quiet'),
+  execGRASS("v.what.rast",
+            flags = c("quiet"),
             parameters = list(
               map = predictions,
-              raster = 'upDist',
-              column = 'upDist'
+              raster = "upDist",
+              column = "upDist"
             ))
   # MiKatt: ! Round upDist to m
 
   # Calculate distRatio = distance from lower end of edge to site / length edge
-  message('Calculating distance ratio...\n')
+  message("Calculating distance ratio...\n")
 
   sql_str <- paste0("UPDATE ", predictions, " SET distRatio=1-",
                     "round((((SELECT upDist FROM edges WHERE edges.cat=",
                     predictions, ".cat_edge)-upDist)),2)/",
                     "(SELECT Length FROM edges WHERE edges.cat=",
                     predictions, ".cat_edge)")
-  execGRASS('db.execute',
+  execGRASS("db.execute",
             parameters = list(
               sql=sql_str
             ))
 
   # delete temporary files
-  unlink("temp", recursive =T, force = TRUE)
+  unlink(temp_dir, recursive =T, force = TRUE)
 }
 
 #' Calculate offset

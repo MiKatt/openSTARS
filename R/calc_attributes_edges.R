@@ -1,7 +1,7 @@
-#' Calcuate attributes of the edges
+#' Calcuate attributes of the edges.
 #'
-#' For each edge additional attributes (predictor variables) are derived based
-#' on given raster maps.
+#' For each edge (i.e. stream segment) additional attributes (predictor variables)
+#' are derived based on given raster maps.
 #'
 #' @param input_raster name or character vector of names of the raster map(s)
 #'   to calculate attributes from.
@@ -12,6 +12,7 @@
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param clean logical; should intermediate files be deleted
+#' @param temp_dir string; temporary directory to store intermediate files.
 
 #' @return Nothing. The function appends new columns to the 'edges' attribute
 #'   table with column names given in \code{attr_name}. For each attribute, two
@@ -19,44 +20,58 @@
 #'   ("attribute_name_e") and one for the attribute of the total catchment of
 #'   the edge ("attribute_name_c").
 #'
-#'@details For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
+#'@details First, the subcatchments for all edges are calculated. Then these are
+#' intersected with the given raster maps and the desired statitics are computed.
+#' This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
+#'
+#'For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
 #'  (e.g., cells occupied by the land use under consideration and not). If
 #'   the \code{input_raster} consists of percentages per cell (e.g., proportional land
 #'   use of a certain type per cell) \code{stat} = "mean" gives the overall proportion
 #'   of this land use.
 #'
-#' @note \code{\link{import_data}}, \code{\link{derive_streams}} and
-#'   \code{\link{calc_edges}} must be run before.
+#' @note \code{\link{setup_grass_environment}}, \code{\link{import_data}},
+#' \code{\link{derive_streams}} and \code{\link{calc_edges}} must be run before.
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
 #' @examples
 #' \donttest{
-#' library(rgrass7)
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass70/",
-#'   home = tempdir(),
-#'   override = TRUE)
-#' gmeta()
+#'     home = tempdir(),
+#'     override = TRUE)
+#'
+#' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
-#' derive_streams()
-#' #' cj <- check_compl_junctions()
-#' if(cj)
-#'   correct_compl_junctions()
+#' gmeta()
+#'
+#' # Derive streams from DEM
+#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+#'
+#' # Prepare edges
 #' calc_edges()
-#' calc_sites()
 #' execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
 #' parameters = list(
 #'   elevation = "dem",
 #'   slope = "slope"
 #'   ))
 #' calc_attributes_edges(input_raster = rep("slope",3),
-#'   stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slope"))
+#'   stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slo"))
+#'
+#' # Plot data
+#' dem <- readRAST('dem', ignore.stderr = TRUE)
+#' edges <- readVECT('edges', ignore.stderr = TRUE)
+#' plot(dem, col = terrain.colors(20))
+#' cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
+#' plot(edges,col=cols,add=T, lwd=2)
 #' }
 
-calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, clean = TRUE){
+calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
+                                  clean = TRUE, temp_dir = "temp"){
 
   if(length(input_raster) != length(stat) | length(input_raster) != length(attr_name) | length(attr_name) != length(stat))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -65,13 +80,16 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
   if(any(!stat %in% c("min","max", "mean", "percent")))
     stop('Statistics to calculate must be one of "min","max", "mean", "percent".')
 
+  if(any(sapply(attr_name, nchar) > 8))
+     stop("Attribute names must not be longer than eight characters.")
+
   rast <- execGRASS("g.list",
                     parameters = list(
-                      type = 'rast'
+                      type = "rast"
                     ),
                     intern = TRUE)
-  if (!'streams_r' %in% rast | !'dirs' %in% rast)
-    stop('Missing data. Did you run derive_streams()?')
+  if (!"streams_r" %in% rast | !"dirs" %in% rast)
+    stop("Missing data. Did you run derive_streams()?")
 
   if ("MASK" %in% rast)
     execGRASS("r.mask",flags = c("r", "quiet"))
@@ -80,11 +98,11 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
     round_dig <- rep(round_dig, length(stat)+1)
 
   ## Calculate reach contributing area (=sub chatchment) for each segment.
-  message('Calculating reach contributing area (RCA)...\n')
+  message("Calculating reach contributing area (RCA)...\n")
   execGRASS("r.stream.basins",
             flags = c("overwrite", "quiet"),
-            parameters = list(direction = 'dirs',
-                              stream_rast = 'streams_r',
+            parameters = list(direction = "dirs",
+                              stream_rast = "streams_r",
                               basins = "rca"))
 
   message("Intersecting attributes...")
@@ -144,9 +162,8 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
   dt.streams[is.na(non_null_cells), non_null_cells := 0]
 
   # This can take long
-  # Calculate attributes
+  # Calculate attributes for total catchments
   calc_catchment_attributes(dt.streams, stat, attr_name, round_dig)
-
 
   # Delete unneeded columns
   dt.streams[, c("stream", "next_str", "prev_str01", "prev_str02", "netID", "non_null_cells","cumsum_cells") := NULL]
@@ -154,12 +171,12 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
 
   # Join attributes to edges attribute table
   message("Joining tables...")
-  dir.create("temp")
-  write.csv(dt.streams, file.path("temp","edge_attributes.csv"),row.names = F)
-  write.table(t(gsub("numeric","Real",sapply(dt.streams,class))),file.path("temp","edge_attributes.csvt"),quote=T,sep=",",row.names = F,col.names = F)
+  dir.create(temp_dir)
+  utils::write.csv(dt.streams, file.path(temp_dir,"edge_attributes.csv"),row.names = F)
+  write.table(t(gsub("numeric","Real",sapply(dt.streams,class))),file.path(temp_dir,"edge_attributes.csvt"),quote=T,sep=",",row.names = F,col.names = F)
   execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
             parameters = list(
-              input = file.path("temp","edge_attributes.csv"),
+              input = file.path(temp_dir,"edge_attributes.csv"),
               output = "edge_attributes"
             ),ignore.stderr = T)
   execGRASS("v.db.join", flags = "quiet",
@@ -172,16 +189,16 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2, 
 
   if (clean) {
     execGRASS("g.remove",
-              flags = c('quiet', 'f'),
+              flags = c("quiet", "f"),
               parameters = list(
-                type = 'raster',
-                name = 'rca'
+                type = "raster",
+                name = "rca"
               ))
     execGRASS("db.droptable", flags = c("quiet","f"),
               parameters = list(
                 table = "edge_attributes"
               ))
-    unlink("temp", recursive = TRUE, force = TRUE)
+    unlink(temp_dir, recursive = TRUE, force = TRUE)
   }
 }
 

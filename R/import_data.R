@@ -4,8 +4,6 @@
 #' Optionally, streams data is loaded and the streams may be corrected by
 #' snapping to prevent lose ends.
 #'
-#' @import rgrass7
-#'
 #' @param dem character; path to DEM raster file.
 #' @param sites character; path to sites vector file.
 #' @param streams character (optional); path to network vector file.
@@ -26,7 +24,6 @@
 #'
 #' @examples
 #' \donttest{
-#' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
 #'   override = TRUE)
@@ -42,12 +39,12 @@
 
 import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE, ...) {
   if (nchar(get.GIS_LOCK()) == 0)
-    stop('GRASS not initialised. Please run initGRASS().')
+    stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | is.null(sites))
-    stop('DEM and sites are needed.')
+    stop("DEM and sites are needed.")
 
   # Import data -------------------
-  message('Loading data into GRASS...\n')
+  message("Loading DEM into GRASS...\n")
 
   # reread raster with correct extent
   # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
@@ -66,6 +63,7 @@ import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE, ...) {
                 input = dem,
                 output = "dem"),ignore.stderr=T)
   }
+  message("Loading sites into GRASS...\n")
   # sites data
   execGRASS("v.in.ogr",
             flags = c("o", "overwrite", "quiet"),
@@ -91,17 +89,17 @@ import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE, ...) {
                   tool = "snap",
                   threshold = 10),ignore.stderr=T)
       execGRASS("g.copy",
-                flags = c('overwrite', 'quiet'),
+                flags = c("overwrite", "quiet"),
                 parameters = list(
-                  vector = 'streams_oc,streams_o'))
+                  vector = "streams_oc,streams_o"))
       execGRASS("g.remove",
-                flags = c('quiet', 'f'),
+                flags = c("quiet", "f"),
                 parameters = list(
-                  type = 'vector',
-                  name = 'streams_oc'
+                  type = "vector",
+                  name = "streams_oc"
                 ))
     }
   } else {
-    message('No streams available, skipping.\n')
+    message("No streams available, skipping.\n")
   }
 }

@@ -2,8 +2,6 @@
 #'
 #' This function sets the GRASS mapset to PERMANENT and sets its projection and extension.
 #'
-#' @import rgrass7
-#'
 #' @param dem character; path to DEM.
 #' @param sites character; path to sites.
 #' @param epsg number; EPSG code for the spatial reference to be used
@@ -17,27 +15,26 @@
 #'
 #' @examples
 #' \donttest{
-#' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
 #'   override = TRUE)
-#' gmeta()
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-#' setup_grass_environment(dem = dem_path, sites = sites_path)
+#' setup_grass_environment(dem = dem_path, epsg = 3358)
+#' gmeta()
 #' }
 #'
 
 setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
-    stop('GRASS not initialised. Please run initGRASS().')
+    stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | (is.null(sites) & is.null(epsg)))
-    stop('DEM and sites or epsg code are needed.')
-  message('Setting up GRASS Environment...\n')
+    stop("DEM and either sites or epsg code are needed.")
+  message("Setting up GRASS Environment...\n")
 
   # Set Projection to input file -------------------------
   execGRASS("g.mapset",
-            flags = c('quiet'),
+            flags = c("quiet"),
             parameters = list(
               mapset = "PERMANENT"))
   if(!is.null(sites)){
@@ -66,8 +63,9 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
               parameters = list(
                 input = dem,
                 output = "dem_temp"))
-    message(paste("Windows does not recognize the projecion of the dem raster. It will be overwritten with the one of \n",sites,".\n
-                   Please verify that they are identical.",sep=""))
+    message(paste("Windows does not recognize the projection of the DEM raster. ",
+                  "It will be overwritten with the one of the observation sites (",
+                  sites, "). Please verify that the projections match.", sep= ""))
   } else{
     execGRASS("r.in.gdal",
               flags = c("overwrite","quiet"),
@@ -76,15 +74,15 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
                 output = "dem_temp"))
   }
   execGRASS("g.region",
-            flags = c('quiet'),
+            flags = c("quiet"),
             parameters = list(
               raster = "dem_temp"))
 
   # remove temporary dem file
   execGRASS("g.remove",
-            flags = c('quiet', 'f'),
+            flags = c("quiet", "f"),
             parameters = list(
-              type = 'raster',
-              name = 'dem_temp'
+              type = "raster",
+              name = "dem_temp"
             ))
 }

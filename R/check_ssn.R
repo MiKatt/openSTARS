@@ -1,4 +1,4 @@
-#' Checking the .ssn Object
+#' Checking SSN object.
 #'
 #' This function roughly checks
 #'
@@ -12,7 +12,6 @@
 #' @export
 #' @examples
 #' \donttest{
-#' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
 #'   override = TRUE)
@@ -68,79 +67,79 @@ check_ssn <- function(path) {
   out <- TRUE
 
 # neccesary Files ---------------------------------------------------------
-  message('Checking necessary files...')
-  if (file.exists(file.path(path, 'edges.shp'))) {
-    message('\tedges.shp...OK')
+  message("Checking necessary files...")
+  if (file.exists(file.path(path, "edges.shp"))) {
+    message("\tedges.shp...OK")
   } else {
     out <- out & FALSE
-    message('\tedges.shp...FAIL!')
+    message("\tedges.shp...FAIL!")
   }
-  if (file.exists(file.path(path, 'sites.shp'))) {
-    message('\tsites.shp...OK')
+  if (file.exists(file.path(path, "sites.shp"))) {
+    message("\tsites.shp...OK")
   } else {
     out <- out & FALSE
-    message('\tsites.shp...FAIL!')
+    message("\tsites.shp...FAIL!")
   }
-  edges <- readOGR(path, 'edges', verbose = FALSE)
+  edges <- readOGR(path, "edges", verbose = FALSE)
   netIDs <- unique(edges$netID)
-  bin_files <- list.files(path, pattern = '*.dat')
-  if (all(bin_files %in% paste0('netID', netIDs, '.dat'))) {
-    message('\tbinary files...OK')
+  bin_files <- list.files(path, pattern = "*.dat")
+  if (all(bin_files %in% paste0("netID", netIDs, ".dat"))) {
+    message("\tbinary files...OK")
   } else {
     out <- out & FALSE
-    message('\tbinary files...FAIL!')
+    message("\tbinary files...FAIL!")
   }
 
 # edges -------------------------------------------------------------------
-  message('Checking edges.shp...')
-  obl_cols <- c('rid', 'netID', 'OBJECTID', 'upDist', 'Length', 'H2OArea', 'rcaArea')
+  message("Checking edges.shp...")
+  obl_cols <- c("rid", "netID", "OBJECTID", "upDist", "Length", "H2OArea", "rcaArea")
   if (all(obl_cols %in% names(edges@data))) {
-    message('\tColumns...OK')
+    message("\tColumns...OK")
   } else {
     out <- out & FALSE
-    message('\tColumns...FAIL!
-            \tMissing columns: ',  obl_cols[!obl_cols %in% names(edges@data)])
+    message("\tColumns...FAIL!
+            \tMissing columns: ",  obl_cols[!obl_cols %in% names(edges@data)])
   }
   if (length(unique(edges$rid)) == nrow(edges)) {
-    message('\tUnique rids...OK')
+    message("\tUnique rids...OK")
   } else {
     out <- out & FALSE
-    message('\tUnique rids...FAIL!')
+    message("\tUnique rids...FAIL!")
   }
 
   if (max(edges$rid) == nrow(edges) - 1) {
-    message('\tMax rid...OK')
+    message("\tMax rid...OK")
   } else {
     out <- out & FALSE
-    message('\tMax rid...FAIL!')
+    message("\tMax rid...FAIL!")
   }
 
   if (all(edges$upDist > 0)) {
-    message('\tupDist > 0...OK')
+    message("\tupDist > 0...OK")
   } else {
     out <- out & FALSE
-    message('\tupDist > 0...FAIL!')
+    message("\tupDist > 0...FAIL!")
   }
 
   if (!any(is.na(edges$netID))) {
-    message('\tnetID...OK')
+    message("\tnetID...OK")
   } else {
     out <- out & FALSE
-    message('\tnetID > 0...FAIL!')
+    message("\tnetID > 0...FAIL!")
   }
 
   ssn <- importSSN(path)
-  ssn <- additive.function(ssn, 'H2OArea', 'afv_computed')
+  ssn <- additive.function(ssn, "H2OArea", "afv_computed")
   r_afv <- range(ssn@data$afv_computed)
 
   if (all(r_afv >= 0 & r_afv <= 1)) {
-    message('\tadditive function value range...OK')
+    message("\tadditive function value range...OK")
   } else {
     out <- out & FALSE
-    message('\tadditive function value range...FAIL!')
+    message("\tadditive function value range...FAIL!")
   }
 
-  #message('\tsegment PI value range...not implemented!')
+  #message("\tsegment PI value range...not implemented!")
 
 
   # ggplot(edges@data, aes(x = topo_dim, y = upDist-Length)) +
@@ -151,22 +150,22 @@ check_ssn <- function(path) {
   # columns
 
 # Obs. sites -------------------------------------------------------------------
-  #message('Checking sites.shp...')
+  #message("Checking sites.shp...")
 
 
 
 # Prediction sites -------------------------------------------------------------------
-  #message('Checking Prediction sites...')
+  #message("Checking Prediction sites...")
 
 
 
 # Binary ids --------------------------------------------------------------
-  message('Checking Binary files...')
-  if (all(as.numeric(gsub('netID(.*)\\.dat', '\\1', bin_files)) %in% unique(edges@data$netID))) {
-    message('\tBinary files...OK')
+  message("Checking Binary files...")
+  if (all(as.numeric(gsub("netID(.*)\\.dat", "\\1", bin_files)) %in% unique(edges@data$netID))) {
+    message("\tBinary files...OK")
   } else {
     out <- out & FALSE
-    message('\tBinary files...FAIL!')
+    message("\tBinary files...FAIL!")
   }
 
 

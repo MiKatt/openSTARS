@@ -2,32 +2,38 @@
 #'
 #' Streams are derived from a digital elevation model (DEM) using
 #' \href{https://grass.osgeo.org/grass70/manuals/r.stream.extract.html}{r.stream.extract}.
-#' If a stream network is available (see \code{\link{import_data}}) and
-#' burn > 0 it will be first burnt into the digital elevation model (DEM).
-#' Stream topolology is derived using
+#' If a stream network is available (see \code{\link{import_data}}) and burn > 0
+#' it will be first burnt into the digital elevation model (DEM). Stream
+#' topolology is derived using
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
 #'
-#' @param burn numeric; how many meters should the streams be burned into the DEM?
-#' @param accum_threshold integer; accumulation threshold to use (i.e. minimum flow
-#'  accumulation value in cells that will initiate a new stream).
-#' @param min_stream_length integer: minimum stream length in number of DEM raster
-#'  cells; shorter first order stream segments are deleted; default: 0
+#' @param burn numeric; how many meters should the streams be burned into the
+#'   DEM?
+#' @param accum_threshold integer; accumulation threshold to use (i.e. minimum
+#'   flow accumulation value in cells that will initiate a new stream).
+#' @param min_stream_length integer: minimum stream length in number of DEM
+#'   raster cells; shorter first order stream segments are deleted; default: 0
 #' @param condition logical; should the DEM be conditioned using
 #'   \href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?
-#' @param dem_name character vector, optional; default: "dem"; usefull if
-#' conditioned and / or burnt in DEM raster from previous runs shall be used.
-#' @param clean logical; should intermediate raster layer of imported
-#'   streams ("streams_or") be removed from GRASS session?
+#'
+#' @param dem_name character vector, optional; default: 'dem'; usefull if
+#'   conditioned and / or burnt in DEM raster from previous runs shall be used.
+#' @param clean logical; should intermediate raster layer of imported streams
+#'   ('streams_or') be removed from GRASS session?
 #'
 #' @return Nothing. The function produces the following maps:
 #' \itemize{
-#'  \item{"streams_r"} {derived streams (raster)}
-#'  \item{"streams_v"} {derived streams with topology (vector)}
-#'  \item{"dirs"} {flow directions (raster)}
-#'  \item{"accums"} {accumulation values (raster)}
-#'  \item{"dem_cond"} {conditioned dem (raster) if condition it true}
-#'  \item{"dem_[cond]_burn[X]"} {burned in DEM (raster) if burn is > 0}
-#' } The original "dem" is not modified if condition = TRUE and / or burn > 0.
+#'  \item{'streams_r'} {derived streams (raster)}
+#'  \item{'streams_v'} {derived streams with topology (vector)}
+#'  \item{'dirs'} {flow directions (raster)}
+#'  \item{'accums'} {accumulation values (raster)}
+#'  \item{'dem_cond'} {conditioned dem (raster) if  \code{condition} is TRUE}
+#'  \item{'dem_[cond]_burn[X]'} {burnt in DEM (raster) if burn is > 0}
+#' } The original GRASS map 'dem' is not modified if \code{condition} is TRUE and / or \code{burn} > 0.
+#'
+#' @details For details on \code{accum_threshold} and \code{min_stream_length}
+#' see the parameters 'threshold' and 'stream_length' at
+#' \href{https://grass.osgeo.org/grass73/manuals/r.stream.extract}{r.stream.extract}.
 #'
 #' @note \code{\link{setup_grass_environment}} and \code{\link{import_data}}
 #'   must be run before.
@@ -37,7 +43,6 @@
 #'
 #' @examples
 #' \donttest{
-#' library(rgrass7)
 #' initGRASS(gisBase = "/usr/lib/grass70/",
 #'   home = tempdir(),
 #'   override = TRUE)
@@ -51,17 +56,18 @@
 #' sites <- readVECT('sites_o', ignore.stderr = TRUE)
 #' streams <- readVECT('streams_v', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
+#' lines(streams, col = 'blue', lwd = 2)
 #' points(sites, pch = 4)
-#' lines(streams, col = 'blue')
 #' }
 
-derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE, min_stream_length = 0, dem_name = NULL, clean = TRUE) {
+derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
+                           min_stream_length = 0, dem_name = NULL, clean = TRUE) {
 
   if(condition == TRUE & (ifelse(is.null(dem_name), FALSE, dem_name != "dem")))
     stop("Only an unmodified DEM should be used for conditioning.")
 
   if(burn != 0 & (ifelse(is.null(dem_name), FALSE, grepl("burn", dem_name))))
-    stop("Only an unburned DEM should be used for burn in")
+    stop("Only an unburnt DEM should be used for burn in.")
 
   if(is.null(dem_name))
     dem_name <- "dem"
@@ -69,23 +75,23 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE, mi
 
   vect <- execGRASS("g.list",
                     parameters = list(
-                      type = 'vect'
+                      type = "vect"
                     ),
                     intern = TRUE)
   rast <- execGRASS("g.list",
                     parameters = list(
-                      type = 'rast'
+                      type = "rast"
                     ),
                     intern = TRUE)
   if (!dem_name %in% rast)
-    stop('DEM not found. Did you run import_data()?')
+    stop("DEM not found. Did you run import_data()?")
 
 
   if (condition) {
-    message('Conditioning DEM...\n')
+    message("Conditioning DEM...\n")
     # MiKatt: Make 'mod' and 'size' user defined (optionally)?
-    execGRASS('r.hydrodem',
-              flags = c('overwrite'),
+    execGRASS("r.hydrodem",
+              flags = c("overwrite"),
               parameters = list(
                 input = dem_name,
                 output = "dem_cond"
@@ -93,16 +99,16 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE, mi
     dem_name <- "dem_cond"
     dem_name_out <- "dem_cond"
   }
-  if ('streams_o' %in% vect & burn > 0) {
-    message('Burning streams into DEM...\n')
+  if ("streams_o" %in% vect & burn > 0) {
+    message("Burning streams into DEM...\n")
     # rasterize streams, set value to 1
     execGRASS("v.to.rast",
-              flags = c('overwrite', 'quiet'),
+              flags = c("overwrite", "quiet"),
               parameters = list(
-                input = 'streams_o',
-                type = 'line',
-                output = 'streams_or',
-                use = 'val',
+                input = "streams_o",
+                type = "line",
+                output = "streams_or",
+                use = "val",
                 value = 1
               ))
 
@@ -122,32 +128,28 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE, mi
     # MiKatt: Solution: 1) write r.mapcalc results to dem2, 2) copy dem2 to dem, 3) delete dem2
     if(.Platform$OS.type == "windows"){
       execGRASS("r.mapcalc",
-                flags = c('overwrite', 'quiet'),
+                flags = c("overwrite", "quiet"),
                 parameters = list(
                   expression =
-                    #paste0('\"dem2 = if(isnull(streams_or),  dem, dem-',
-                    #       burn, ')\"')
                     paste0('\"dem2 = if(isnull(streams_or),  ', dem_name, ', ', dem_name,'-',
                          burn, ')\"')
                 ))
       execGRASS("g.copy",
-                flags = c('overwrite', 'quiet'),
+                flags = c("overwrite", "quiet"),
                 parameters = list(
                   raster = paste0("dem2,", dem_name_out)
                   ))
       execGRASS("g.remove",
-                flags = c('quiet', 'f'),
+                flags = c("quiet", "f"),
                 parameters = list(
-                  type = 'raster',
-                  name = 'dem2'
+                  type = "raster",
+                  name = "dem2"
                 ))
     } else{
       execGRASS("r.mapcalc",
-                flags = c('overwrite', 'quiet'),
+                flags = c("overwrite", "quiet"),
                 parameters = list(
                   expression =
-                    #paste0('\"dem = if(isnull(streams_or),  dem, dem-',
-                    #       burn, ')\"')
                     paste0('\"',dem_name_out,' = if(isnull(streams_or),  ', dem_name, ', ', dem_name,'-',
                            burn, ')\"')
                 ))
@@ -155,58 +157,52 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE, mi
     # MiKatt: remove temporary stream raster file 'streams_or'
     if (clean) {
       execGRASS("g.remove",
-                flags = c('quiet', 'f'),
+                flags = c("quiet", "f"),
                 parameters = list(
-                  type = 'raster',
-                  name = 'streams_or'
+                  type = "raster",
+                  name = "streams_or"
                 ))
     }
   }
 
   # calculate flow accumulation --------------
-  # MiKatt: Is needed to derive stream topology (r.stream.order)
-  # MiKatt: moved here from last step in this function so it can be used as
-  #  input for r.stream.extract (-> faster + identical streams?)
-  # MiKatt: flow directions raster is slightly different, streams seem to be identical
-  execGRASS("r.watershed",
-            flags = c('overwrite', 'quiet'),
+   execGRASS("r.watershed",
+            flags = c("overwrite", "quiet"),
             parameters = list(
               elevation = dem_name_out,
-              accumulation = 'accums'
+              accumulation = "accums"
             ))
 
   # MiKatt: Using r.watershed to derive streams, flow directions and accumulation might be faster (plus r.to.vect and v.clean).
-  # MiKatt: -> produces many very small segments, often close to intersections => Why?
-  # MiKatt: -> seems to be independent of the convercence value.
-  # MiKatt: -> r.thin does not help much.
-  message('Deriving streams from DEM...\n')
-  # MiKatt: streams_vr (vector map) is not needed for the subsequent calculations; removed to speed up calculations
+  # MiKatt: BUT -> produces many very small segments, often close to intersections
+  # MiKatt: -> seems to be independent of the convercence value
+  # MiKatt: -> r.thin does not help much
+  message("Deriving streams from DEM...\n")
   # MiKatt: Known Windows issue ([GRASS-dev] [GRASS GIS] #2919): "Missing value for parameter <d8cut>"; default value infinity is not used even if accumulation map is given.
   # MiKatt: Solution: set d8cut to total number of cells in g.region.
     ncell <- execGRASS("g.region",flags="p",intern=T)
     ncell <- as.numeric(unlist(strsplit(ncell[grep("cells",ncell)],split=":"))[2])
     execGRASS("r.stream.extract",
-            flags =  c('overwrite', 'quiet'),
+            flags =  c("overwrite", "quiet"),
             parameters = list(elevation = dem_name_out,
                               accumulation = "accums",
                               threshold = accum_threshold, # use ATRIC to get this value?
                               d8cut = ncell,
                               stream_length = min_stream_length,
-                              stream_raster = "streams_r",  # output raster
-                              direction = 'dirs'))          # output raster flow direction
+                              stream_raster = "streams_r",
+                              direction = "dirs"))
 
-    # MiKatt: Moved here from calc_edges() to be able to test for complex confluences after derive_streams()
     # calculate stream topology ----------
-    message('Calculating stream topology...\n')
+    message("Calculating stream topology...\n")
     # MiKatt: Is accumulation needed here? r.stream.order: "This map is an option only if Horton's or Hack's ordering is performed."
     # MiKatt: Yes, does not work without.
     execGRASS("r.stream.order",
-              flags = c('overwrite', 'quiet','z','m'),
-              parameters = list(stream_rast = 'streams_r',     # input
-                                direction = 'dirs',            # input
-                                elevation = dem_name_out,             # input
-                                accumulation = 'accums',       # input
-                                stream_vect = 'streams_v'),    # output
+              flags = c("overwrite", "quiet","z","m"),
+              parameters = list(stream_rast = "streams_r",     # input
+                                direction = "dirs",            # input
+                                elevation = dem_name_out,      # input
+                                accumulation = "accums",       # input
+                                stream_vect = "streams_v"),    # output
               ignore.stderr=T)
 
     # MiKatt: ESRI shape files must not have column names with more than 10 characters
@@ -219,7 +215,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE, mi
     execGRASS("v.db.renamecolumn", flags = "quiet",
               parameters = list(
                 map = "streams_v",
-                column = "flow_accum,flow_accu"
+                column = "flow_accum, flow_accu"
               ))
 
     # delete unused columns
