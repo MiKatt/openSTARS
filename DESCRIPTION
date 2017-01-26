@@ -6,8 +6,8 @@ Description: An open source implementation of the STARS toolbox
     It prepares the .ssn object needed for the SSN package.
     Currently a DEM is used to derive stream networks (in contrast to STARS, which can clean 
     an existing stream network).
-Version: 0.0.1.9000
-Authors@R:c(person("Mira", "Kattwinkel", role = c("aut","cre"),
+Version: 0.0.0.9000
+Authors@R: c(person("Mira", "Kattwinkel", role = c("aut","cre"),
               email = "mira.kattwinkel@gmx.net"),
 	    person("Eduard", "Szöcs", role = c("aut"),
              email = "eduardszoecs@gmail.com"))
@@ -19,7 +19,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyLoad: true
 LazyData: true
-Imports: 
+Imports:
     data.table,
     methods,
     progress,
@@ -27,3 +27,6 @@ Imports:
     sp,
     SSN
 RoxygenNote: 5.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

@@ -3,7 +3,6 @@
 export(calc_attributes_edges)
 export(calc_attributes_sites_approx)
 export(calc_attributes_sites_exact)
-export(calc_binary)
 export(calc_edges)
 export(calc_prediction_sites)
 export(calc_sites)
