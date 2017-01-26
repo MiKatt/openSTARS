@@ -23,7 +23,8 @@ If TRUE line ends of the streams are snapped to the next feature if they are
 }
 \value{
 Nothing, the data is loaded into the GRASS session.
-The DEM is stored as raster 'dem' and sites as vector 'sites_o' within GRASS.
+The DEM is stored as raster 'dem', sites as vector 'sites_o' and streams as
+vector 'streams_o' in the GRASS location (mapset PERMANENT).
 }
 \description{
 This function loads dem and sites data (both required) into the GRASS session.
@@ -35,7 +36,6 @@ A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
 \donttest{
-library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
   override = TRUE)

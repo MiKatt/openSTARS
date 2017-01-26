@@ -2,7 +2,7 @@
 % Please edit documentation in R/check_ssn.R
 \name{check_ssn}
 \alias{check_ssn}
-\title{Checking the .ssn Object}
+\title{Checking SSN object.}
 \usage{
 check_ssn(path)
 }
@@ -17,7 +17,6 @@ This function roughly checks
 }
 \examples{
 \donttest{
-library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
   override = TRUE)

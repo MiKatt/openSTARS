@@ -2,6 +2,7 @@
 % Please edit documentation in R/calc_prediction_sites.R
 \name{calc_offset}
 \alias{calc_offset}
+\title{Calculate offset}
 \usage{
 calc_offset(dt, id, offs, dist)
 }
@@ -27,7 +28,7 @@ outlet and should not be called by the user.
 }
 \examples{
 \dontrun{
- outlets <- dt.streams[next_stream == -1, stream]
+ outlets <- dt.streams[next_str == -1, stream]
  netID <- 1
  for(i in outlets){
    calc_offset(dt.streams, id = i, offs = 0, dist = 200)

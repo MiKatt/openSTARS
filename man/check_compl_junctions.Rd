@@ -17,11 +17,10 @@ hence, if there are more than two inflows to a junction.
 }
 \note{
 \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
-\code{\link{derive_streams}} must be run before.
+  \code{\link{derive_streams}} must be run before.
 }
 \examples{
 \donttest{
-library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
   override = TRUE)

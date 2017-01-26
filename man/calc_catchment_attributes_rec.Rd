@@ -2,7 +2,8 @@
 % Please edit documentation in R/calc_attributes_edges.R
 \name{calc_catchment_attributes_rec}
 \alias{calc_catchment_attributes_rec}
-\title{Aggregate attributes for the total catchment of each stream segment.}
+\title{calc_catchment_attributes_rec
+Aggregate attributes for the total catchment of each stream segment.}
 \usage{
 calc_catchment_attributes_rec(dt, id, stat, attr_name)
 }
@@ -19,7 +20,8 @@ to be caculated.}
 }
 \value{
 One row data.table with the cummulative number of cells of the total
- catchment of each segment and the values for each attribute.
+ catchment of each segment and the values for each attribute and changes the
+ values in dt.
 }
 \description{
 Recursive function to calculate the catchment attributes of each stream
@@ -27,7 +29,7 @@ segment. It is called by \code{\link{calc_catchment_attributes}} for each
 outlet and should not be called by the user.
 }
 \note{
-The values for stas "mean" and "percent" need to be devided by the cummulative
+The values for stats "mean" and "percent" need to be devided by the cummulative
  number of cells of the total catchment in a subsequent step.
 }
 

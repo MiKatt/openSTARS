@@ -5,11 +5,12 @@
 \title{Calcuate attributes of the sites.}
 \usage{
 calc_attributes_sites_exact(sites_map = "sites", input_raster = NULL,
-  stat = NULL, attr_name = NULL, round_dig = 2, keep_basins = FALSE)
+  stat = NULL, attr_name = NULL, round_dig = 2, keep_basins = FALSE,
+  temp_dir = "temp")
 }
 \arguments{
-\item{sites_map}{string giving the name of the sites the attributes shall be
-calculated for. "sites" refers to the observation sites.}
+\item{sites_map}{character:name of the sites the attributes shall be
+calculated for. "sites" refers to the observation or prediction sites.}
 
 \item{input_raster}{character vector (optional); name of additional raster
 maps to calculate attributes from.}
@@ -19,23 +20,26 @@ min, max, mean, stddev, variance, sum, median or precentile_X (where X
 gives the desired percentile e.g. 25 for the first).}
 
 \item{attr_name}{character vector (optional); column name for the attributes
-to be caculated. Please not that attribute names must not be longer than 10
-characters.}
+to be calculated. Attribute names must not be longer than 10 characters.}
 
-\item{round_dig}{integer; number of digits to round results to.}
+\item{round_dig}{integer; number of digits to round results to. Can be a vector
+of different values or just one value for all attributes.}
 
 \item{keep_basins}{boolean; shall raster maps of all the watersheds be kept?}
+
+\item{temp_dir}{string; temporary directory to store intermediate files.}
 }
 \value{
-Nothing. The function appends new columns to the 'sites' attribute table
+Nothing. The function appends new columns to the \code{sites_map} attribute table
 \itemize{
  \item{'H2OArea':} {Total watershed area of the watershed upstream of each site.}
  \item{attr_name:} {Additional optional attributes calculated based on input_raster maps.}
 }
 }
 \description{
-For each site the total catchment area is calculated ('H2Oarea'). Additionally, other
-attributes (predictor variables) can be derived based on given raster maps. This fuction calculates
+For each site (observation or prediction) the total catchment area is
+calculated ('H2OArea'). Additionally, other attributes (predictor variables)
+can be derived based on given raster maps. This fuction calculates
 exact values for catchments derived with
 \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 and can take considerable time if there are many sites.
@@ -43,31 +47,56 @@ Catchment raster maps can optionally be stored as "catchm_X" (X = pid).
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}},
-  \code{\link{calc_edges}} and code{\link{calc_sites}} must be run before.
+  \code{\link{calc_edges}} and \code{\link{calc_sites}} or
+  \code{\link{calc_prediction_sites}} must be run before.
 }
 \examples{
 \donttest{
-library(rgrass7)
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-derive_streams()
-#' cj <- check_compl_junctions()
-if(cj)
-  correct_compl_junctions()
+gmeta()
+
+# Derive streams from DEM
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+
+# Prepare edges
 calc_edges()
-calc_sites()
 execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
 parameters = list(
   elevation = "dem",
   slope = "slope"
   ))
-calc_sites_attributes(input_raster = "slope",  stat = "mean", attr_name = "avgSlopeP")
+calc_attributes_edges(input_raster = "slope", stat = "max", attr_name = "maxSlo")
+
+# Prepare sites
+calc_sites()
+calc_attributes_sites_approx(input_attr_name = "maxSlo", stat = "max")
+calc_attributes_sites_exact(input_raster = "slope", attr_name = "maxSloE", stat = "max")
+
+# Plot data
+dem <- readRAST('dem', ignore.stderr = TRUE)
+edges <- readVECT('edges', ignore.stderr = TRUE)
+sites <- readVECT('sites', ignore.stderr = TRUE)
+plot(dem, col = terrain.colors(20))
+mm <- range(c(edges$maxSlo_e,sites$maxSlo,sites$maxSloE))
+b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
+c_ramp <- colorRampPalette(c("blue", "red"))
+cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e,breaks = b,right=F))]
+plot(edges,col=cols,add=T, lwd=2)
+cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSlo,breaks = b,right=F))]
+points(sites, pch = 19, col = cols)
+cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right=F))]
+points(sites, pch = 21,bg = cols,cex=0.7)
+# points in the middle of the map indicate a difference in max slope between
+# approximate and exact calculation
 }
 }
 \author{

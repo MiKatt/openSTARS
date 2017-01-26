@@ -4,37 +4,39 @@
 \alias{correct_compl_junctions}
 \title{Correct junctions with three inflows.}
 \usage{
-correct_compl_junctions(clean = TRUE)
+correct_compl_junctions(clean = TRUE, temp_dir = "temp")
 }
 \arguments{
-\item{clean}{logical; should intermediate layers and files be removed from GRASS session?}
+\item{clean}{logical; should intermediate files be removed from GRASS
+session?}
+
+\item{temp_dir}{string; temporary directory to store intermediate files.}
 }
 \value{
-Nothing. The function changes features in
-\itemize{
- \item{'streams_v':} {Updated streams with topology (vector)}
- \item{'streams_r':} {Updated stream raster (new cat) (raster)}
-}
-and copies the oringial to
-\itemize{
- \item{'streams_v_o':} {Originally derived streams with topology (vector)}
- \item{'streams_r_o':} {Originally derived stream raster (raster).}
-}
+Nothing. The function changes features in \itemize{
+  \item{'streams_v':} {Updated streams with topology (vector)}
+  \item{'streams_r':} {Updated stream raster (new cat) (raster)} } and copies
+  the oringial to \itemize{ \item{'streams_v_o':} {Originally derived streams
+  with topology (vector)} \item{'streams_r_o':} {Originally derived stream
+  raster (raster).} }
 }
 \description{
-At complex junctions, the outflow is broken into two segments at 1/3 of the
-dem's cellsize downstream of the start using
-\href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit} (tool = break).
-Then, the stream with the smallest angle to the outflow is moved to this new junction using
-\href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit} (tool = vertexmove).
-So far, this function works only for junctions with three inflows, not more.
+At complex junctions (i.e. more than two inflows to an outflow), the outflow
+is broken into two segments at 1/3 of the DEM's cellsize downstream of the
+start using
+\href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit}(tool =
+break). Then, the stream with the smallest angle to the outflow is moved to
+this new junction using
+\href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit}(tool =
+vertexmove). So far, this function works only for junctions with three
+inflows, not more.
 }
 \note{
-\code{\link{setup_grass_environment}}, \code{\link{import_data}} and \code{\link{derive_streams}} must be run before.
+\code{\link{setup_grass_environment}}, \code{\link{import_data}} and
+  \code{\link{derive_streams}} must be run before.
 }
 \examples{
 \donttest{
-library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
   override = TRUE)

@@ -2,10 +2,10 @@
 % Please edit documentation in R/calc_attributes_edges.R
 \name{calc_attributes_edges}
 \alias{calc_attributes_edges}
-\title{Calcuate attributes of the edges}
+\title{Calcuate attributes of the edges.}
 \usage{
 calc_attributes_edges(input_raster, stat, attr_name, round_dig = 2,
-  clean = TRUE)
+  clean = TRUE, temp_dir = "temp")
 }
 \arguments{
 \item{input_raster}{name or character vector of names of the raster map(s)
@@ -15,26 +15,31 @@ to calculate attributes from.}
 must be one of: min, max, mean, percent.}
 
 \item{attr_name}{name or character vector of column names for the attribute(s)
-to be caculated. Please not that attribute names must not be longer than
-9 characters.}
+to be caculated. Attribute names must not be longer than 8 characters.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
 
 \item{clean}{logical; should intermediate files be deleted}
+
+\item{temp_dir}{string; temporary directory to store intermediate files.}
 }
 \value{
 Nothing. The function appends new columns to the 'edges' attribute
-  table with column names given in attr_name. For each attribute, tow columns
-  are appended: one giving the attribute for the rca of the edge
-  ("attribute_name_e" for segment) and one for the attribute of the total
-  catchment of the edge ("attribute_name_c").
+  table with column names given in \code{attr_name}. For each attribute, two
+  columns are appended: one giving the attribute for the rca of the edge
+  ("attribute_name_e") and one for the attribute of the total catchment of
+  the edge ("attribute_name_c").
 }
 \description{
-For each edge, additional attributes (predictor variables) are derived based
-on given raster maps.
+For each edge (i.e. stream segment) additional attributes (predictor variables)
+are derived based on given raster maps.
 }
 \details{
+First, the subcatchments for all edges are calculated. Then these are
+intersected with the given raster maps and the desired statitics are computed.
+This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
+
 For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
  (e.g., cells occupied by the land use under consideration and not). If
   the \code{input_raster} consists of percentages per cell (e.g., proportional land
@@ -42,33 +47,42 @@ For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
   of this land use.
 }
 \note{
-\code{\link{import_data}}, \code{\link{derive_streams}} and
-  \code{\link{calc_edges}} must be run before.
+\code{\link{setup_grass_environment}}, \code{\link{import_data}},
+\code{\link{derive_streams}} and \code{\link{calc_edges}} must be run before.
 }
 \examples{
 \donttest{
-library(rgrass7)
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-derive_streams()
-#' cj <- check_compl_junctions()
-if(cj)
-  correct_compl_junctions()
+gmeta()
+
+# Derive streams from DEM
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+
+# Prepare edges
 calc_edges()
-calc_sites()
 execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
 parameters = list(
   elevation = "dem",
   slope = "slope"
   ))
 calc_attributes_edges(input_raster = rep("slope",3),
-  stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slope"))
+  stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slo"))
+
+# Plot data
+dem <- readRAST('dem', ignore.stderr = TRUE)
+edges <- readVECT('edges', ignore.stderr = TRUE)
+plot(dem, col = terrain.colors(20))
+cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
+plot(edges,col=cols,add=T, lwd=2)
 }
 }
 \author{

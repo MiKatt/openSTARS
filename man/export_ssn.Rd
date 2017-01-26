@@ -4,14 +4,15 @@
 \alias{export_ssn}
 \title{Export .ssn object}
 \usage{
-export_ssn(path, binary, predictions = NULL)
+export_ssn(path, predictions = NULL, delete_directory = FALSE)
 }
 \arguments{
 \item{path}{character; path to write .ssn object to.}
 
-\item{binary}{object of type \code{binary}, as created by \code{\link{calc_binary}}.}
-
 \item{predictions}{name(s) of prediction map(s) (optional).}
+
+\item{delete_directory}{boolean; shall the ssn directory and all files be
+deleted before export in case it already exists? See details.}
 }
 \value{
 Nothing. Files are written to the specified folder
@@ -20,9 +21,15 @@ Nothing. Files are written to the specified folder
 This function exports the calculated sites, edges and binary IDs
 to a folder which then can be read using the SSN package.
 }
+\details{
+First it is checked if one of the column names is longer than 10
+characters (which cannot be exported to ESRI shape files as required by SSN).
+
+\code{delete_directory = TRUE} is usefull if the same directory name has been
+used before and the existing data shall be overwritten.
+}
 \examples{
 \donttest{
-library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
   override = TRUE)
@@ -32,18 +39,14 @@ sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS"
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
 derive_streams()
-cj <- check_compl_junctions()
-if(cj)
-  correct_compl_junctions()
 calc_edges()
 calc_sites()
-binaries <- calc_binary()
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
-export_ssn(ssn_dir, binary = binaries)
+export_ssn(ssn_dir)
 list.files(ssn_dir)
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}
+Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel,\email{mira.kattwinkel@gmx.net}
 }
 

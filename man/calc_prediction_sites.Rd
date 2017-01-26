@@ -4,74 +4,78 @@
 \alias{calc_prediction_sites}
 \title{Calculate prediction sites for SSN object.}
 \usage{
-calc_prediction_sites(predictions, dist = NULL, nsites = NULL,
-  netIDs = NULL)
+calc_prediction_sites(predictions, dist = NULL, nsites = 10,
+  netIDs = NULL, temp_dir = "temp")
 }
 \arguments{
-\item{predictions}{string giving the name for the predictions map.}
+\item{predictions}{string giving the name for the prediction sites map.}
 
-\item{dist}{number giving the distance between the points to create in map units.}
+\item{dist}{number giving the distance between the points to create in map
+units.}
 
 \item{nsites}{integer giving the approximate number of sites to create}
 
-\item{netIDs}{integer (optional): create predictions points only on streams
-with these netID(s).}
+\item{netIDs}{integer (optional): create prediction sites only on streams with
+these netID(s).}
+
+\item{temp_dir}{string; temporary directory to store intermediate files.}
 }
 \description{
-A vector (points) map of prediction sites is derived and several attributes are assigned.
+A vector (points) map of prediction sites is created and several
+attributes are assigned.
 }
 \details{
-Either \code{dist} or \code{nsites} should be provided. If \code{dist} is NULL,
-it is estimated by deviding the total stream length in the map by  \code{nsites};
-the actually derived number of sites might therefore be a bit smaller.
+Either \code{dist} or \code{nsites} must be provided. If \code{dist}
+is NULL, it is estimated by deviding the total stream length in the map by
+\code{nsites}; the number of sites actually derived might therefore be a bit
+smaller than \code{nsites}.
 
-Steps include:
-\itemize{
- \item{Place points on edges with given distance form each other}
- \item{Assign unique 'pid' and 'locID'.}
- \item{Get 'rid' and 'netID' of the stream segment the site intersects with (from map 'edges').}
- \item{Calculate upstream distance for each point ('upDist').}
- \item{Calculate distance ratio ('distRatio) between position of the site on
- the edge (= distance traveled from lower end of the edge to the site) and
- the total length of the edge.}
-}
+Steps include: \itemize{ \item{Place points on edges with given distance form
+each other} \item{Assign unique identifiers (neede by the SSN package) 'pid'
+and 'locID'.} \item{Get 'rid' and 'netID' of the stream segment the site
+intersects with (from map 'edges').} \item{Calculate upstream distance for
+each point ('upDist').} \item{Calculate distance ratio ('distRatio') between
+position of the site on the edge (= distance traveled from lower end of the
+edge to the site) and the total length of the edge.} }
 
 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
 \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
-Points are created using \href{https://grass.osgeo.org/grass73/manuals/v.segment.html}{v.segment}.
+Points are created using
+\href{https://grass.osgeo.org/grass73/manuals/v.segment.html}{v.segment}.
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}} and
-  \code{\link{calc_edges}} must be run before.
+ \code{\link{calc_edges}} must be run before.
 }
 \examples{
 \donttest{
-library(rgrass7)
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-derive_streams()
-cj <- check_compl_junctions()
-if(cj){
-  correct_compl_junctions()
-}
+gmeta()
+
+# Derive streams from DEM
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+
 calc_edges()
 calc_sites()
 calc_prediction_sites(predictions = "preds", dist = 2500)
 
 dem <- readRAST('dem', ignore.stderr = TRUE)
-sites <- readVECT('sites_o', ignore.stderr = TRUE)
+sites <- readVECT('sites', ignore.stderr = TRUE)
 preds <- readVECT('preds', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
+lines(edges, col = 'blue', lwd = 2)
 points(sites, pch = 4)
-points(preds, pch = 1, col = "darkgreen", cex = 0.75)
-lines(edges, col = 'blue')
+points(preds, pch = 19, col = "steelblue")
 }
 }
 \author{

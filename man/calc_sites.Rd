@@ -7,59 +7,64 @@
 calc_sites()
 }
 \description{
-A vector (points) map 'sites' is derived and several attributes are assigned.
+A vector (points) map 'sites' is derived and several attributes
+are assigned.
 }
 \details{
 Steps include:
 \itemize{
- \item{Snap points to derived network. 'dist' gives the distance of the original position to the closest streams segement.}
- \item{Assign unique 'pid' and 'locID'.}
- \item{Get 'rid' and 'netID' of the stream segment the site intersects with (from map 'edges').}
- \item{Calculate upstream distance for each point ('upDist').}
- \item{Calculate distance ratio ('distRatio) between position of site on edge
-   (distance traveled from lower end of theedge to the site) and the total
-    length of the edge.}
-}
-Often, survey sites do not lay exactly on the stream network (due to GPS
-inprecision, stream representation as lines, derivation of streams from dem, etc.).
-To assigne an exact position of the sites on the network they are moved to
-the closest stream segment (snapped) using
+\item{Snap points to derived network. 'dist'
+gives the distance of the original position to the closest streams segement.}
+\item{Assign unique 'pid' and 'locID'.}
+\item{Get 'rid' and 'netID' of the
+stream segment the site intersects with (from map "edges").}
+\item{Calculate upstream distance for each point ('upDist').}
+\item{Calculate distance ratio
+('distRatio) between position of site on edge (distance traveled from lower
+end of the edge to the site) and the total length of the edge.} }
+Often, survey sites do not lay exactly on the stream network (due to GPS inprecision,
+stream representation as lines, derivation of streams from dem, etc.). To
+assigne an exact position of the sites on the network they are moved to the
+closest stream segment (snapped) using
 \href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance}.
 
 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
-#' \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+\href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}} and
-  \code{\link{calc_edges}} must be run before.
+ \code{\link{calc_edges}} must be run before.
 }
 \examples{
 \donttest{
-library(rgrass7)
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-derive_streams()
-cj <- check_compl_junctions()
-if(cj){
-  correct_compl_junctions()
-}
+gmeta()
+
+# Derive streams from DEM
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+
 calc_edges()
 calc_sites()
+
+# Plot data
 dem <- readRAST('dem', ignore.stderr = TRUE)
-sites <- readVECT('sites_o', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-points(sites, pch = 4)
 lines(edges, col = 'blue')
+points(sites, pch = 4)
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel \email{mira.kattwinkel@gmx.net}
+Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel
+ \email{mira.kattwinkel@gmx.net}
 }
 

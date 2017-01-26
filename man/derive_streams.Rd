@@ -4,36 +4,51 @@
 \alias{derive_streams}
 \title{Derive stream network from DEM.}
 \usage{
-derive_streams(burn = 5, at = 700, condition = TRUE, clean = TRUE)
+derive_streams(burn = 5, accum_threshold = 700, condition = TRUE,
+  min_stream_length = 0, dem_name = NULL, clean = TRUE)
 }
 \arguments{
-\item{burn}{numeric; how many meters should the streams be burned into the DEM?}
+\item{burn}{numeric; how many meters should the streams be burned into the
+DEM?}
 
-\item{at}{integer; accumulation threshold to use (i.e. minimum flow
-accumulation value that will initiate a new stream).}
+\item{accum_threshold}{integer; accumulation threshold to use (i.e. minimum
+flow accumulation value in cells that will initiate a new stream).}
 
 \item{condition}{logical; should the DEM be conditioned using
 \href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?}
 
-\item{clean}{logical; should intermediate raster layer of imported
-streams ("streams_or") be removed from GRASS session?}
+\item{min_stream_length}{integer: minimum stream length in number of DEM
+raster cells; shorter first order stream segments are deleted; default: 0}
+
+\item{dem_name}{character vector, optional; default: 'dem'; usefull if
+conditioned and / or burnt in DEM raster from previous runs shall be used.}
+
+\item{clean}{logical; should intermediate raster layer of imported streams
+('streams_or') be removed from GRASS session?}
 }
 \value{
 Nothing. The function produces the following maps:
 \itemize{
- \item{"streams_r"} {derived streams (raster)}
- \item{"streams_v"} {derived streams with topology (vector)}
- \item{"dirs"} {flow directions (raster)}
- \item{"accums"} {accumulation values (raster)}
-} Additionally, "dem" is modified if condition = TURE and / or burn > 0.
+ \item{'streams_r'} {derived streams (raster)}
+ \item{'streams_v'} {derived streams with topology (vector)}
+ \item{'dirs'} {flow directions (raster)}
+ \item{'accums'} {accumulation values (raster)}
+ \item{'dem_cond'} {conditioned dem (raster) if  \code{condition} is TRUE}
+ \item{'dem_[cond]_burn[X]'} {burnt in DEM (raster) if burn is > 0}
+} The original GRASS map 'dem' is not modified if \code{condition} is TRUE and / or \code{burn} > 0.
 }
 \description{
-Streams are derived from a DEM using
+Streams are derived from a digital elevation model (DEM) using
 \href{https://grass.osgeo.org/grass70/manuals/r.stream.extract.html}{r.stream.extract}.
-If a stream network is available (see \code{\link{import_data}}) and
-burn > 0 it will be first burned into DEM.
-Stream topolology is derived using
+If a stream network is available (see \code{\link{import_data}}) and burn > 0
+it will be first burnt into the digital elevation model (DEM). Stream
+topolology is derived using
 \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
+}
+\details{
+For details on \code{accum_threshold} and \code{min_stream_length}
+see the parameters 'threshold' and 'stream_length' at
+\href{https://grass.osgeo.org/grass73/manuals/r.stream.extract}{r.stream.extract}.
 }
 \note{
 \code{\link{setup_grass_environment}} and \code{\link{import_data}}
@@ -41,7 +56,6 @@ Stream topolology is derived using
 }
 \examples{
 \donttest{
-library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
   override = TRUE)
@@ -55,11 +69,11 @@ dem <- readRAST('dem', ignore.stderr = TRUE)
 sites <- readVECT('sites_o', ignore.stderr = TRUE)
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
+lines(streams, col = 'blue', lwd = 2)
 points(sites, pch = 4)
-lines(streams, col = 'blue')
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel \email{mira.kattwinkel@gmx.net}
+Mira Kattwinkel \email{mira.kattwinkel@gmx.net}, Eduard Szoecs, \email{eduardszoecs@gmail.com}
 }
 

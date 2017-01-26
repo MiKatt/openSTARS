@@ -2,7 +2,8 @@
 % Please edit documentation in R/calc_attributes_edges.R
 \name{calc_catchment_attributes}
 \alias{calc_catchment_attributes}
-\title{Aggregate attributes for the total catchment of each stream segment.}
+\title{calc_catchment_attributes
+Aggregate attributes for the total catchment of each stream segment.}
 \usage{
 calc_catchment_attributes(dt, stat, attr_name, round_dig)
 }

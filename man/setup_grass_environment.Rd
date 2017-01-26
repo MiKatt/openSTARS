@@ -4,33 +4,34 @@
 \alias{setup_grass_environment}
 \title{Setup GRASS environment.}
 \usage{
-setup_grass_environment(dem, sites)
+setup_grass_environment(dem, sites = NULL, epsg = NULL)
 }
 \arguments{
 \item{dem}{character; path to DEM.}
 
 \item{sites}{character; path to sites.}
+
+\item{epsg}{number; EPSG code for the spatial reference to be used}
 }
 \value{
 Nothing, the GRASS mapset is set to PERMANENT,
-projection is set to the one of the sites shape, the extent of the region is set to the one of the dem.
+projection is set to the one of the sites shape or to the epsg code provided, the extent of the region is set to the one of the dem.
 }
 \description{
 This function sets the GRASS mapset to PERMANENT and sets its projection and extension.
 }
 \note{
-A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
+Either \code{sites} or \code{epsg} must be provided. A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
 \donttest{
-library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass70/",
   home = tempdir(),
   override = TRUE)
-gmeta()
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path, sites = sites_path)
+setup_grass_environment(dem = dem_path, epsg = 3358)
+gmeta()
 }
 
 }

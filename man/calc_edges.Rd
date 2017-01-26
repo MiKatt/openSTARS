@@ -4,66 +4,68 @@
 \alias{calc_edges}
 \title{Calcuate edges for SSN object.}
 \usage{
-calc_edges(clean = TRUE)
+calc_edges(clean = TRUE, temp_dir = "temp")
 }
 \arguments{
 \item{clean}{logical; should intermediate layer (rca, reach contributing area)
 be removed from GRASS session?}
+
+\item{temp_dir}{string; temporary directory to store intermediate files.}
 }
 \value{
-Nothing. The function produces the following map:
-\itemize{
- \item{'edges'} {derived stream segments with computed attributes needed for SSN (vector)}
-}
+Nothing. The function produces the following map: \itemize{
+ \item{'edges'} {derived stream segments with computed attributes needed for
+ SSN (vector)} }
 }
 \description{
-A vector (lines) map 'edges' is derived from 'streams_v' and several
- attributes are assigned.
+A vector (lines) map 'edges' is derived from 'streams_v' and
+ several attributes are assigned.
 }
 \details{
 Steps include:
-\itemize{
- \item{Assign unique 'rid' and 'OBJECTID' to each stream segment}
- \item{Find different stream networks in the region and assign 'netID'}
- \item{Calculate segments upstream distance, 'upDist' = flow length
-  to the outlet of the network}
- \item{Calculate reach contributing areas (RCA ) per segment, 'rcaArea'
-  = subcatchment area of each segment}
- \item{Calculate catchment areas; 'H2OArea' = total catchment area of each
- segment}
- All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
-}
+\itemize{ \item{Assign unique 'rid' to each stream segment}
+\item{Find different stream networks in the region and assign 'netID'}
+\item{Calculate segments upstream distance, 'upDist' = flow length to the
+outlet of the network}
+\item{Calculate reach contributing areas (RCA ) per segment,
+'rcaArea' = subcatchment area of each segment in square km}
+\item{Calculate catchment areas; 'H2OArea' = total catchment area of each
+segment in square km} }
+All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
 }
 \note{
-\code{\link{setup_grass_environment}}, \code{\link{import_data}} and \code{\link{derive_streams}} must be run before.
+\code{\link{setup_grass_environment}}, \code{\link{import_data}} and
+ \code{\link{derive_streams}} must be run before.
 }
 \examples{
 \donttest{
-library(rgrass7)
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass70/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-derive_streams()
-#' cj <- check_compl_junctions()
-if(cj){
-  correct_compl_junctions()
-}
+gmeta()
+
+# Derive streams from DEM
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+
+# Prepare edges
 calc_edges()
-edges <- readVECT('edges', ignore.stderr = TRUE)
-head(edges@data)
+
+# Plot data
 dem <- readRAST('dem', ignore.stderr = TRUE)
-sites <- readVECT('sites_o', ignore.stderr = TRUE)
+edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-points(sites, pch = 4)
 lines(edges, col = 'blue')
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
+Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel,
+ \email{mira.kattwinkel@gmx.net}
 }
 

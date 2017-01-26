@@ -21,9 +21,12 @@ Recursive function to calculate the upstream area of each stream segment and
 assign a unique network id. It is called by \code{\link{calc_edges}} for each
 outlet and should not be called by the user.
 }
+\details{
+calcCatchmArea_assignNetID
+}
 \examples{
 \dontrun{
- outlets <- dt.streams[next_stream == -1, stream]
+ outlets <- dt.streams[next_str == -1, stream]
  netID <- 1
  for(i in outlets){
    calcCatchmArea_assignNetID(dt.streams, id = i, netID)
