@@ -11,7 +11,7 @@ vignette: >
 
 ```{r echo=FALSE}
 knitr::opts_chunk$set(
-  eval = F,
+  eval = T,
   collapse = TRUE,
   comment = "#>"
 )
@@ -43,7 +43,7 @@ library("openSTARS")
 First, a GRASS session must be initiated:
 ```{r init_grass1}
 library(openSTARS)
-initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.2.0", #"/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
 ```
@@ -51,7 +51,7 @@ initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.2.0", #"/usr/lib/grass70/",
 Alternatively, the path to a specific GRASS database directory and a Location name can be provided.
 ```{r init_grass2, eval = FALSE}
 library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           gisDbase = "./GRASSDB",
           location = "test_openSTARS",
@@ -280,7 +280,7 @@ Sys.setenv(PYTHONHOME="C:/Program Files/QGIS 2.18/apps/Python27")
 *	System variable GDAL_DATA; this must be set after initGRASS:
 Sys.setenv(GDAL_DATA="C:/Program Files/QGIS 2.18/share/gdal")
 
-```{r windows settings}
+```{r windows settings, eval = FALSE}
   # GRASS in QGIS installation
   #set Path; must be done BEFORE initGRASS
   Sys.setenv(PATH=paste0("C:/Program Files/QGIS 2.18/bin",";", Sys.getenv("PATH")))
