@@ -20,7 +20,7 @@ These add-ons can be installed from within GRASS using the console and g.extensi
 
 
 ```r
-install.packages("devtools")
+# install.packages("devtools")
 devtools::install_github("MiKatt/openSTARS")
 library("openSTARS")
 ```
@@ -35,9 +35,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpnD1smI 
-#> location    file32726bf2a140 
-#> mapset      file327258b44318 
+#> gisdbase    /tmp/RtmpcmYDAA 
+#> location    file46a96e6fccb7 
+#> mapset      file46a91e9846d9 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -156,16 +156,16 @@ calc_edges()
 ```r
 edges <- readVECT("edges", ignore.stderr = TRUE)
 head(edges@data, n=4)
-#>   cat stream prev_str01 prev_str02 next_str flow_accu netID rid  Length
-#> 1   1      1          0          0       30  903.7007    15   0 1268.53
-#> 2   2      2          0          0       15 1893.0472    15   1 1006.69
-#> 3   3      3          0          0       51 6130.5509    14   2 4298.01
-#> 4   4      4          0          0       -1 3123.5889     1   3 2657.06
-#>   sourceDist   upDist H2OArea rcaArea
-#> 1    1268.53 19128.73  1.0674  1.0674
-#> 2    1006.69 21908.81  1.3473  1.3473
-#> 3    4298.01 13038.00  5.5233  5.5233
-#> 4    2657.06  2657.06  2.8305  2.8305
+#>   cat stream prev_str01 prev_str02 next_str flow_accu netID rid OBJECTID
+#> 1   1      1          0          0       30  903.7007    15   0        1
+#> 2   2      2          0          0       15 1893.0472    15   1        2
+#> 3   3      3          0          0       51 6130.5509    14   2        3
+#> 4   4      4          0          0       -1 3123.5889     1   3        4
+#>    Length sourceDist   upDist H2OArea rcaArea
+#> 1 1268.53    1268.53 19128.73  1.0674  1.0674
+#> 2 1006.69    1006.69 21908.81  1.3473  1.3473
+#> 3 4298.01    4298.01 13038.00  5.5233  5.5233
+#> 4 2657.06    2657.06  2657.06  2.8305  2.8305
 ```
 
 `edges` now holds the derived network plus attributes needed for the .ssn object
@@ -323,7 +323,7 @@ calc_attributes_sites_exact(sites_map = "sites",
 #> v.out.ogr complete. 87 features (Point type) written to <sites> (SQLite
 #> format).
 #> OGR data source with driver: SQLite 
-#> Source: "/tmp/RtmpnD1smI/file32726bf2a140/PERMANENT/.tmp/mira-Linux/680.0", layer: "sites"
+#> Source: "/tmp/RtmpcmYDAA/file46a96e6fccb7/PERMANENT/.tmp/mira-Linux/83.0", layer: "sites"
 #> with 87 features
 #> It has 15 fields
 sites <- readVECT("sites", ignore.stderr = TRUE)
@@ -388,9 +388,9 @@ plot(ssn_obj.Torg)
 ```r
 
 names(ssn_obj@data)
-#>  [1] "cat"        "flow_accu"  "netID"      "rid"        "Length"    
-#>  [6] "sourceDist" "upDist"     "H2OArea"    "rcaArea"    "cat_"      
-#> [11] "avSlo_e"    "avSlo_c"
+#>  [1] "cat"        "flow_accu"  "netID"      "rid"        "OBJECTID"  
+#>  [6] "Length"     "sourceDist" "upDist"     "H2OArea"    "rcaArea"   
+#> [11] "cat_"       "avSlo_e"    "avSlo_c"
 names(ssn_obj)
 #> $Obs
 #>  [1] "cat"       "cat_"      "value"     "cat_edge"  "dist"     
