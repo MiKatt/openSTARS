@@ -31,9 +31,8 @@ A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with
 [r.hydrodem](https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html) is needed.
 These add-ons can be installed from within GRASS using the console and g.extension or in the GUI under 'Settings'/'Addons extensions'/'Install extensions from add-ons' under 'raster'.
 
-**UPDATE!!**
 ```{r install, eval=FALSE}
-install.packages("devtools")
+# install.packages("devtools")
 devtools::install_github("MiKatt/openSTARS")
 library("openSTARS")
 ```
@@ -176,6 +175,7 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites_orig, pch = 21, cex=0.75, bg = "grey")
 points(sites, pch = 20, col = "black")
+legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01,, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("original sites","snapped sites"))
 ```
 
 ### Prepare prediction sites
@@ -204,7 +204,8 @@ edges <- readVECT("edges", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites, pch = 21, cex=0.75, bg = "grey")
-points(pred_sites, pch = 20, col = "black")
+points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
+legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("observation sites","prediction sites"))
 head(pred_sites@data)
 ```
 

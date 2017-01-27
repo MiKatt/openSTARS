@@ -18,7 +18,6 @@ A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with
 [r.hydrodem](https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html) is needed.
 These add-ons can be installed from within GRASS using the console and g.extension or in the GUI under 'Settings'/'Addons extensions'/'Install extensions from add-ons' under 'raster'.
 
-**UPDATE!!**
 
 ```r
 install.packages("devtools")
@@ -36,9 +35,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpPE5rka 
-#> location    file3069678f9266 
-#> mapset      file306975285640 
+#> gisdbase    /tmp/RtmpnD1smI 
+#> location    file32726bf2a140 
+#> mapset      file327258b44318 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -213,6 +212,7 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites_orig, pch = 21, cex=0.75, bg = "grey")
 points(sites, pch = 20, col = "black")
+legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01,, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("original sites","snapped sites"))
 ```
 
 ![](README_files/figure-html/plot_data3-1.png)<!-- -->
@@ -248,7 +248,8 @@ edges <- readVECT("edges", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites, pch = 21, cex=0.75, bg = "grey")
-points(pred_sites, pch = 20, col = "black")
+points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
+legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("observation sites","prediction sites"))
 ```
 
 ![](README_files/figure-html/plot_data4-1.png)<!-- -->
@@ -274,7 +275,7 @@ For the approximate calculation, first attributes must be intersected with the s
 
 
 ```r
-# calculates slope from DEM as an example attribute
+# calculate slope from DEM as an example attribute
 execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
           parameters = list(
             elevation = "dem",
@@ -311,12 +312,6 @@ The exact calculation of attribute values for the total catchment of each point 
 
 
 ```r
-# calculates slope from DEM as an example attribute
-execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
-          parameters = list(
-            elevation = "dem",
-            slope = "slope"
-          ))
 # calculate exact catchment area and average slope per catchment of each site
 calc_attributes_sites_exact(sites_map = "sites", 
                             input_raster = "slope",
@@ -328,7 +323,7 @@ calc_attributes_sites_exact(sites_map = "sites",
 #> v.out.ogr complete. 87 features (Point type) written to <sites> (SQLite
 #> format).
 #> OGR data source with driver: SQLite 
-#> Source: "/tmp/RtmpPE5rka/file3069678f9266/PERMANENT/.tmp/mira-Linux/629.0", layer: "sites"
+#> Source: "/tmp/RtmpnD1smI/file32726bf2a140/PERMANENT/.tmp/mira-Linux/680.0", layer: "sites"
 #> with 87 features
 #> It has 15 fields
 sites <- readVECT("sites", ignore.stderr = TRUE)
