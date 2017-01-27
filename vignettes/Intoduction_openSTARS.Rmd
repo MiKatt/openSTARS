@@ -2,7 +2,9 @@
 title: "Introduction to openSTARS"
 author: "Mira Kattwinkel"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+  md_document:
+    variant: markdown_github
 vignette: >
   %\VignetteIndexEntry{Introduction to openSTARS}
   %\VignetteEngine{knitr::rmarkdown}
