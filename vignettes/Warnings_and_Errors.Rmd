@@ -8,6 +8,9 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+## Special settings for MAC OS
+GRASS 7 does not run on Mac with system integrity check (<http://grassmac.wikidot.com>) and it needs to be disbaled. Additionally, GRASS addons (r.hydrodem etc.) need to be installed system-wide (see below how to install them using GRASS GUI).
+
 
 ## Errors and warnings on WINDOWS systems
 Most problems occur because GRASS, which is called by the openSTARS package functions via package rgrass7, cannot find certain files, i.e. because some path and system variables are not set. The easiest solution is to install a stand-alone version of GRASS, i.e. not within QGIS or OSGeo.
@@ -54,28 +57,28 @@ If this does not help, try a stand-alone installation of GRASS (<https://grass.o
 
 *The program can't start because libgrass_gis.7.2.0.dll is missing from your computer. Try reinstalling the program to fix this problem.*
 
-**_Solution_** Close R (to close the GRASS session) and open GRASS, or open GRASS and select a different location than the one used in R. In GRASS go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.hydrodem which can be found under 'raster'.
+**_Solution_** Close R (to close the GRASS session) and open GRASS, or open GRASS and select a different location than the one used in R. In the GRASS GUI go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.hydrodem which can be found under 'raster'.
 
 \ 
 
 **_Problem_** Popup window: 
 *The program can't start because libgrass_dbmibase.7.2.0.dll is missing from your computer. Try reinstalling the program to fix this problem.*
 
-**_Solution_** Close R (to close the GRASS session) and open GRASS or open GRASS and select a different location than the one used in R. In GRASS go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.stream.order which can be found under 'raster'.
+**_Solution_** Close R (to close the GRASS session) and open GRASS or open GRASS and select a different location than the one used in R. In the GRASS GUI go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.stream.order which can be found under 'raster'.
 
 \ 
 
 **_Problem_** Popup window: 
 *The program can't start because libgrass_vector.7.2.0.dll is missing from your computer. Try reinstalling the program to fix this problem.*
 
-**_Solution_** Close R (to close the GRASS session) and open GRASS or open GRASS and select a different location than the one used in R. In GRASS go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.stream.basins which can be found under 'raster'.
+**_Solution_** Close R (to close the GRASS session) and open GRASS or open GRASS and select a different location than the one used in R. In the GRASS GUI go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.stream.basins which can be found under 'raster'.
 
 \ 
 
 **_Problem_** Popup window: 
 *The program can't start because libgrass_segment.7.0.5.dll is missing from your computer. Try reinstalling the program to fix this problem.*
 
-**_Solution_** Close R (to close the GRASS session) and open GRASS or open GRASS and select a different location than the one used in R. In GRASS go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.stream.distance which can be found under 'raster'. 
+**_Solution_** Close R (to close the GRASS session) and open GRASS or open GRASS and select a different location than the one used in R. In the GRASS GUI go to 'Settings'/'Addons extension'/'Install extensions from addons' and (re-) install r.stream.distance which can be found under 'raster'. 
 
 \ 
 
