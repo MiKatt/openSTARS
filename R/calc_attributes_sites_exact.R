@@ -10,19 +10,22 @@
 
 #' @import progress
 #'
-#' @param sites_map character:name of the sites the attributes shall be
-#' calculated for. "sites" refers to the observation or prediction sites.
+#' @param sites_map character; name of the sites (observation or prediction) 
+#' attributes shall be calculated for. "sites" (default) refers to the observation sites.
 #' @param input_raster character vector (optional); name of additional raster
 #'   maps to calculate attributes from.
 #' @param stat character vector (optional); statistics to be calulated, one of:
 #'   min, max, mean, stddev, variance, sum, median or precentile_X (where X
-#'   gives the desired percentile e.g. 25 for the first).
+#'   gives the desired percentile e.g. 25 for the first). Must be provided if 
+#'   \code{input_raster} are given.
 #' @param attr_name character vector (optional); column name for the attributes
 #'   to be calculated. Attribute names must not be longer than 10 characters.
+#'   Must be provided if \code{input_raster} are given.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
-#' @param temp_dir string; temporary directory to store intermediate files.
+#' @param temp_dir string; temporary directory with read and write access to 
+#'   store intermediate files.
 #'
 #' @return Nothing. The function appends new columns to the \code{sites_map} attribute table
 #' \itemize{
@@ -100,6 +103,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(!is.null(stat) & any(stat %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat)) == 0) # TRUE = 1, FALSE = 0
     stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "precentile_X" or "precent".')
 
+  if(temp_dir == "temp")
+    temp_dir <- file.path(path.expand("~"), temp_dir)
+  
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat)+1)
   if(length(round_dig) == length(stat))

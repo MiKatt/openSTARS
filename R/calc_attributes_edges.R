@@ -82,6 +82,9 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
 
   if(any(sapply(attr_name, nchar) > 8))
      stop("Attribute names must not be longer than eight characters.")
+  
+  if(temp_dir == "temp")
+    temp_dir <- file.path(path.expand("~"), temp_dir)
 
   rast <- execGRASS("g.list",
                     parameters = list(

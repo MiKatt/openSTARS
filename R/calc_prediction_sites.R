@@ -85,6 +85,9 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   if(all(is.null(c(dist, nsites))))
     stop("Either the distance between prediction sites (dist) or the number of
          prediction sites (nsites) must be given.")
+  
+  if(temp_dir == "temp")
+    temp_dir <- file.path(path.expand("~"), temp_dir)
 
   dt.streams <- do.call(rbind,strsplit(
     execGRASS("db.select",

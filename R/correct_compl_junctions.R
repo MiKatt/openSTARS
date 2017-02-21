@@ -63,6 +63,8 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
          function only works for complex juctions with three inflows.")
 
   # Create temporary directory
+  if(temp_dir == "temp")
+    temp_dir <- file.path(path.expand("~"), temp_dir)
   dir.create(temp_dir)
 
   # get cellcize of dem raster

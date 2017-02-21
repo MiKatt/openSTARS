@@ -64,6 +64,9 @@ calc_edges <- function(clean = TRUE, temp_dir = "temp") {
   # MiKatt: streams_v (vector) is not needed in calculations but streams_r (raster)
   if (!"streams_r" %in% rast)
     stop("Missing data. Did you run derive_streams()?")
+  
+  if(temp_dir == "temp")
+    temp_dir <- file.path(path.expand("~"), temp_dir)
 
   execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
