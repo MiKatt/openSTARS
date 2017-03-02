@@ -27,4 +27,3 @@ This function aggregates the attributes of each segment for the total
 catchment of each stream segment. It is called within \code{\link{calc_attributes_edges}}
 and should not be called by the user.
 }
-

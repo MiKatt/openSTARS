@@ -32,4 +32,3 @@ outlet and should not be called by the user.
 The values for stats "mean" and "percent" need to be devided by the cummulative
  number of cells of the total catchment in a subsequent step.
 }
-

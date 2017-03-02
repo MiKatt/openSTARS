@@ -2,6 +2,7 @@
 % Please edit documentation in R/calc_binary.R, R/export_ssn.R
 \name{assign_binIDs}
 \alias{assign_binIDs}
+\alias{assign_binIDs}
 \title{Recursive function to assign binary id to stream segments
 Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments}
 \usage{
@@ -31,4 +32,3 @@ and fills the binID for all segments. It is called by \code{calc_binary} in
 \code{export_ssn} and should not be called by the user.
 }
 \keyword{internal}
-

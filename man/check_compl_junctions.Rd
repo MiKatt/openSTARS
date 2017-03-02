@@ -36,4 +36,3 @@ check_compl_junctions()
 \author{
 Mira Kattwinkel \email{mira.kattwinkel@gmx.net}
 }
-

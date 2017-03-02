@@ -39,4 +39,3 @@ outlet and should not be called by the user.
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
 \keyword{internal}
-

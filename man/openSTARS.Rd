@@ -57,4 +57,3 @@ check_ssn(ssn_dir)
 ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 }
 }
-

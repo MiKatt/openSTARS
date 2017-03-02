@@ -88,4 +88,3 @@ plot(edges,col=cols,add=T, lwd=2)
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
-

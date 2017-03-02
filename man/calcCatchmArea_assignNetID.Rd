@@ -38,4 +38,3 @@ calcCatchmArea_assignNetID
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
 \keyword{internal}
-

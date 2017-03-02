@@ -14,19 +14,19 @@ Authors@R: c(person("Mira", "Kattwinkel", role = c("aut","cre"),
 URL: https://github.com/EDiLD/openSTARS
 Depends:
     R (>= 3.3.1),
+    data.table,
     rgrass7
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyLoad: true
 LazyData: true
 Imports:
-    data.table,
     methods,
     progress,
     rgdal,
     sp,
     SSN
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

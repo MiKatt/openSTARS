@@ -1,7 +1,7 @@
 #' Correct junctions with three inflows.
 #'
 #' At complex junctions (i.e. more than two inflows to an outflow), the outflow
-#' is broken into two segments at 1/3 of the DEM's cellsize downstream of the
+#' is broken into two segments at 1/4 of the DEM's cellsize downstream of the
 #' start using
 #' \href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit}(tool =
 #' break). Then, the stream with the smallest angle to the outflow is moved to
@@ -87,7 +87,7 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
   df.junctions <- apply(df.junctions,2,as.numeric)
 
   # Create new vector with all segments that form complex junctions
-  str1<-paste(df.junctions,collapse = ",")
+  str1<-paste(unique(c(df.junctions)),collapse = ",")
   str1<-paste0("(", str1, ")",sep="")
   execGRASS("v.extract",
             flags = c("overwrite","quiet"),
@@ -98,8 +98,11 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
               where = paste0("stream in ",str1)
             ))
 
-  # Create file of point positions 2/3 cellsize  upstream (inflows) and  downstream (outflows) from junction to get the flow direction close to the juction
-  # cellsize as coordinate does not work, because some segements are only one cellsize long; 2/3 lays in the next cell
+  # Create file of point positions 0.8 x cellsize  upstream (inflows) and  
+  # 0.1 x cellsizes downstream (outflows) from junction to get the flow direction
+  # close to the juction cellsize as coordinate does not work, because some 
+  # segements are only one cellsize long; 0.8 lays in the next cell
+  # for outflows, use cell in which junction lies
   points <- file.path(temp_dir,"complex_points.txt")
   # MiKatt: Old method could lead to identical point id if one segment is cut in more than one piece (start and end)
   #         write(paste(paste("P ",c(df.junctions),c(df.junctions),c(rep(0.5*cellsize,nrow(df.junctions)),
@@ -117,10 +120,10 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
   dt3 <- melt(setDT(data.frame(df.junctions)), measure.vars = colnames(df.junctions))
   dt <- merge(dt3, dt, by.x = "value", by.y = "stream")
   setnames(dt, "value","stream")
-  dt[, newlen := -2/3 * cellsize]
-  dt[grepl("prev_str",variable) & len < (2/3 * cellsize), newlen:=-len]
-  dt[variable == "stream", newlen := 2/3 * cellsize]
-  dt[variable == "stream" & len < (2/3 * cellsize), newlen:=len]
+  dt[, newlen := -0.8 * cellsize]
+  dt[grepl("prev_str",variable) & len < (0.8 * cellsize), newlen:=-len]
+  dt[variable == "stream", newlen := 0.1 * cellsize]
+  dt[variable == "stream" & len < (0.1 * cellsize), newlen:=len]
   dt[, pcat := seq(1, nrow(dt))]
   write(paste(paste("P ", dt[, pcat], c(dt[, stream]), dt[, newlen], collapse="\n")),
         file = points)
@@ -171,16 +174,19 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
   # a = targetA - sourceA
   # a = (a + 180) % 360 - 180"
   # Adjusted for directions (1:8)
+  # Direction is "Flow direction is of D8 type with a range of 1 to 8. 
+  # Multiplying values with 45 gives degrees CCW from East" (r.stream.extraxt help)
+  # 8 -> E, 6 -> S, 4 -> W, 2 -> N
   df.move_streams<-matrix(nrow=nrow(df.junctions),ncol=2)
   colnames(df.move_streams)<-c("move_stream","cut_stream")
   for(i in 1:nrow(df.junctions)){
-    # direction of outflow
-    outdir <- dt.endcoord[stream==df.junctions[i,"stream"] & variable == "stream",dir]
+    # direction of outflow, turned around
+    outdir <- (dt.endcoord[stream==df.junctions[i,"stream"] & variable == "stream",dir] + 4) %% 8
     # cat and direction of inflows
     indirs <- dt.endcoord[stream %in% df.junctions[i,-1] & grepl("prev_",variable),.(stream,dir)]
     # difference between inflow and outflow directions;
     indirs[, dif:=abs((outdir-dir+4) %% 8 -4)]
-    ms <- indirs[dif==max(dif),][1,stream] # if there are tow inflows with same angel to outflow, always take the first for reproducability
+    ms <- indirs[dif==min(dif),][1,stream] # if there are tow inflows with same angel to outflow, always take the first for reproducability
     df.move_streams[i,] <- c(ms,df.junctions[i,1])
   }
   ## variable != "stream" because one stream can be stream and prev_stream in compl junctions; should not be duplicated here.
@@ -190,10 +196,10 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
   colnames(df.move_streams)[colnames(df.move_streams) == "end_y"] <- "move_end_y"
   rm("dt.endcoord")
 
-  # Create file of point positions 1/3 cellsize downstream of start of outflow to cut outflow
+  # Create file of point positions 1/4 cellsize downstream of start of outflow to cut outflow
   # P <point id>   <line cat> <offset> [<side offset>]
   points <- file.path(temp_dir,"cut_points.txt")
-  write(paste(paste("P ",df.junctions[,"stream"],df.junctions[,"stream"],c(rep(cellsize/3,nrow(df.junctions)))),collapse="\n"),
+  write(paste(paste("P ",df.junctions[,"stream"],df.junctions[,"stream"],c(rep(cellsize/4,nrow(df.junctions)))),collapse="\n"),
         file = points)
   execGRASS("v.segment",
             flags = c("overwrite","quiet"),
@@ -244,7 +250,7 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
                 map = "streams_v",
                 type = "line",
                 tool = "vertexmove",
-                threshold = c(1,cellsize/3,0),
+                threshold = c(1,cellsize/4,0),
                 where = paste0("stream = ",df.move_streams[i,"move_stream"]),
                 coords = c(df.move_streams[i,"move_end_x"],df.move_streams[i,"move_end_y"]),
                 move = c(df.move_streams[i,"cut_x"]- df.move_streams[i,"move_end_x"],df.move_streams[i,"cut_y"]- df.move_streams[i,"move_end_y"],0),

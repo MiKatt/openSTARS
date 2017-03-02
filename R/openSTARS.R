@@ -7,7 +7,7 @@
 #'
 #' @import rgrass7
 #' @import data.table
-#'
+#' 
 #' @docType package
 #' @name openSTARS
 #'

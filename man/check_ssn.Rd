@@ -36,4 +36,3 @@ check_ssn(ssn_dir)
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}
 }
-

@@ -67,4 +67,3 @@ points(sites, pch = 4)
 Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel
  \email{mira.kattwinkel@gmx.net}
 }
-

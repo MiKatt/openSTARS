@@ -9,25 +9,28 @@ calc_attributes_sites_exact(sites_map = "sites", input_raster = NULL,
   temp_dir = "temp")
 }
 \arguments{
-\item{sites_map}{character:name of the sites the attributes shall be
-calculated for. "sites" refers to the observation or prediction sites.}
+\item{sites_map}{character; name of the sites (observation or prediction) 
+attributes shall be calculated for. "sites" (default) refers to the observation sites.}
 
 \item{input_raster}{character vector (optional); name of additional raster
 maps to calculate attributes from.}
 
 \item{stat}{character vector (optional); statistics to be calulated, one of:
 min, max, mean, stddev, variance, sum, median or precentile_X (where X
-gives the desired percentile e.g. 25 for the first).}
+gives the desired percentile e.g. 25 for the first). Must be provided if 
+\code{input_raster} are given.}
 
 \item{attr_name}{character vector (optional); column name for the attributes
-to be calculated. Attribute names must not be longer than 10 characters.}
+to be calculated. Attribute names must not be longer than 10 characters.
+Must be provided if \code{input_raster} are given.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
 
 \item{keep_basins}{boolean; shall raster maps of all the watersheds be kept?}
 
-\item{temp_dir}{string; temporary directory to store intermediate files.}
+\item{temp_dir}{string; temporary directory with read and write access to 
+store intermediate files.}
 }
 \value{
 Nothing. The function appends new columns to the \code{sites_map} attribute table
@@ -102,4 +105,3 @@ points(sites, pch = 21,bg = cols,cex=0.7)
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
-

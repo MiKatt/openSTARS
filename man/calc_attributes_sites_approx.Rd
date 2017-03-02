@@ -106,4 +106,3 @@ points(sites, pch = 16, col = cols)
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
-

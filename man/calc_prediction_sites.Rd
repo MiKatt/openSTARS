@@ -81,4 +81,3 @@ points(preds, pch = 19, col = "steelblue")
 \author{
 Mira Kattwinkel \email{mira.kattwinkel@gmx.net}
 }
-
