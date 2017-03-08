@@ -57,8 +57,6 @@
 #' ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 #' }
 
-#NULL
-
 # define column names of data.tables as global variables to prevent a NOTE in
 # R CMD check 'no visible binding for global variable'.
 if(getRversion() >= "2.15.1")
