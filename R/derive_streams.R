@@ -34,6 +34,10 @@
 #' @details For details on \code{accum_threshold} and \code{min_stream_length}
 #' see the parameters 'threshold' and 'stream_length' at
 #' \href{https://grass.osgeo.org/grass73/manuals/r.stream.extract}{r.stream.extract}.
+#' It might be useful to not burn in the whole available stream network but only 
+#' parts of it (e.g., larger streams with higher Strahler stream order only). 
+#' For this, the stream network needs to be pre-processed before loading it with 
+#' \code{import_data}.
 #'
 #' @note \code{\link{setup_grass_environment}} and \code{\link{import_data}}
 #'   must be run before.
