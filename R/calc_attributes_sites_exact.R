@@ -23,6 +23,7 @@
 #'   Must be provided if \code{input_raster} are given.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
+#' @param calc_basin_area boolean; shall the catchment area be calculated?
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
 #' @param temp_dir string; temporary directory with read and write access to 
 #'   store intermediate files.
@@ -36,7 +37,10 @@
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
 #'   \code{\link{calc_edges}} and \code{\link{calc_sites}} or
 #'   \code{\link{calc_prediction_sites}} must be run before.
-
+#'   
+#' If \code{calc_basin_area = F} but there are no raster maps called 'catchm_x' 
+#' with x = pid of all sites the catchments (and their area) are derived. 
+#'   
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
 #' @examples
@@ -93,6 +97,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                         stat = NULL,
                                         attr_name = NULL,
                                         round_dig = 2,
+                                        calc_basin_area = TRUE,
                                         keep_basins = FALSE,
                                         temp_dir = "temp"){
 
@@ -103,6 +108,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(!is.null(stat) & any(stat %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat)) == 0) # TRUE = 1, FALSE = 0
     stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "precentile_X" or "precent".')
 
+  if(is.null(stat) & !calc_basin_area)
+    stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
+  
   if(temp_dir == "temp")
     temp_dir <- file.path(path.expand("~"), temp_dir)
   
@@ -120,32 +128,42 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     execGRASS("r.mask",flags = c("r", "quiet"))
 
   d.sites <- readVECT(sites_map, ignore.stderr = FALSE)
+  
+  if(!all(paste0("catchm_",d.sites@data$pid) %in% rast)){
+    calc_basin_area <- TRUE
+  }
 
   message("Intersecting attributes for ",nrow(d.sites@data)," sites...\n")
 
   # progress bar
   pb <- progress_bar$new(total = nrow(d.sites@data))
 
-  dat <- matrix(nrow = nrow(d.sites),ncol = length(attr_name)+2)
-  colnames(dat) <- c("H2OArea", attr_name,"pid")
+  if(calc_basin_area){
+    dat <- matrix(nrow = nrow(d.sites),ncol = length(attr_name)+2)
+    colnames(dat) <- c("H2OArea", attr_name,"pid")
+  } else {
+    dat <- matrix(nrow = nrow(d.sites),ncol = length(attr_name) + 1)
+    colnames(dat) <- c(attr_name, "pid")
+  }
   for (i in seq_along(d.sites@data$pid)) {
     #message(i)
     pid <- d.sites@data$pid[i]
     dat[i,"pid"]  <- pid
 
-    coord <- coordinates(d.sites[i,])
-    # always calculate drainage area in km^2
-    execGRASS("r.stream.basins",
-              flags = c("overwrite", "l", "quiet"),
-              parameters = list(direction = "dirs",
-                               coordinates = coord,
-                               basins = paste0("catchm_",pid)))
-    dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
-                            execGRASS("r.stats",
-                                   flags = c("a", "quiet"),
-                                   parameters = list(input = paste0("catchm_",pid)),
-                                   intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
-
+    # calculate drainage area in km^2
+    if(calc_basin_area){
+      coord <- coordinates(d.sites[i,])
+      execGRASS("r.stream.basins",
+                flags = c("overwrite", "l", "quiet"),
+                parameters = list(direction = "dirs",
+                                  coordinates = coord,
+                                  basins = paste0("catchm_",pid)))
+      dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
+        execGRASS("r.stats",
+                  flags = c("a", "quiet"),
+                  parameters = list(input = paste0("catchm_",pid)),
+                  intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
+    }
     # calculate unviriate statitics per watershed
     # set mask to the current basin
     execGRASS("r.mask",

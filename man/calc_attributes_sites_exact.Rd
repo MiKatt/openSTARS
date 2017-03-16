@@ -5,8 +5,8 @@
 \title{Calcuate attributes of the sites.}
 \usage{
 calc_attributes_sites_exact(sites_map = "sites", input_raster = NULL,
-  stat = NULL, attr_name = NULL, round_dig = 2, keep_basins = FALSE,
-  temp_dir = "temp")
+  stat = NULL, attr_name = NULL, round_dig = 2, calc_basin_area = TRUE,
+  keep_basins = FALSE, temp_dir = "temp")
 }
 \arguments{
 \item{sites_map}{character; name of the sites (observation or prediction) 
@@ -26,6 +26,8 @@ Must be provided if \code{input_raster} are given.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
+
+\item{calc_basin_area}{boolean; shall the catchment area be calculated?}
 
 \item{keep_basins}{boolean; shall raster maps of all the watersheds be kept?}
 
@@ -52,6 +54,9 @@ Catchment raster maps can optionally be stored as "catchm_X" (X = pid).
 \code{\link{import_data}}, \code{\link{derive_streams}},
   \code{\link{calc_edges}} and \code{\link{calc_sites}} or
   \code{\link{calc_prediction_sites}} must be run before.
+  
+If \code{calc_basin_area = F} but there are no raster maps called 'catchm_x' 
+with x = pid of all sites the catchments (and their area) are derived.
 }
 \examples{
 \donttest{
