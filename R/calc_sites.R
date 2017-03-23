@@ -96,7 +96,7 @@ calc_sites <- function(pred_sites = NULL) {
   
   site_maps <- c("sites", pred_sites)
   site_maps <- sub("_o$","", site_maps)
-  sapply(site_maps, prepare_sites)
+  s <- sapply(site_maps, prepare_sites)
   
 }
 
