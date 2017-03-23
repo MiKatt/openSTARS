@@ -82,8 +82,8 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
               ), intern=T),
     split='\\|'))
   colnames(df.junctions) <- df.junctions[1,]
-  df.junctions <- data.frame(df.junctions[-1,])
-  df.junctions <- sapply(df.junctions,as.character)
+  df.junctions <- data.frame(df.junctions[-1,,drop=F], stringsAsFactors = FALSE)
+  #df.junctions <- sapply(df.junctions,as.character)
   df.junctions <- apply(df.junctions,2,as.numeric)
 
   # Create new vector with all segments that form complex junctions

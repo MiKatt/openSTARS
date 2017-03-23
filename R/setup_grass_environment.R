@@ -43,8 +43,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
               parameters = list(
                 georef = sites
               ))
-  } else
-  {
+  } else {
     execGRASS("g.proj",
               flags = c("c"),#, "quiet"),
               parameters = list(

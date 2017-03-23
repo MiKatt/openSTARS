@@ -128,7 +128,7 @@ calc_edges <- function(clean = TRUE, temp_dir = "temp") {
               ),intern = T),
     split = '\\|'))
   colnames(dt.streams) <- dt.streams[1,]
-  dt.streams <- data.table(dt.streams[-1,], "total_area" = 0, "netID" = -1)
+  dt.streams <- data.table(dt.streams[-1,, drop = FALSE], "total_area" = 0, "netID" = -1)
   dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
   dt.streams<-merge(dt.streams, areas, by="cat", all = T)  # MiKatt: must be 'cat' not 'stream' because stream_r is based on 'cat'!
   setkey(dt.streams, stream)

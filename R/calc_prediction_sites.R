@@ -96,7 +96,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
               ),intern = T),
     split = '\\|'))
   colnames(dt.streams) <- dt.streams[1,]
-  dt.streams <- data.table(dt.streams[-1,])
+  dt.streams <- data.table(dt.streams[-1,,drop = FALSE])
   dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
   dt.streams[, offset := 0]
 

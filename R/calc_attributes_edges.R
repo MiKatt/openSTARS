@@ -132,7 +132,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
                     intern = TRUE)
     st <- do.call(rbind,strsplit(st,","))
     colnames(st) <- st[1,]
-    st <- st[-1,]
+    st <- st[-1,, drop = FALSE]
     st <- data.frame(apply(st,2,as.numeric))
     setDT(st)
 
@@ -153,7 +153,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
               ),intern = T),
     split = '\\|'))
   colnames(dt.streams) <- dt.streams[1,]
-  dt.streams <- data.table(dt.streams[-1,])
+  dt.streams <- data.table(dt.streams[-1,,drop = FALSE])
   dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
   dt.streams <- merge(dt.streams, rca_cell_count, by.x = "cat", by.y = "zone", all.x = TRUE)
   dt.streams[, cumsum_cells := 0]
