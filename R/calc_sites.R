@@ -86,7 +86,10 @@ calc_sites <- function(pred_sites = NULL) {
   
   if(!is.null(pred_sites)){
    i <- grep("_o$",pred_sites)
-   pred_sites[-i] <- paste0(pred_sites[-i],"_o")
+   if(length(i) > 0){
+    pred_sites[-i] <- paste0(pred_sites[-i],"_o")
+   } else
+     pred_sites <- paste0(pred_sites,"_o")     
    if (any(!pred_sites %in% vect))
      stop("Prediction sites not found. Did you run import_data() on them?")
   }
