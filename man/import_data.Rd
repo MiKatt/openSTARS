@@ -4,7 +4,8 @@
 \alias{import_data}
 \title{Import data into GRASS.}
 \usage{
-import_data(dem, sites, streams = NULL, snap_streams = FALSE, ...)
+import_data(dem, sites, streams = NULL, snap_streams = FALSE,
+  pred_sites = NULL, predictor_maps = NULL)
 }
 \arguments{
 \item{dem}{character; path to DEM raster file.}
@@ -18,18 +19,24 @@ If available it can be burnt into DEM.}
 If TRUE line ends of the streams are snapped to the next feature if they are
  unconncted with threshold of 10 m using GRASS function v.clean.}
 
-\item{...}{other paths to raster data to import as predictors
-(not yet implemented).}
+\item{pred_sites}{character vector (optional); paths to prediction sites 
+vector files}
+
+\item{predictor_maps}{character vector (optional); paths to raster data to 
+import as predictors.}
 }
 \value{
 Nothing, the data is loaded into the GRASS session.
-The DEM is stored as raster 'dem', sites as vector 'sites_o' and streams as
-vector 'streams_o' in the GRASS location (mapset PERMANENT).
+The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
+vector(s) using the original file names with an appended '_o' (without extension),
+predictor map raster(s)  using the original file names (without extension) 
+and streams as vector 'streams_o' in the GRASS location 
+(mapset PERMANENT).
 }
 \description{
 This function loads dem and sites data (both required) into the GRASS session.
-Optionally, streams data is loaded and the streams may be corrected by
-snapping to prevent lose ends.
+Optionally, prediction sites and streams data can be loaded and the streams 
+may be corrected by snapping to prevent lose ends.
 }
 \note{
 A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
@@ -50,5 +57,6 @@ plot(dem)
 
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}
+Eduard Szoecs, \email{eduardszoecs@gmail.com},  Mira Kattwinkel
+ \email{mira.kattwinkel@gmx.net}
 }

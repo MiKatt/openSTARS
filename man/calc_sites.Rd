@@ -4,7 +4,11 @@
 \alias{calc_sites}
 \title{Calculate sites for SSN object.}
 \usage{
-calc_sites()
+calc_sites(pred_sites = NULL)
+}
+\arguments{
+\item{pred_sites}{character vector (optional); names for prediction sites 
+(created with \code{import_data}).}
 }
 \description{
 A vector (points) map 'sites' is derived and several attributes
@@ -30,6 +34,11 @@ closest stream segment (snapped) using
 
 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
 \href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+
+If prediction sites have been created outside of this packeage they can be 
+processed here as well. They must have been imported with \code{\link{import_data}}
+before. Alternatively, prediction sites can be created using
+\code{\link{calc_prediction_sites}}.
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}} and
