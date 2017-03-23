@@ -61,11 +61,12 @@
 # R CMD check 'no visible binding for global variable'.
 if(getRversion() >= "2.15.1")
   utils::globalVariables(c(".", "area", "binaryID", "cat_", "cat_large",
-                           "cat_small", "cumsum_cells", "dif", "end_x", "end_y",
-                           "len", "Length", "netID", "netID", "newlen",
-                           "next_str", "non_null_cells", "OBJECTID", "offset",
-                           "pcat", "prev_str01", "prev_str02", "rid", "stream",
-                           "total_area", "variable", "X1", "X2"))
+                           "cat_small", "cumsum_cells", "cut_x", "cut_y", "dif",
+                           "end_x", "end_y", "len", "Length", "move_stream",
+                           "netID", "newlen","next_str", 
+                           "non_null_cells", "OBJECTID", "offset", "pcat", 
+                           "prev_str01", "prev_str02", "prev_str03", "rid", 
+                           "stream", "total_area", "variable", "X1", "X2"))
 
 
 #' Datasets shipped with openSTARS
