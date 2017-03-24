@@ -15,13 +15,18 @@
 #' vector files
 #' @param predictor_maps character vector (optional); paths to raster data to 
 #' import as predictors.
+#' @param predictor_names character vector (optional); names for potential predictor
+#' variables.
 #'
-#' @return Nothing, the data is loaded into the GRASS session.
+#' @return Nothing, the data is loaded into the GRASS session (mapset PERMANENT).
 #' The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
 #' vector(s) using the original file names with an appended '_o' (without extension),
-#' predictor map raster(s)  using the original file names (without extension) 
-#' and streams as vector 'streams_o' in the GRASS location 
-#' (mapset PERMANENT).
+#' streams as vector 'streams_o' in the GRASS location. Additinally, predictor 
+#' map raster(s) can be read in and are stroed in GRASS using either the 
+#' original file names (without extension) or using the names provides in 
+#' predictor_names. The latter option may be usefull if ArcGIS grid data 
+#' (typically stored as 'grid_name/w001001.adf') are used.
+#'.
 #'
 #' @note A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com},  Mira Kattwinkel
@@ -44,7 +49,7 @@
 #'
 
 import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE, 
-                        pred_sites = NULL, predictor_maps = NULL) {
+                        pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | is.null(sites))
@@ -102,21 +107,22 @@ import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE,
 
   # predictor raster maps
   if (!is.null(predictor_maps)) {
-    pred_map_names <- do.call(rbind,base::strsplit(sapply(predictor_maps,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(paste0("Loading predictior varibales into GRASS as ",paste(pred_map_names,collapse=", ", sep=""), " ...\n"))
-    for(i in 1:length(pred_map_names)){
+    if(is.null(predictor_names))
+      predictor_names <- do.call(rbind,base::strsplit(sapply(predictor_maps,basename,USE.NAMES=F), split="[.]"))[,1]
+    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_names, collapse = ", ", sep=""), " ...\n"))
+    for(i in 1:length(predictor_names)){
       if(.Platform$OS.type == "windows"){
         execGRASS("r.in.gdal",
                   flags = c("overwrite","quiet","o"),
                   parameters = list(
                     input = predictor_maps[i],
-                    output = pred_map_names[i]),ignore.stderr=T)
+                    output = predictor_names[i]),ignore.stderr=T)
       } else{
         execGRASS("r.in.gdal",
                   flags = c("overwrite", "quiet"),
                   parameters = list(
                     input = predictor_maps[i],
-                    output =pred_map_names[i]),ignore.stderr=T)
+                    output = predictor_names[i]),ignore.stderr=T)
       }
     }
   }

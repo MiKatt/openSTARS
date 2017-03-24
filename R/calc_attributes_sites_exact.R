@@ -6,7 +6,7 @@
 #' exact values for catchments derived with
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 #' and can take considerable time if there are many sites.
-#' Catchment raster maps can optionally be stored as "catchm_X" (X = pid).
+#' Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = pid).
 
 #' @import progress
 #'
@@ -38,7 +38,7 @@
 #'   \code{\link{calc_edges}} and \code{\link{calc_sites}} or
 #'   \code{\link{calc_prediction_sites}} must be run before.
 #'   
-#' If \code{calc_basin_area = F} but there are no raster maps called 'catchm_x' 
+#' If \code{calc_basin_area = F} but there are no raster maps called 'sitesname_catchm_x' 
 #' with x = pid of all sites the catchments (and their area) are derived. 
 #'   
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
@@ -129,7 +129,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
   d.sites <- readVECT(sites_map, ignore.stderr = FALSE)
   
-  if(!all(paste0("catchm_",d.sites@data$pid) %in% rast)){
+  if(!all(paste0(sites_map,"_catchm_",d.sites@data$pid) %in% rast)){
     calc_basin_area <- TRUE
   }
 
@@ -157,11 +157,11 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 flags = c("overwrite", "l", "quiet"),
                 parameters = list(direction = "dirs",
                                   coordinates = coord,
-                                  basins = paste0("catchm_",pid)))
+                                  basins = paste0(sites_map, "_catchm_",pid)))
       dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
         execGRASS("r.stats",
                   flags = c("a", "quiet"),
-                  parameters = list(input = paste0("catchm_",pid)),
+                  parameters = list(input = paste0(sites_map, "_catchm_",pid)),
                   intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
     }
     # calculate unviriate statitics per watershed
@@ -169,7 +169,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     execGRASS("r.mask",
               flags = c("overwrite", "quiet"),
               parameters = list(
-                raster = paste0("catchm_",pid)))
+                raster = paste0(sites_map, "_catchm_",pid)))
     if(length(stat) > 0){
       for(j in 1:length(stat)){
         if(stat[j] == "median"){
@@ -217,7 +217,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "raster",
-                  name = paste0("catchm_",pid)
+                  name = paste0(sites_map, "_catchm_",pid)
                 ))
     }
     pb$tick()
