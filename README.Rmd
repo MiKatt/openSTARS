@@ -85,7 +85,8 @@ Then, use `import_data` to import all data into GRASS (DEM, observations sites a
 import_data(dem = dem_path, sites = sites_path)
 ```
 
-The DEM is loaded into the GRASS database as raster map named `dem`, the sites as vector map named `sites_o` and the (optional) stream network as vector map named `streams_o`.
+The DEM is loaded into the GRASS database as raster map named `dem`, the sites as vector map named `sites_o` and the (optional) stream network as vector map named `streams_o`. Additionally, prediction sites can be loaded if they have been allready created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`, see below). Likewise, raster maps of potential predictor variables can be loaded to be able to later intersect them with the catchments of the sites.
+
 Here's how the data looks like:
 
 ```{r plot_data1, message=FALSE, results='hide'}

@@ -35,9 +35,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpcmYDAA 
-#> location    file46a96e6fccb7 
-#> mapset      file46a91e9846d9 
+#> gisdbase    /tmp/Rtmpp5561Z 
+#> location    file21c82b3afa62 
+#> mapset      file21c83ece2017 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -89,11 +89,12 @@ Then, use `import_data` to import all data into GRASS (DEM, observations sites a
 ```r
 import_data(dem = dem_path, sites = sites_path)
 #> Loading DEM into GRASS...
-#> Loading sites into GRASS...
+#> Loading sites into GRASS as sites_o ...
 #> No streams available, skipping.
 ```
 
-The DEM is loaded into the GRASS database as raster map named `dem`, the sites as vector map named `sites_o` and the (optional) stream network as vector map named `streams_o`.
+The DEM is loaded into the GRASS database as raster map named `dem`, the sites as vector map named `sites_o` and the (optional) stream network as vector map named `streams_o`. Additionally, prediction sites can be loaded if they have been allready created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`, see below). Likewise, raster maps of potential predictor variables can be loaded to be able to later intersect them with the catchments of the sites.
+
 Here's how the data looks like:
 
 
@@ -323,7 +324,7 @@ calc_attributes_sites_exact(sites_map = "sites",
 #> v.out.ogr complete. 87 features (Point type) written to <sites> (SQLite
 #> format).
 #> OGR data source with driver: SQLite 
-#> Source: "/tmp/RtmpcmYDAA/file46a96e6fccb7/PERMANENT/.tmp/mira-Linux/83.0", layer: "sites"
+#> Source: "/tmp/Rtmpp5561Z/file21c82b3afa62/PERMANENT/.tmp/mira-Linux/39.0", layer: "sites"
 #> with 87 features
 #> It has 15 fields
 sites <- readVECT("sites", ignore.stderr = TRUE)

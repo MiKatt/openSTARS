@@ -5,7 +5,7 @@
 \title{Import data into GRASS.}
 \usage{
 import_data(dem, sites, streams = NULL, snap_streams = FALSE,
-  pred_sites = NULL, predictor_maps = NULL)
+  pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL)
 }
 \arguments{
 \item{dem}{character; path to DEM raster file.}
@@ -24,14 +24,20 @@ vector files}
 
 \item{predictor_maps}{character vector (optional); paths to raster data to 
 import as predictors.}
+
+\item{predictor_names}{character vector (optional); names for potential predictor
+variables.}
 }
 \value{
-Nothing, the data is loaded into the GRASS session.
+Nothing, the data is loaded into the GRASS session (mapset PERMANENT).
 The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
 vector(s) using the original file names with an appended '_o' (without extension),
-predictor map raster(s)  using the original file names (without extension) 
-and streams as vector 'streams_o' in the GRASS location 
-(mapset PERMANENT).
+streams as vector 'streams_o' in the GRASS location. Additinally, predictor 
+map raster(s) can be read in and are stroed in GRASS using either the 
+original file names (without extension) or using the names provides in 
+predictor_names. The latter option may be usefull if ArcGIS grid data 
+(typically stored as 'grid_name/w001001.adf') are used.
+.
 }
 \description{
 This function loads dem and sites data (both required) into the GRASS session.
