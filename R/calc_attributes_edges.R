@@ -138,8 +138,11 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
 
     if(stat[j] %in% names(st)){
       st <- st[, c("zone", stat[j]), with = FALSE]
-    } else { # if(stat == "percent")
-      st <- st[, c("zone", "mean"), with = FALSE]  # if e.g. coded as 0 and 1, mean gives the ratio
+    } else if(any(st[,"variance", with = F] != 0)) { # if(stat == "percent") and coded as 0 and 1, mean gives the ratio
+      st <- st[, c("zone", "mean"), with = FALSE]  
+    } else{  # if coded as something and NA, null(), no data value
+      st[, "all_cells" := sum(.SD), .SDcols = c("non_null_cells", "null_cells"), by = "zone"]
+      st <- data.table(data.frame(st[,"zone"],st[, "non_null_cells"] /st[,"all_cells"]))
     }
     names(st)[2] <- attr_name[j]
     st[, attr_name[j] := round(st[, attr_name[j], with = FALSE], round_dig[j])]
