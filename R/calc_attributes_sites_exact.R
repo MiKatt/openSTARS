@@ -190,15 +190,25 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                             flags = c("overwrite", "quiet","g"),
                             parameters = list(
                               map = input_raster[j]), intern = TRUE)
-          }
+            st2 <- execGRASS("r.univar",
+                            flags = c("overwrite", "quiet","g"),
+                            parameters = list(
+                              map = "MASK"), intern = TRUE)
+            n <- st2[grep("^n=", st2)]
+            n <- gsub("n=", "n2=", n)
+            st <- c(st, n)
+          } 
         }
         st <- setDT(data.frame(do.call(rbind,strsplit(st,"="))))
         if(nrow(st) > 0){
           st[,X2 := as.numeric(as.character(X2))]
           if(grepl("percent", stat[j])){
             if(st[X1=="variance",X2] == 0){  # if coded as something and NA, null(), no data value
-               dat[i,j+1] <- round((st[X1 == "cells", X2] - st[X1 == "null_cells", X2])/
-                                    st[X1 == "cells", X2], round_dig[j+1])
+              # cells and non_null_cells stell refers to the whole map; MASK only
+              # sets to null value
+              # dat[i,j+1] <- round((st[X1 == "cells", X2] - st[X1 == "null_cells", X2])/
+              #                     st[X1 == "cells", X2], round_dig[j+1])
+              dat[i,j+1] <- round(st[X1 == "n", X2] / st[X1 == "n2", X2], round_dig[j + 1])
             } else{  # if coded as 1 and 0, "mean" gives ratio
               dat[i,j+1] <- round(st[X1 == "mean",X2],round_dig[j+1])
             }
