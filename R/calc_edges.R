@@ -43,7 +43,7 @@
 #' gmeta()
 #'
 #' # Derive streams from DEM
-#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = FALSE)
 #'
 #' # Prepare edges
 #' calc_edges()
@@ -55,7 +55,7 @@
 #' lines(edges, col = 'blue')
 #' }
 
-calc_edges <- function(clean = TRUE, temp_dir = "temp") {
+calc_edges <- function(clean = FALSE, temp_dir = "temp") {
   rast <- execGRASS("g.list",
                     parameters = list(
                       type = "rast"
@@ -271,5 +271,28 @@ calcCatchmArea_assignNetID <- function(dt, id, net_ID){
     dt[stream == id, netID := net_ID]
   }
   return(dt[stream == id, total_area])
+}
+
+#' get_cats_edges_in_catchment#' 
+#' Returns the cats of this and all upstream edges#' 
+#' 
+#' @description Recursive function to get the stream_ids from one segment upstream.
+#' This function is used internally and is not intended to be called by the user.
+#' 
+#' @param dt data.table containing the attributes of the stream segments
+#' @param str_id integer giving the stream_id ('stream') of the starting edge
+#' 
+#' @return vector of cat values of all upstream edges and the calling one.
+#' 
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+#' 
+get_cats_edges_in_catchment<-function(dt, str_id){
+  if(dt[stream == str_id, prev_str01] == 0){
+    return(dt[stream == str_id, cat])
+  } else {
+    a1 <- get_cats_edges_in_catchment(dt = dt, dt[stream == str_id, prev_str01])
+    a2 <- get_cats_edges_in_catchment(dt = dt, dt[stream == str_id, prev_str02])
+    return(c(dt[stream == str_id, cat], a1, a2))
+  }
 }
 

@@ -132,6 +132,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(!all(paste0(sites_map,"_catchm_",d.sites@data$pid) %in% rast)){
     calc_basin_area <- TRUE
   }
+  if(any(d.sites@data$distRatio == 0) & calc_basin_area){
+    d.edges <- readVECT("edges", ignore.stderr = FALSE)
+    dt.edges <- setDT(d.edges@data)
+    dt.edges[, colnames(dt.edges)[-which(colnames(dt.edges) %in% c("cat", "stream","prev_str01","prev_str02","rid","H2OArea"))] := NULL]
+    rm(d.edges)
+  }
 
   message("Intersecting attributes for ",nrow(d.sites@data)," sites...\n")
 
@@ -152,17 +158,35 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
     # calculate drainage area in km^2
     if(calc_basin_area){
-      coord <- coordinates(d.sites[i,])
-      execGRASS("r.stream.basins",
-                flags = c("overwrite", "l", "quiet"),
-                parameters = list(direction = "dirs",
-                                  coordinates = coord,
-                                  basins = paste0(sites_map, "_catchm_",pid)))
-      dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
-        execGRASS("r.stats",
-                  flags = c("a", "quiet"),
-                  parameters = list(input = paste0(sites_map, "_catchm_",pid)),
-                  intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
+      # If the distance ration is 0, the site lies within the outflow cell of
+      # the edge; then, r.stream.basins will extract a too large basin including
+      # the second tributary of the confluence
+      if(d.sites@data$distRatio[i] == 0){
+        j <- which(dt.edges[, "rid"] == d.sites@data$rid[i])
+        dat[i,"H2OArea"] <- round(dt.edges[j, H2OArea], round_dig[1])
+        cats <- get_cats_edges_in_catchment(dt.edges, dt.edges[j, "stream"])
+        execGRASS("r.mask", flags = c("overwrite","quiet"),
+                  parameters = list(
+                    raster = "rca",
+                    maskcats = paste0(cats, collapse = " "))
+        )
+        execGRASS("g.rename", flags = "quiet",
+                  parameters = list(
+                    raster = paste0("MASK,", paste0(sites_map, "_catchm_",pid))
+                  ))
+      } else {
+        coord <- coordinates(d.sites[i,])
+        execGRASS("r.stream.basins",
+                  flags = c("overwrite", "l", "quiet"),
+                  parameters = list(direction = "dirs",
+                                    coordinates = coord,
+                                    basins = paste0(sites_map, "_catchm_",pid)))
+        dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
+          execGRASS("r.stats",
+                    flags = c("a", "quiet"),
+                    parameters = list(input = paste0(sites_map, "_catchm_",pid)),
+                    intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
+      }
     }
     # calculate unviriate statitics per watershed
     # set mask to the current basin
