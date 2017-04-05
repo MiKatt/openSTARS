@@ -151,7 +151,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     dat <- matrix(nrow = nrow(d.sites),ncol = length(attr_name) + 1)
     colnames(dat) <- c(attr_name, "pid")
   }
-  for (i in seq_along(d.sites@data$pid)) {
+  for (i in 62:nrow(d.sites@data)){#seq_along(d.sites@data$pid)) {
     #message(i)
     pid <- d.sites@data$pid[i]
     dat[i,"pid"]  <- pid
@@ -162,18 +162,70 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       # the edge; then, r.stream.basins will extract a too large basin including
       # the second tributary of the confluence
       if(d.sites@data$distRatio[i] == 0){
+        print(pid)
         j <- which(dt.edges[, "rid"] == d.sites@data$rid[i])
         dat[i,"H2OArea"] <- round(dt.edges[j, H2OArea], round_dig[1])
         cats <- get_cats_edges_in_catchment(dt.edges, dt.edges[j, "stream"])
-        execGRASS("r.mask", flags = c("overwrite","quiet"),
-                  parameters = list(
-                    raster = "rca",
-                    maskcats = paste0(cats, collapse = " "))
-        )
-        execGRASS("g.rename", flags = "quiet",
-                  parameters = list(
-                    raster = paste0("MASK,", paste0(sites_map, "_catchm_",pid))
-                  ))
+        print(length(cats))
+
+        ## more than 106 categories in r.mask crashes (i.e. no MASK is created)
+        ## workaround:
+        n <- length(cats) %/% 100
+        if(n == 0){
+          execGRASS("r.mask", flags = c("overwrite","verbose"),
+                    parameters = list(
+                      raster = "rca",
+                      maskcats = paste0(cats, collapse = " "))
+          )
+          execGRASS("r.mapcalc", flags = c("overwrite","verbose"),
+                    parameters = list(
+                      expression = paste0("'", paste0(sites_map, "_catchm_",pid), "=MASK'")
+                    ))
+          execGRASS("r.mask", flags = c("r","quiet")
+          )
+        } else {
+          count <- 0
+          for(j in 1:n){
+            execGRASS("r.mask", flags = c("overwrite","quiet"),
+                      parameters = list(
+                        raster = "rca",
+                        maskcats = paste0(cats[((j-1)*100+1):(j*100)], collapse = " "))
+            )
+            execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+                      parameters = list(
+                        expression = paste0("'temp", j, "=MASK'")
+                      ))
+            execGRASS("r.mask", flags = c("r","quiet")
+            )
+            count <- count + 1
+          }
+          if(length(cats) %% 100 != 0){
+            execGRASS("r.mask", flags = c("overwrite","quiet"),
+                      parameters = list(
+                        raster = "rca",
+                        maskcats = paste0(cats[(n*100+1):length(cats)], collapse = " "))
+            )
+            execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+                      parameters = list(
+                        expression = paste0("'temp", n+1, "=MASK'")
+                      ))
+            execGRASS("r.mask", flags = c("r","quiet")
+            )
+            count <- count + 1
+          }
+          m <- paste0("temp",1:count)
+          m <- paste0("if(", paste0(m, collapse = "|||"),",1)")
+          execGRASS("r.mapcalc", flags = c("overwrite","verbose"),
+                    parameters = list(
+                      expression = paste0('\"', paste0(sites_map, '_catchm_',pid), '=', m,'\"')
+                    ))
+          execGRASS("g.remove", flags = c("f","quiet"),
+                    parameters = list(
+                      type = "raster",
+                      name = paste0("temp",1:count)
+                    ))
+          
+        }
       } else {
         coord <- coordinates(d.sites[i,])
         execGRASS("r.stream.basins",
@@ -255,7 +307,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                   name = paste0(sites_map, "_catchm_",pid)
                 ))
     }
-    pb$tick()
+    #pb$tick()
   }
 
   # Join attributes to edges attribute table
