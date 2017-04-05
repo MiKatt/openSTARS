@@ -307,7 +307,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                   name = paste0(sites_map, "_catchm_",pid)
                 ))
     }
-    #pb$tick()
+    pb$tick()
   }
 
   # Join attributes to edges attribute table
