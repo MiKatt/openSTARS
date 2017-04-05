@@ -169,7 +169,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         print(length(cats))
 
         ## more than 106 categories in r.mask crashes (i.e. no MASK is created)
-        ## workaround:
+        ## workaround
         n <- length(cats) %/% 100
         if(n == 0){
           execGRASS("r.mask", flags = c("overwrite","verbose"),
