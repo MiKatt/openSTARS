@@ -172,12 +172,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         ## workaround:
         n <- length(cats) %/% 100
         if(n == 0){
-          execGRASS("r.mask", flags = c("overwrite","verbose"),
+          execGRASS("r.mask", flags = c("overwrite","quiet"),
                     parameters = list(
                       raster = "rca",
                       maskcats = paste0(cats, collapse = " "))
           )
-          execGRASS("r.mapcalc", flags = c("overwrite","verbose"),
+          execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                     parameters = list(
                       expression = paste0("'", paste0(sites_map, "_catchm_",pid), "=MASK'")
                     ))
@@ -215,7 +215,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           }
           m <- paste0("temp",1:count)
           m <- paste0("if(", paste0(m, collapse = "|||"),",1)")
-          execGRASS("r.mapcalc", flags = c("overwrite","verbose"),
+          execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                     parameters = list(
                       expression = paste0('\"', paste0(sites_map, '_catchm_',pid), '=', m,'\"')
                     ))
