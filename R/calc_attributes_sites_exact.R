@@ -151,7 +151,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     dat <- matrix(nrow = nrow(d.sites),ncol = length(attr_name) + 1)
     colnames(dat) <- c(attr_name, "pid")
   }
-  for (i in 62:nrow(d.sites@data)){#seq_along(d.sites@data$pid)) {
+  for (i in seq_along(d.sites@data$pid)) {
     #message(i)
     pid <- d.sites@data$pid[i]
     dat[i,"pid"]  <- pid
