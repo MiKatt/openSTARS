@@ -162,11 +162,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       # the edge; then, r.stream.basins will extract a too large basin including
       # the second tributary of the confluence
       if(d.sites@data$distRatio[i] == 0){
-        #print(pid)
         j <- which(dt.edges[, "rid"] == d.sites@data$rid[i])
-        dat[i,"H2OArea"] <- round(dt.edges[j, H2OArea], round_dig[1])
+        # use $ here to get single value from data.table to match dimensions of dat
+        dat[i,"H2OArea"] <- round(dt.edges$H2OArea[j], round_dig[1])
         cats <- get_cats_edges_in_catchment(dt.edges, dt.edges[j, "stream"])
-        #print(length(cats))
 
         ## more than 106 categories in r.mask crashes (i.e. no MASK is created)
         ## workaround:

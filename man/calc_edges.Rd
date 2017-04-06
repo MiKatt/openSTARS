@@ -4,7 +4,7 @@
 \alias{calc_edges}
 \title{Calcuate edges for SSN object.}
 \usage{
-calc_edges(clean = TRUE, temp_dir = "temp")
+calc_edges(clean = FALSE, temp_dir = "temp")
 }
 \arguments{
 \item{clean}{logical; should intermediate layer (rca, reach contributing area)
@@ -52,7 +52,7 @@ import_data(dem = dem_path, sites = sites_path)
 gmeta()
 
 # Derive streams from DEM
-derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = FALSE)
 
 # Prepare edges
 calc_edges()
