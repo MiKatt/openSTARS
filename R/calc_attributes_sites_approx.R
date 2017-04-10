@@ -31,7 +31,7 @@
 #'   function assigns the value of the edge the site lies on. Otherwise, the
 #'   value is calculated as the sum of all edges upstream of the previous
 #'   junction and the proportional value of the edge the site lies on (based on
-#'   distRatio); this is usefull e.g. for counts of dams or waste water
+#'   the distant ration 'ratio'); this is usefull e.g. for counts of dams or waste water
 #'   treatment plant or total catchment area.
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
@@ -130,11 +130,11 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
   for(i in seq_along(input_attr_name)){
     if(input_attr_name[i] == "H2OArea"){
       # calculate site attribute as attribute of the two previous edges +
-      # (1-distRatio) * contribution of edge to total edge attribute
+      # (1-ratio) * contribution of edge to total edge attribute
       ecat_prev1 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
       ecat_prev2 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
       sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-             " = ROUND(((1-distRatio)*",
+             " = ROUND(((1-ratio)*",
               "(SELECT rcaArea FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
               "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev1,") +",
               "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
@@ -144,7 +144,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                 ))
       # correct for those segments that do not have previous streams
       sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-                        " = (1-distRatio)*(SELECT rcaArea FROM edges WHERE ",
+                        " = (1-ratio)*(SELECT rcaArea FROM edges WHERE ",
                         sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
                         "(SELECT cat FROM edges WHERE prev_str01=0)")
       execGRASS("db.execute",
@@ -167,12 +167,12 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                   ))
       } else {
         # calculate site attribute as attribute of the two previous edges +
-        # (1-distRatio) * contribution of edge to total edge attribute
+        # (1-ratio) * contribution of edge to total edge attribute
         # Usefull e.g. for total numbers (no of WWTP per catchment)
         ecat_prev1 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
         ecat_prev2 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
         sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-                         " = ROUND(((1-distRatio)*",
+                         " = ROUND(((1-ratio)*",
                          "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
                          "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev1,") +",
                          "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
@@ -182,7 +182,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                   ))
         # correct for those segments that do not have previous streams
         sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-                          " = (1-distRatio)*(SELECT ", paste0(input_attr_name[i],"_e"),
+                          " = (1-ratio)*(SELECT ", paste0(input_attr_name[i],"_e"),
                           " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
                           "(SELECT cat FROM edges WHERE prev_str01=0)")
         execGRASS("db.execute",

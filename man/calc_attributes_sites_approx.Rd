@@ -46,7 +46,7 @@ If \code{stat} is one of "min", "max", "mean" or "percent" the
   function assigns the value of the edge the site lies on. Otherwise, the
   value is calculated as the sum of all edges upstream of the previous
   junction and the proportional value of the edge the site lies on (based on
-  distRatio); this is usefull e.g. for counts of dams or waste water
+  the distant ration 'ratio'); this is usefull e.g. for counts of dams or waste water
   treatment plant or total catchment area.
 }
 \note{

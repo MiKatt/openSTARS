@@ -126,6 +126,11 @@ Error in parseGRASS(cmd, legacyExec = legacyExec) : v.db.renamecolumn not parsed
 **_Solution_** Find the folder Python27 ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\Program Files\QGIS 2.18\apps\grass\grass-7.0.5\ and the folder can be found in C:\Program Files\QGIS 2.18\apps\Python27\. Create a System Variable PYTHONHOME and set it this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
 
 
+## Message when using `setup_grass_environment` or `import_data`
+Warning in R console: *WARNING: Over-riding projection check. Windows does not recognize the projection of the DEM raster. It will be overwritten with the one of the observation sites (* your working directory *). Please verify that the projections match.*
+
+GRASS usually checks if all files that are imported into a mapset have the same projection. However, under Windows, this check would always results in an error. Therefore, the check is disabled under Windows and the user is asked to make sure that all sources come from the same projection manually (e.g. using another GIS).
+
 ## Messages you do not need to worry about
 In the R console when using function `setup_grass_environment`:
 

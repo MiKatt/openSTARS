@@ -25,8 +25,8 @@ A vector (lines) map 'edges' is derived from 'streams_v' and
 Steps include:
 \itemize{ \item{Assign unique 'rid' to each stream segment}
 \item{Find different stream networks in the region and assign 'netID'}
-\item{Calculate segments upstream distance, 'upDist' = flow length to the
-outlet of the network}
+\item{Calculate segments upstream distance, 'upDist' = flow length from the 
+upstream node of the stream segment to the outlet of the network}
 \item{Calculate reach contributing areas (RCA ) per segment,
 'rcaArea' = subcatchment area of each segment in square km}
 \item{Calculate catchment areas; 'H2OArea' = total catchment area of each

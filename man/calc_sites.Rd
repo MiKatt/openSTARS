@@ -4,9 +4,17 @@
 \alias{calc_sites}
 \title{Calculate sites for SSN object.}
 \usage{
-calc_sites(pred_sites = NULL)
+calc_sites(locid_col = NULL, pid_col = NULL, pred_sites = NULL)
 }
 \arguments{
+\item{locid_col}{character (optional); column name in the sites attribute 
+table giving a unique site identifier. If not provided, it is created
+automatically (based on the 'cat' field; default).}
+
+\item{pid_col}{character (optional); column name in the sites attribute table 
+that distinguishes between repeated measurements at a sampling site, e.g. by 
+date. If not provided, it is created automatically.}
+
 \item{pred_sites}{character vector (optional); names for prediction sites 
 (created with \code{import_data}).}
 }
@@ -24,7 +32,7 @@ gives the distance of the original position to the closest streams segement.}
 stream segment the site intersects with (from map "edges").}
 \item{Calculate upstream distance for each point ('upDist').}
 \item{Calculate distance ratio
-('distRatio) between position of site on edge (distance traveled from lower
+('ratio') between position of site on edge (distance traveled from lower
 end of the edge to the site) and the total length of the edge.} }
 Often, survey sites do not lay exactly on the stream network (due to GPS inprecision,
 stream representation as lines, derivation of streams from dem, etc.). To
@@ -32,10 +40,19 @@ assigne an exact position of the sites on the network they are moved to the
 closest stream segment (snapped) using
 \href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance}.
 
-'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
-\href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+If \code{locid_col} and \code{pid_col} are not provided, 'pid' and 'locID' 
+are identical, unique numbers. If they are provided, they are created based
+on these columns (as numbers, not as text). Note that repeated measurements
+can be joined to the sites at a later step. Then, 'pid' needs to be updated 
+accordingly (NOT YET IMPLEMENTED). 
 
-If prediction sites have been created outside of this packeage they can be 
+'upDist' is calculated using
+\href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance} with 
+upload = "to_along" which gives the distance along the stream segment to the next
+upstream node ('distalong'). 'upDist' is the difference between the 'upDist' 
+of the edge the point lies on and 'distalong'.
+
+If prediction sites have been created outside of this package they can be 
 processed here as well. They must have been imported with \code{\link{import_data}}
 before. Alternatively, prediction sites can be created using
 \code{\link{calc_prediction_sites}}.

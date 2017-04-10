@@ -143,7 +143,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   execGRASS("v.db.addtable", flags = c("quiet"),
             parameters = list(
               map = predictions,
-              columns = "cat_edge int,dist double precision,pid int,loc int,net int,rid int,out_dist double,distr double precision"
+              columns = "cat_edge int,dist double precision,pid int,loc int,net int,rid int,out_dist double,distalong double precision,ratio double precision"
            ))
 
   # MiKatt: Necessary to get upper and lower case column names
@@ -162,19 +162,6 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
               map = predictions,
               column = "out_dist,upDist"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
-            parameters = list(
-              map = predictions,
-              column = "distr,distRatio"
-            ))
-
-  execGRASS("v.distance",
-            flags = c("overwrite", "quiet"),
-            parameters = list(from = predictions,
-                              to = "edges",
-                              #output = "connectors",
-                              upload = "cat,dist",
-                              column = "cat_edge,dist"))
 
   message("Setting pid and locID...\n")
   execGRASS("v.db.update",
@@ -204,36 +191,63 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
 
   # Calculate upDist ---------
   message("Calculating upDist...\n")
-  execGRASS("r.stream.distance",
-            flags = c("overwrite", "quiet", "o"),
-            parameters = list(
-              stream_rast = "streams_r",
-              direction = "dirs",
-              method = "downstream",
-              distance = "upDist"
-            ))
-
-  execGRASS("v.what.rast",
-            flags = c("quiet"),
-            parameters = list(
-              map = predictions,
-              raster = "upDist",
-              column = "upDist"
-            ))
+  ## MiKatt was not exact enough, results in identical upDist if two points lay
+  ##        in the same raster cell
+  
+  # execGRASS("r.stream.distance",
+  #           flags = c("overwrite", "quiet", "o"),
+  #           parameters = list(
+  #             stream_rast = "streams_r",
+  #             direction = "dirs",
+  #             method = "downstream",
+  #             distance = "upDist"
+  #           ))
+  # 
+  # execGRASS("v.what.rast",
+  #           flags = c("quiet"),
+  #           parameters = list(
+  #             map = predictions,
+  #             raster = "upDist",
+  #             column = "upDist"
+  #           ))
   # MiKatt: ! Round upDist to m
 
-  # Calculate distRatio = distance from lower end of edge to site / length edge
-  message("Calculating distance ratio...\n")
-
-  sql_str <- paste0("UPDATE ", predictions, " SET distRatio=1-",
-                    "round((((SELECT upDist FROM edges WHERE edges.cat=",
-                    predictions, ".cat_edge)-upDist)),2)/",
-                    "(SELECT Length FROM edges WHERE edges.cat=",
-                    predictions, ".cat_edge)")
+  execGRASS("v.distance", flags = c("quiet"),
+            parameters =list(
+              from = predictions,
+              to = "edges",
+              to_type = "line",
+              upload = "to_along",
+              column = "distalong"
+            ))
+  sql_str <- paste0('UPDATE ', predictions, ' SET upDist=',
+                    'round(((SELECT upDist FROM edges WHERE edges.cat=', 
+                    predictions, '.cat_edge)-distalong),2)')
   execGRASS("db.execute",
             parameters = list(
               sql=sql_str
             ))
+  # Calculate distRatio = distance from lower end of edge to site / length edge
+  message("Calculating distance ratio...\n")
+  
+  sql_str <- paste0('UPDATE ', predictions, ' SET ratio=1-',
+                    'distalong/',
+                    '(SELECT Length FROM edges WHERE edges.cat=', predictions, '.cat_edge)')
+  execGRASS("db.execute",
+            parameters = list(
+              sql=sql_str
+            ))
+
+
+  # sql_str <- paste0("UPDATE ", predictions, " SET distRatio=1-",
+  #                   "round((((SELECT upDist FROM edges WHERE edges.cat=",
+  #                   predictions, ".cat_edge)-upDist)),2)/",
+  #                   "(SELECT Length FROM edges WHERE edges.cat=",
+  #                   predictions, ".cat_edge)")
+  # execGRASS("db.execute",
+  #           parameters = list(
+  #             sql=sql_str
+  #           ))
 
   # delete temporary files
   unlink(temp_dir, recursive =T, force = TRUE)

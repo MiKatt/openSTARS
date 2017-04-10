@@ -7,7 +7,7 @@ openSTARS
 ## Introduction
 `openSTARS` is an open source implementation of the STARS toolbox (Peterson & Ver Hoef, 2014) using R and GRASS GIS.
 It prepares the .ssn object needed for the SSN package.
-A digital elevation model (DEM) is used to derive stream networks (in contrast to STARS that can clean an existing stream network). The reason for this is that existing stream networks (e.g. obtained as shape files) very often contain loops and dead ends that hinder building a valid topography for them.
+A digital elevation model (DEM) is used to derive stream networks (in contrast to STARS that can clean an existing stream network). The reason for this is that existing stream networks (e.g. obtained as shape files) very often contain loops and dead ends that hinder building a valid topology for them.
 
 For more information on STARS and SSN, see [their web page](http://www.fs.fed.us/rm/boise/AWAE/projects/SpatialStreamNetworks.shtml).
 
@@ -35,9 +35,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/Rtmpp5561Z 
-#> location    file21c82b3afa62 
-#> mapset      file21c83ece2017 
+#> gisdbase    /tmp/RtmpmdRLF8 
+#> location    file308843aa2814 
+#> mapset      file308817544725 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -175,7 +175,7 @@ head(edges@data, n=4)
 * reach identifier (rid)
 * stream segment length (length)
 * distance from the source (sourceDist)
-* upstream distance, i.e. distance from the outlet of the network to the outflow of the stream segment (upDist)
+* upstream distance, i.e. distance from the outlet of the network to the start (upstream node) of the stream segment (upDist)
 * total catchment area (H2OArea)
 * reach contributing area (rcaArea)
 
@@ -198,7 +198,7 @@ head(sites@data)
 * upstream distance (upDist), i.e. the distance to the network outlet calculated using [r.stream.distance](https://grass.osgeo.org/grass70/manuals/addons/r.stream.distance.html).
 * distance ratio, i.e. the ratio of the distance from the outflow of the edge to the point along the edge and the total length of the edge segment (distRatio).
 
-Additional fields hold information on the snapping: distance of the original site to the closest edge (dist), i.e. how far the point was moved, and the new x and y coordinates (xm, ym). The filed 'cat_edge' gives the 'cat' of the stream segment the point lies on (equivalent to 'rid').
+Additional fields hold information on the snapping: distance of the original site to the closest edge (dist), i.e. how far the point was moved, and the new x and y coordinates (xm, ym). The filed 'cat_edge' gives the 'cat' of the stream segment the point lies on. It is used to identify the edge the point lies on to extract the 'rid'.
 
 
 ```r
@@ -324,7 +324,7 @@ calc_attributes_sites_exact(sites_map = "sites",
 #> v.out.ogr complete. 87 features (Point type) written to <sites> (SQLite
 #> format).
 #> OGR data source with driver: SQLite 
-#> Source: "/tmp/Rtmpp5561Z/file21c82b3afa62/PERMANENT/.tmp/mira-Linux/39.0", layer: "sites"
+#> Source: "/tmp/RtmpmdRLF8/file308843aa2814/PERMANENT/.tmp/mira-Linux/543.0", layer: "sites"
 #> with 87 features
 #> It has 15 fields
 sites <- readVECT("sites", ignore.stderr = TRUE)

@@ -132,7 +132,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(!all(paste0(sites_map,"_catchm_",d.sites@data$pid) %in% rast)){
     calc_basin_area <- TRUE
   }
-  if(any(d.sites@data$distRatio == 0) & calc_basin_area){
+  if(any(d.sites@data$ratio == 0) & calc_basin_area){
     d.edges <- readVECT("edges", ignore.stderr = FALSE)
     dt.edges <- setDT(d.edges@data)
     dt.edges[, colnames(dt.edges)[-which(colnames(dt.edges) %in% c("cat", "stream","prev_str01","prev_str02","rid","H2OArea"))] := NULL]
@@ -161,7 +161,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       # If the distance ration is 0, the site lies within the outflow cell of
       # the edge; then, r.stream.basins will extract a too large basin including
       # the second tributary of the confluence
-      if(d.sites@data$distRatio[i] == 0){
+      if(d.sites@data$ratio[i] == 0){
         j <- which(dt.edges[, "rid"] == d.sites@data$rid[i])
         # use $ here to get single value from data.table to match dimensions of dat
         dat[i,"H2OArea"] <- round(dt.edges$H2OArea[j], round_dig[1])
