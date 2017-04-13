@@ -6,7 +6,7 @@
 #' exact values for catchments derived with
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 #' and can take considerable time if there are many sites.
-#' Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = pid).
+#' Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = locID).
 
 #' @import progress
 #'
@@ -23,7 +23,8 @@
 #'   Must be provided if \code{input_raster} are given.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
-#' @param calc_basin_area boolean; shall the catchment area be calculated?
+#' @param calc_basin_area boolean; shall the catchment area be calculated? (Useful
+#'  if the fuction has been called before with \code{keep_basins = TRUE}.)
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
 #' @param temp_dir string; temporary directory with read and write access to 
 #'   store intermediate files.
@@ -33,13 +34,16 @@
 #'  \item{'H2OArea':} {Total watershed area of the watershed upstream of each site.}
 #'  \item{attr_name:} {Additional optional attributes calculated based on input_raster maps.}
 #' }
+#' Please note that for sampling points that lie in the same dem raster cell 
+#'  along a stream identical values are calculated, because identical watersheds
+#'  are derived.
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
 #'   \code{\link{calc_edges}} and \code{\link{calc_sites}} or
 #'   \code{\link{calc_prediction_sites}} must be run before.
 #'   
 #' If \code{calc_basin_area = F} but there are no raster maps called 'sitesname_catchm_x' 
-#' with x = pid of all sites the catchments (and their area) are derived. 
+#' with x = locID of all sites the catchments (and their area) are derived. 
 #'   
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
@@ -129,7 +133,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
   d.sites <- readVECT(sites_map, ignore.stderr = FALSE)
   
-  if(!all(paste0(sites_map,"_catchm_",d.sites@data$pid) %in% rast)){
+  if(!all(paste0(sites_map,"_catchm_",d.sites@data$locID) %in% rast)){
     calc_basin_area <- TRUE
   }
   if(any(d.sites@data$ratio == 0) & calc_basin_area){
@@ -143,26 +147,29 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
   # progress bar
   pb <- progress_bar$new(total = nrow(d.sites@data))
-
+  
+  locIDs <- unique(d.sites@data$locID)
   if(calc_basin_area){
-    dat <- matrix(nrow = nrow(d.sites),ncol = length(attr_name)+2)
-    colnames(dat) <- c("H2OArea", attr_name,"pid")
+    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name)+2)
+    colnames(dat) <- c("H2OArea", attr_name, "locID")
   } else {
-    dat <- matrix(nrow = nrow(d.sites),ncol = length(attr_name) + 1)
-    colnames(dat) <- c(attr_name, "pid")
+    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name) + 1)
+    colnames(dat) <- c(attr_name, "locID")
   }
-  for (i in seq_along(d.sites@data$pid)) {
+  for (i in seq_along(locIDs)) {
     #message(i)
-    pid <- d.sites@data$pid[i]
-    dat[i,"pid"]  <- pid
+    locID <- locIDs[i]
+    dat[i,"locID"]  <-  locID
+    # get first entry from d.sites@data with locID
+    ii <- which(d.sites@data$locID == locID)[1] 
 
     # calculate drainage area in km^2
     if(calc_basin_area){
       # If the distance ration is 0, the site lies within the outflow cell of
       # the edge; then, r.stream.basins will extract a too large basin including
       # the second tributary of the confluence
-      if(d.sites@data$ratio[i] == 0){
-        j <- which(dt.edges[, "rid"] == d.sites@data$rid[i])
+      if(d.sites@data$ratio[ii] == 0){
+        j <- which(dt.edges[, "rid"] == d.sites@data$rid[ii])
         # use $ here to get single value from data.table to match dimensions of dat
         dat[i,"H2OArea"] <- round(dt.edges$H2OArea[j], round_dig[1])
         cats <- get_cats_edges_in_catchment(dt.edges, dt.edges[j, "stream"])
@@ -178,7 +185,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           )
           execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                     parameters = list(
-                      expression = paste0("'", paste0(sites_map, "_catchm_",pid), "=MASK'")
+                      expression = paste0("'", paste0(sites_map, "_catchm_",locID), "=MASK'")
                     ))
           execGRASS("r.mask", flags = c("r","quiet")
           )
@@ -216,7 +223,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           m <- paste0("if(", paste0(m, collapse = "|||"),",1)")
           execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                     parameters = list(
-                      expression = paste0('\"', paste0(sites_map, '_catchm_',pid), '=', m,'\"')
+                      expression = paste0('\"', paste0(sites_map, '_catchm_',locID), '=', m,'\"')
                     ))
           execGRASS("g.remove", flags = c("f","quiet"),
                     parameters = list(
@@ -226,25 +233,25 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           
         }
       } else {
-        coord <- coordinates(d.sites[i,])
+        coord <- coordinates(d.sites[ii,])
         execGRASS("r.stream.basins",
                   flags = c("overwrite", "l", "quiet"),
                   parameters = list(direction = "dirs",
                                     coordinates = coord,
-                                    basins = paste0(sites_map, "_catchm_",pid)))
+                                    basins = paste0(sites_map, "_catchm_",locID)))
         dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
           execGRASS("r.stats",
                     flags = c("a", "quiet"),
-                    parameters = list(input = paste0(sites_map, "_catchm_",pid)),
+                    parameters = list(input = paste0(sites_map, "_catchm_",locID)),
                     intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
       }
     }
-    # calculate unviriate statitics per watershed
+    # calculate unviriate statistics per watershed
     # set mask to the current basin
     execGRASS("r.mask",
               flags = c("overwrite", "quiet"),
               parameters = list(
-                raster = paste0(sites_map, "_catchm_",pid)))
+                raster = paste0(sites_map, "_catchm_",locID)))
     if(length(stat) > 0){
       for(j in 1:length(stat)){
         if(stat[j] == "median"){
@@ -303,7 +310,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "raster",
-                  name = paste0(sites_map, "_catchm_",pid)
+                  name = paste0(sites_map, "_catchm_",locID)
                 ))
     }
     pb$tick()
@@ -322,9 +329,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   execGRASS("v.db.join", flags = "quiet",
             parameters = list(
               map = sites_map,
-              column = "pid",
+              column = "locID",
               other_table = "sites_attributes_exact",
-              other_column = "pid"
+              other_column = "locID"
             ))
   unlink(temp_dir, recursive = TRUE, force = TRUE)
   execGRASS("db.droptable", flags = c("quiet","f"),

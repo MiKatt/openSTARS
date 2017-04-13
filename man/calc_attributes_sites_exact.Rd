@@ -27,7 +27,8 @@ Must be provided if \code{input_raster} are given.}
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
 
-\item{calc_basin_area}{boolean; shall the catchment area be calculated?}
+\item{calc_basin_area}{boolean; shall the catchment area be calculated? (Useful
+if the fuction has been called before with \code{keep_basins = TRUE}.)}
 
 \item{keep_basins}{boolean; shall raster maps of all the watersheds be kept?}
 
@@ -40,6 +41,9 @@ Nothing. The function appends new columns to the \code{sites_map} attribute tabl
  \item{'H2OArea':} {Total watershed area of the watershed upstream of each site.}
  \item{attr_name:} {Additional optional attributes calculated based on input_raster maps.}
 }
+Please note that for sampling points that lie in the same dem raster cell 
+ along a stream identical values are calculated, because identical watersheds
+ are derived.
 }
 \description{
 For each site (observation or prediction) the total catchment area is
@@ -48,7 +52,7 @@ can be derived based on given raster maps. This fuction calculates
 exact values for catchments derived with
 \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 and can take considerable time if there are many sites.
-Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = pid).
+Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = locID).
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}},
@@ -56,7 +60,7 @@ Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = pid)
   \code{\link{calc_prediction_sites}} must be run before.
   
 If \code{calc_basin_area = F} but there are no raster maps called 'sitesname_catchm_x' 
-with x = pid of all sites the catchments (and their area) are derived.
+with x = locID of all sites the catchments (and their area) are derived.
 }
 \examples{
 \donttest{
