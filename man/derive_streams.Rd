@@ -60,7 +60,7 @@ For this, the stream network needs to be pre-processed before loading it with
 }
 \examples{
 \donttest{
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
   home = tempdir(),
   override = TRUE)
 gmeta()

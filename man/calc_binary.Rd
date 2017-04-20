@@ -35,7 +35,7 @@ be called by the users.
 \examples{
 \donttest{
 library(rgrass7)
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
   home = tempdir(),
   override = TRUE)
 gmeta()

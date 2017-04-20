@@ -40,7 +40,7 @@ All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
 \examples{
 \donttest{
 # Initiate GRASS session
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
     home = tempdir(),
     override = TRUE)
 

@@ -38,7 +38,7 @@
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
-#' initGRASS(gisBase = "/usr/lib/grass70/",
+#' initGRASS(gisBase = "/usr/lib/grass72/",
 #'     home = tempdir(),
 #'     override = TRUE)
 #'
@@ -77,8 +77,8 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
                 length(stat), ") and attribute names (", length(attr_name),")."))
 
-  if(any(!stat %in% c("min","max", "mean", "percent")))
-    stop('Statistics to calculate must be one of "min","max", "mean", "percent".')
+  if(any(!stat %in% c("min","max", "mean", "sum", "percent")))
+    stop('Statistics to calculate must be one of "min","max", "mean", "sum", "percent".')
 
   if(any(sapply(attr_name, nchar) > 8))
      stop("Attribute names must not be longer than eight characters.")
@@ -221,7 +221,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
 #'
 #' @param dt data.table of stream topology and attributes per segment.
 #' @param stat name or character vector giving the statistics to be calulated,
-#'   must be one of: min, max, mean, percent.
+#'   must be one of: min, max, mean, percent, sum.
 #' @param attr_name name or character vector of column names for the attribute(s)
 #'   to be caculated.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
@@ -278,7 +278,7 @@ calc_catchment_attributes_rec <- function(dt, id, stat, attr_name){
     d2 <- calc_catchment_attributes_rec(dt, dt[stream == id, prev_str02], stat, attr_name)
     dt[stream == id, cumsum_cells := d1[,cumsum_cells] + d2[, cumsum_cells] + dt[stream == id, non_null_cells]]
     for(j in 1:length(stat)){
-      if(stat[j] %in% c("min", "max")){
+      if(stat[j] %in% c("min", "max", "sum")){
         dt[stream == id, attr_name[j] :=
              eval(call(stat[j],unlist(c(d1[,attr_name[j], with = FALSE],
                                         d2[,attr_name[j], with = FALSE],

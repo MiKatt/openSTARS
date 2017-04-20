@@ -23,7 +23,7 @@
 #' @export
 #' @examples
 #' \donttest{
-#' initGRASS(gisBase = "/usr/lib/grass70/",
+#' initGRASS(gisBase = "/usr/lib/grass72/",
 #'   home = tempdir(),
 #'   override = TRUE)
 #' gmeta()

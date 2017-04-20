@@ -46,7 +46,7 @@ If \code{stat} is one of "min", "max", "mean" or "percent" the
   function assigns the value of the edge the site lies on. Otherwise, the
   value is calculated as the sum of all edges upstream of the previous
   junction and the proportional value of the edge the site lies on (based on
-  the distant ration 'ratio'); this is usefull e.g. for counts of dams or waste water
+  the distance ratio 'ratio'); this is usefull e.g. for counts of dams or waste water
   treatment plant or total catchment area.
 }
 \note{
@@ -58,7 +58,7 @@ If \code{stat} is one of "min", "max", "mean" or "percent" the
 \examples{
 \donttest{
 # Initiate GRASS session
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
     home = tempdir(),
     override = TRUE)
 
@@ -85,12 +85,12 @@ parameters = list(
   slope = "slope"
   ))
 calc_attributes_edges(input_raster = rep("slope",3),
-  stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slo"))
+  stat = c("mean", "min","sum"), attr_name = paste0(c("mean", "min","sum"),"Slo"))
 
 # Prepare sites
 calc_sites()
-calc_attributes_sites_approx(input_attr_name = paste0(c("mean", "min","max"),"Slo"),
-  stat = c("mean", "min","max"))
+calc_attributes_sites_approx(input_attr_name = paste0(c("mean", "min","sum"),"Slo"),
+  stat = c("mean", "min","sum"))
 
 # Plot data
 dem <- readRAST('dem', ignore.stderr = TRUE)

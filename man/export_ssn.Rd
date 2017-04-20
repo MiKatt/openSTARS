@@ -30,7 +30,7 @@ used before and the existing data shall be overwritten.
 }
 \examples{
 \donttest{
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
   home = tempdir(),
   override = TRUE)
 gmeta()

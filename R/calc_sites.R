@@ -58,7 +58,7 @@
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
-#' initGRASS(gisBase = "/usr/lib/grass70/",
+#' initGRASS(gisBase = "/usr/lib/grass72/",
 #'     home = tempdir(),
 #'     override = TRUE)
 #'
@@ -135,6 +135,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
             parameters = list(
               vector = paste0(paste0(sites_map,"_o"), ",",sites_map)))
   
+  message(paste0("Preparing sites '", sites_map, "' ...\n"))
   # Snap sites to streams --------
   message("Snapping sites to streams...\n")
   # add 4 columns holding: stream, distance and coordinates of nearest streams

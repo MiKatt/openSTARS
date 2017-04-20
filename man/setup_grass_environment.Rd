@@ -25,7 +25,7 @@ Either \code{sites} or \code{epsg} must be provided. A GRASS session must be ini
 }
 \examples{
 \donttest{
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
   home = tempdir(),
   override = TRUE)
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")

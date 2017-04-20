@@ -49,7 +49,7 @@ A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
 \donttest{
-initGRASS(gisBase = "/usr/lib/grass70/",
+initGRASS(gisBase = "/usr/lib/grass72/",
   home = tempdir(),
   override = TRUE)
 gmeta()

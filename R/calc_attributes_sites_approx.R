@@ -31,7 +31,7 @@
 #'   function assigns the value of the edge the site lies on. Otherwise, the
 #'   value is calculated as the sum of all edges upstream of the previous
 #'   junction and the proportional value of the edge the site lies on (based on
-#'   the distant ration 'ratio'); this is usefull e.g. for counts of dams or waste water
+#'   the distance ratio 'ratio'); this is usefull e.g. for counts of dams or waste water
 #'   treatment plant or total catchment area.
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
@@ -44,7 +44,7 @@
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
-#' initGRASS(gisBase = "/usr/lib/grass70/",
+#' initGRASS(gisBase = "/usr/lib/grass72/",
 #'     home = tempdir(),
 #'     override = TRUE)
 #'
@@ -71,12 +71,12 @@
 #'   slope = "slope"
 #'   ))
 #' calc_attributes_edges(input_raster = rep("slope",3),
-#'   stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slo"))
+#'   stat = c("mean", "min","sum"), attr_name = paste0(c("mean", "min","sum"),"Slo"))
 #'
 #' # Prepare sites
 #' calc_sites()
-#' calc_attributes_sites_approx(input_attr_name = paste0(c("mean", "min","max"),"Slo"),
-#'   stat = c("mean", "min","max"))
+#' calc_attributes_sites_approx(input_attr_name = paste0(c("mean", "min","sum"),"Slo"),
+#'   stat = c("mean", "min","sum"))
 #'
 #' # Plot data
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
@@ -128,25 +128,49 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
             ))
 
   for(i in seq_along(input_attr_name)){
-    if(input_attr_name[i] == "H2OArea"){
+    if(stat[i] %in% c("min", "max", "mean", "percent")){
+      execGRASS("db.execute",
+                parameters = list(
+                  sql = paste0("UPDATE ", sites_map," SET ", output_attr_name[i], "=",
+                               "(SELECT ", paste0(input_attr_name[i],"_c"),
+                               " FROM edges WHERE edges.cat=", sites_map,".cat_edge)")
+                ))
+    } else {
       # calculate site attribute as attribute of the two previous edges +
       # (1-ratio) * contribution of edge to total edge attribute
+      # for H2O Area or e.g. for total numbers (no of WWTP per catchment)
+      # e.g. calculated with stat = "sum" in calc_attributes_edges
       ecat_prev1 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
       ecat_prev2 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
-      sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-             " = ROUND(((1-ratio)*",
-              "(SELECT rcaArea FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
-              "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev1,") +",
-              "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
+      if(input_attr_name[i] == "H2OArea"){
+        sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
+                         " = ROUND(((1-ratio)*",
+                         "(SELECT rcaArea FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
+                         "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev1,") +",
+                         "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
+      } else {
+        sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
+                         " = ROUND(((1-ratio)*",
+                         "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
+                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev1,") +",
+                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
+      }
       execGRASS("db.execute",
                 parameters = list(
                   sql = sql_str
                 ))
       # correct for those segments that do not have previous streams
-      sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-                        " = (1-ratio)*(SELECT rcaArea FROM edges WHERE ",
-                        sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
-                        "(SELECT cat FROM edges WHERE prev_str01=0)")
+      if(input_attr_name[i] == "H2OArea"){
+        sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
+                          " = (1-ratio)*(SELECT rcaArea FROM edges WHERE ",
+                          sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
+                          "(SELECT cat FROM edges WHERE prev_str01=0)")
+      } else {
+        sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
+                          " = (1-ratio)*(SELECT ", paste0(input_attr_name[i],"_e"),
+                          " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
+                          "(SELECT cat FROM edges WHERE prev_str01=0)")
+      }
       execGRASS("db.execute",
                 parameters = list(
                   sql = sql_str
@@ -157,45 +181,6 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                   sql = paste0("UPDATE ",sites_map, " SET ",output_attr_name[i],
                                "= ROUND(",output_attr_name[i],",",round_dig[i],")")
                 ))
-    }else{
-      if(stat[i] %in% c("min", "max", "mean", "percent")){
-        execGRASS("db.execute",
-                  parameters = list(
-                    sql = paste0("UPDATE ", sites_map," SET ", output_attr_name[i], "=",
-                                 "(SELECT ", paste0(input_attr_name[i],"_c"),
-                                 " FROM edges WHERE edges.cat=", sites_map,".cat_edge)")
-                  ))
-      } else {
-        # calculate site attribute as attribute of the two previous edges +
-        # (1-ratio) * contribution of edge to total edge attribute
-        # Usefull e.g. for total numbers (no of WWTP per catchment)
-        ecat_prev1 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
-        ecat_prev2 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
-        sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-                         " = ROUND(((1-ratio)*",
-                         "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
-                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev1,") +",
-                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
-        execGRASS("db.execute",
-                  parameters = list(
-                    sql = sql_str
-                  ))
-        # correct for those segments that do not have previous streams
-        sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-                          " = (1-ratio)*(SELECT ", paste0(input_attr_name[i],"_e"),
-                          " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
-                          "(SELECT cat FROM edges WHERE prev_str01=0)")
-        execGRASS("db.execute",
-                  parameters = list(
-                    sql = sql_str
-                  ))
-        # ROUND does not work with WHERE ... IN ...
-        execGRASS("db.execute",
-                  parameters = list(
-                    sql = paste0("UPDATE ",sites_map, " SET ",output_attr_name[i],
-                                 "= ROUND(",output_attr_name[i],",",round_dig[i],")")
-                  ))
-      }
     }
   }
 }
