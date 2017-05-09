@@ -25,7 +25,9 @@
 #' }
 #'
 
-setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
+dem = dem_path ##AS: debuging
+
+setup_grass_environment2 <- function(dem, sites = NULL, epsg = NULL, p4s = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | (is.null(sites) & is.null(epsg)))
@@ -33,11 +35,30 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
   message("Setting up GRASS Environment...\n")
 
   # Set Projection to input file -------------------------
+  ##AS: Habe optionen hinzugefügt, dass Punkte auch SP*-Objekte aus R sein können
   execGRASS("g.mapset",
             flags = c("quiet"),
             parameters = list(
               mapset = "PERMANENT"))
-  if(!is.null(sites)){
+  if (inherits(sites, 'Spatial')) {
+    proj4 = ifelse(is.null(p4s),
+                   sp::proj4string(sites),
+                   proj4 == p4s)
+    execGRASS("g.proj",
+              flags = c("c"),
+              parameters = list(
+                proj4 = proj4
+              ))
+  } else if (inherits(sites, 'sf')) {
+    proj4 = ifelse(is.null(p4s),
+                   sf::st_crs(sites)$proj4string, ##AS: syntax might change in future
+                   p4s)
+    execGRASS("g.proj",
+              flags = c("c"),
+              parameters = list(
+                proj4 = proj4
+              ))
+  } else if(!is.null(sites)){
     execGRASS("g.proj",
               flags = c("c"),#, "quiet"),
               parameters = list(
@@ -56,32 +77,59 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL) {
   # MiKatt: flag "o": Override projection check. Necessary for Windows, otherwise DEM is not imported
   # MiKatt: it is necassary to set the region with g.region; using flag "e" when importing the dem does not work
   #         (r.hydrodem produces very huge raster)
-  if(.Platform$OS.type == "windows"){
-    execGRASS("r.in.gdal",
-              flags = c("overwrite","quiet","o"),
-              parameters = list(
-                input = dem,
-                output = "dem_temp"))
-    message(paste("Windows does not recognize the projection of the DEM raster. ",
-                  "It will be overwritten with the one of the observation sites (",
-                  sites, "). Please verify that the projections match.", sep= ""))
-  } else{
-    execGRASS("r.in.gdal",
-              flags = c("overwrite","quiet"),
-              parameters = list(
-                input = dem,
-                output = "dem_temp"))
+  # if(.Platform$OS.type == "windows"){
+  #   execGRASS("r.in.gdal",
+  #             flags = c("overwrite","quiet","o"),
+  #             parameters = list(
+  #               input = dem,
+  #               output = "dem_temp"))
+  #   message(paste("Windows does not recognize the projection of the DEM raster. ",
+  #                 "It will be overwritten with the one of the observation sites (",
+  #                 sites, "). Please verify that the projections match.", sep= ""))
+  # } else {
+  #   execGRASS("r.in.gdal",
+  #             flags = c("overwrite","quiet"),
+  #             parameters = list(
+  #               input = dem,
+  #               output = "dem_temp"))
+  # }
+  
+  ##AS: Anmerkungen: Windows-unix query wäre hier wahrscheinlich nicht mehr nötig?
+  ##AS: Wenn doch, müsste man sie über writeVECT wrapen
+  ##AS: Zusätzlich werden jetzt das raster u sp package verwendet, aber das sind eh standards
+  e = raster::extent(raster(dem_path))
+  p = as(e, 'SpatialPolygons')
+  p = SpatialPolygonsDataFrame(p, data.frame(ID = 1))
+  if (is.null(p4s)) {
+    projection(p) = projection(raster(dem_path))
+  } else {
+    projection(p) = sp::CRS(p4s)
   }
+  
+  writeVECT(SDF = p,
+            vname = 'bbox_rast',
+            v.in.ogr_flags = c("overwrite", "quiet"),
+            driver = 'SQLite')
   execGRASS("g.region",
             flags = c("quiet"),
             parameters = list(
-              raster = "dem_temp"))
-
-  # remove temporary dem file
+              vector = "bbox_rast" ))
   execGRASS("g.remove",
             flags = c("quiet", "f"),
             parameters = list(
-              type = "raster",
-              name = "dem_temp"
+              type = "vector",
+              name = "bbox_rast"
             ))
+  # execGRASS("g.region",
+  #           flags = c("quiet"),
+  #           parameters = list(
+  #             raster = "dem_temp"))
+  # 
+  # # remove temporary dem file
+  # execGRASS("g.remove",
+  #           flags = c("quiet", "f"),
+  #           parameters = list(
+  #             type = "raster",
+  #             name = "dem_temp"
+  #           ))
 }
