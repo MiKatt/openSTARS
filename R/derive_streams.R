@@ -20,6 +20,8 @@
 #'   conditioned and / or burnt in DEM raster from previous runs shall be used.
 #' @param clean logical; should intermediate raster layer of imported streams
 #'   ('streams_or') be removed from GRASS session?
+#' @param mem logical; should -m flag in GRASS r.watershed be used (as indicated in its help)
+#'   see also \code{\link{watershed_memory}}-function
 #'
 #' @return Nothing. The function produces the following maps:
 #' \itemize{
@@ -64,8 +66,9 @@
 #' points(sites, pch = 4)
 #' }
 
-derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
-                           min_stream_length = 0, dem_name = NULL, clean = TRUE) {
+derive_streams2 <- function(burn = 5, accum_threshold = 700, condition = TRUE,
+                           min_stream_length = 0, dem_name = NULL, clean = TRUE,
+                           mem = FALSE) {
 
   if(condition == TRUE & (ifelse(is.null(dem_name), FALSE, dem_name != "dem")))
     stop("Only an unmodified DEM should be used for conditioning.")
@@ -168,10 +171,11 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
                 ))
     }
   }
-
+#dem_name_out = 'blu'; dem = 'ble'; burn ='juhu'; dem_name = 'bl'
   # calculate flow accumulation --------------
-   execGRASS("r.watershed",
-            flags = c("overwrite", "quiet"),
+    if (isTRUE(mem)) fl = 'm' else fl = NULL
+    execGRASS("r.watershed",
+            flags = c("overwrite", fl),
             parameters = list(
               elevation = dem_name_out,
               accumulation = "accums"

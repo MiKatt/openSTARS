@@ -5,6 +5,7 @@
 #' may be corrected by snapping to prevent lose ends.
 #'
 #' @param dem character; path to DEM raster file.
+#' @param band integer (optional); defines which band is used
 #' @param sites character; path to sites vector file.
 #' @param streams character (optional); path to network vector file.
 #'  If available it can be burnt into DEM.
@@ -48,7 +49,7 @@
 #' }
 #'
 
-import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE, 
+import_data <- function(dem, band = NULL, sites, streams = NULL, snap_streams = FALSE, 
                         pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
@@ -73,17 +74,28 @@ import_data <- function(dem, sites, streams = NULL, snap_streams = FALSE,
               flags = c("overwrite", "quiet"),
               parameters = list(
                 input = dem,
+                band = band,
                 output = "dem"),ignore.stderr=T)
   }
   
   message("Loading sites into GRASS as sites_o ...\n")
   # sites data
+  if (inherits(sites, 'Spatial')) {
+    writeVECT(sites, "sites_o",
+              v.in.ogr_flags = c("o", "overwrite", "quiet"),
+              ignore.stderr=T)
+  } else if (inherits(sites, 'sf')) { 
+    sites_sp = as(sites, 'Spatial') # no method for sf yet imho
+    writeVECT(sites_sp, "sites_o",
+              v.in.ogr_flags = c("o", "overwrite", "quiet"),
+              ignore.stderr=T)
+  } else {
   execGRASS("v.in.ogr",
             flags = c("o", "overwrite", "quiet"),
             parameters = list(
               input = sites,
               output = "sites_o"),ignore.stderr=T)
-  
+  }
   
   # prediction sites data
   if (!is.null(pred_sites)) {
