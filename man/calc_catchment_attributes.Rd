@@ -11,7 +11,7 @@ calc_catchment_attributes(dt, stat, attr_name, round_dig)
 \item{dt}{data.table of stream topology and attributes per segment.}
 
 \item{stat}{name or character vector giving the statistics to be calulated,
-must be one of: min, max, mean, percent.}
+must be one of: min, max, mean, percent, sum.}
 
 \item{attr_name}{name or character vector of column names for the attribute(s)
 to be caculated.}
