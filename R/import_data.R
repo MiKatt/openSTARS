@@ -6,7 +6,7 @@
 #'
 #' @param dem character; path to DEM raster file.
 #' @param band integer (optional); defines which band is used
-#' @param sites character; path to sites vector file.
+#' @param sites character or object; path to sites vector file or sp of sf object.
 #' @param streams character (optional); path to network vector file.
 #'  If available it can be burnt into DEM.
 #' @param snap_streams boolean (optional); snap line ends.
@@ -49,7 +49,7 @@
 #' }
 #'
 
-import_data <- function(dem, band = NULL, sites, streams = NULL, snap_streams = FALSE, 
+import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FALSE, 
                         pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
@@ -59,7 +59,7 @@ import_data <- function(dem, band = NULL, sites, streams = NULL, snap_streams = 
   # Import data -------------------
   message("Loading DEM into GRASS...\n")
 
-  # reread raster with correct extent
+  # import raster with correct extent
   # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
   #         using flag "e" when importing the dem does not work
   #         (r.hydrodem produces very huge raster)
@@ -68,6 +68,7 @@ import_data <- function(dem, band = NULL, sites, streams = NULL, snap_streams = 
               flags = c("overwrite","quiet","o"),
               parameters = list(
                 input = dem,
+                band = band,
                 output = "dem"),ignore.stderr=T)
   } else{
     execGRASS("r.in.gdal",
@@ -80,18 +81,15 @@ import_data <- function(dem, band = NULL, sites, streams = NULL, snap_streams = 
   
   message("Loading sites into GRASS as sites_o ...\n")
   # sites data
-  if (inherits(sites, 'Spatial')) {
-    writeVECT(sites, "sites_o",
-              v.in.ogr_flags = c("o", "overwrite", "quiet"),
+  if(inherits(sites, 'Spatial')) {
+    writeVECT(sites, "sites_o",  v.in.ogr_flags = c("o", "overwrite", "quiet"),
               ignore.stderr=T)
-  } else if (inherits(sites, 'sf')) { 
-    sites_sp = as(sites, 'Spatial') # no method for sf yet imho
-    writeVECT(sites_sp, "sites_o",
-              v.in.ogr_flags = c("o", "overwrite", "quiet"),
+  } else if(inherits(sites, 'sf')) { 
+    sites_sp <- as(sites, 'Spatial') # AS:  no method for sf yet imho
+    writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
               ignore.stderr=T)
   } else {
-  execGRASS("v.in.ogr",
-            flags = c("o", "overwrite", "quiet"),
+  execGRASS("v.in.ogr", flags = c("o", "overwrite", "quiet"),
             parameters = list(
               input = sites,
               output = "sites_o"),ignore.stderr=T)

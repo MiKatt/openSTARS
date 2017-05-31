@@ -3,14 +3,23 @@
 #' This function sets the GRASS mapset to PERMANENT and sets its projection and extension.
 #'
 #' @param dem character; path to DEM.
-#' @param sites character; path to sites.
+#' @param sites character; path to sites or sf or sp data object.
 #' @param epsg number; EPSG code for the spatial reference to be used
+#' @param proj4 (optional) proj4 string; character string of projection arguments
+#'  (PROJ.4)
+#'  
 #'
 #' @return Nothing, the GRASS mapset is set to PERMANENT,
-#' projection is set to the one of the sites shape or to the epsg code provided, the extent of the region is set to the one of the dem.
+#' projection is set to the one of the sites shape, to the proj4 string or to 
+#' the epsg code provided, the extent of the region is set to the one of bounding
+#' box of the dem.
 #'
-#' @note Either \code{sites} or \code{epsg} must be provided. A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+#' @note Either \code{sites}, \code{epsg} or \code(proj4) must be provided. Make
+#' sure that all raster and vector files are in the same projection; it will be
+#' overwritten without warning. A GRASS session must be initiated before, see
+#' \code{\link[rgrass7]{initGRASS}}.
+#' 
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
 #'
 #' @examples
@@ -25,42 +34,34 @@
 #' }
 #'
 
-dem = dem_path ##AS: debuging
-
-setup_grass_environment2 <- function(dem, sites = NULL, epsg = NULL, p4s = NULL) {
+setup_grass_environment2 <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
-  if (is.null(dem) | (is.null(sites) & is.null(epsg)))
-    stop("DEM and either sites or epsg code are needed.")
+  if (is.null(dem) | (is.null(sites) & is.null(epsg) & is.null(proj4)))
+    stop("DEM and either sites, epsg code or porj4 string are needed.")
   message("Setting up GRASS Environment...\n")
 
   # Set Projection to input file -------------------------
-  ##AS: Habe optionen hinzugefügt, dass Punkte auch SP*-Objekte aus R sein können
-  execGRASS("g.mapset",
-            flags = c("quiet"),
+  ## AS: Habe optionen hinzugefügt, dass Punkte auch SP*-Objekte aus R sein können
+  execGRASS("g.mapset", flags = c("quiet"),
             parameters = list(
               mapset = "PERMANENT"))
-  if (inherits(sites, 'Spatial')) {
-    proj4 = ifelse(is.null(p4s),
-                   sp::proj4string(sites),
-                   proj4 == p4s)
-    execGRASS("g.proj",
-              flags = c("c"),
-              parameters = list(
-                proj4 = proj4
-              ))
-  } else if (inherits(sites, 'sf')) {
-    proj4 = ifelse(is.null(p4s),
-                   sf::st_crs(sites)$proj4string, ##AS: syntax might change in future
-                   p4s)
-    execGRASS("g.proj",
-              flags = c("c"),
+  # MiKatt: shortend
+  if(is.null(proj4)){
+    if(inherits(sites, 'Spatial')) {
+      proj4 <- sp::proj4string(sites)
+    } else if(inherits(sites, 'sf')) {
+        ## AS: syntax might change in future
+        proj4 <- sf::st_crs(sites)$proj4string
+    }
+  }
+  if(!is.null(proj4)){
+    execGRASS("g.proj", flags = c("c"),
               parameters = list(
                 proj4 = proj4
               ))
   } else if(!is.null(sites)){
-    execGRASS("g.proj",
-              flags = c("c"),#, "quiet"),
+    execGRASS("g.proj", flags = c("c"),
               parameters = list(
                 georef = sites
               ))
@@ -70,9 +71,12 @@ setup_grass_environment2 <- function(dem, sites = NULL, epsg = NULL, p4s = NULL)
               parameters = list(
                 epsg = epsg
               ))
+    # set proj4 from epgs for dem projection
+    proj4 <- CRS(paste0("+init=epsg:", epgs))
   }
 
   # set Region -----------------
+  
   # read raster to set region
   # MiKatt: flag "o": Override projection check. Necessary for Windows, otherwise DEM is not imported
   # MiKatt: it is necassary to set the region with g.region; using flag "e" when importing the dem does not work
@@ -97,29 +101,30 @@ setup_grass_environment2 <- function(dem, sites = NULL, epsg = NULL, p4s = NULL)
   ##AS: Anmerkungen: Windows-unix query wäre hier wahrscheinlich nicht mehr nötig?
   ##AS: Wenn doch, müsste man sie über writeVECT wrapen
   ##AS: Zusätzlich werden jetzt das raster u sp package verwendet, aber das sind eh standards
-  e = raster::extent(raster(dem_path))
-  p = as(e, 'SpatialPolygons')
-  p = SpatialPolygonsDataFrame(p, data.frame(ID = 1))
-  if (is.null(p4s)) {
-    projection(p) = projection(raster(dem_path))
+  # MiKatt changed to more readable names
+  dem_extent <- raster::extent(raster(dem))
+  dem_extent <- as(dem_extent, 'SpatialPolygons')
+  dem_extent <- SpatialPolygonsDataFrame(dem_extent, data.frame(ID = 1))
+  if (is.null(proj4)) {
+    projection(dem_extent) <- projection(raster(dem))
   } else {
-    projection(p) = sp::CRS(p4s)
+    projection(dem_extent) <- sp::CRS(proj4)
   }
   
-  writeVECT(SDF = p,
-            vname = 'bbox_rast',
-            v.in.ogr_flags = c("overwrite", "quiet"),
-            driver = 'SQLite')
-  execGRASS("g.region",
-            flags = c("quiet"),
+  # write bounding box of dem
+  writeVECT(SDF = dem_extent, vname = 'bbox_dem', driver = 'SQLite',
+            v.in.ogr_flags = c("overwrite", "quiet"))
+  execGRASS("g.region", flags = c("quiet"),
             parameters = list(
-              vector = "bbox_rast" ))
-  execGRASS("g.remove",
-            flags = c("quiet", "f"),
+              vector = "bbox_dem" 
+              ))
+  # remove temporary dem file
+  execGRASS("g.remove", flags = c("quiet", "f"),
             parameters = list(
               type = "vector",
-              name = "bbox_rast"
+              name = "bbox_dem"
             ))
+  
   # execGRASS("g.region",
   #           flags = c("quiet"),
   #           parameters = list(

@@ -14,8 +14,7 @@
 #' @param min_stream_length integer: minimum stream length in number of DEM
 #'   raster cells; shorter first order stream segments are deleted; default: 0
 #' @param condition logical; should the DEM be conditioned using
-#'   \href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?
-#'
+#'   \href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?#'
 #' @param dem_name character vector, optional; default: 'dem'; usefull if
 #'   conditioned and / or burnt in DEM raster from previous runs shall be used.
 #' @param clean logical; should intermediate raster layer of imported streams
@@ -171,11 +170,14 @@ derive_streams2 <- function(burn = 5, accum_threshold = 700, condition = TRUE,
                 ))
     }
   }
-#dem_name_out = 'blu'; dem = 'ble'; burn ='juhu'; dem_name = 'bl'
+
   # calculate flow accumulation --------------
-    if (isTRUE(mem)) fl = 'm' else fl = NULL
-    execGRASS("r.watershed",
-            flags = c("overwrite", fl),
+    if(mem){
+      fl <- "m" 
+    } else {
+      fl <- NULL
+    }
+    execGRASS("r.watershed", flags = c("overwrite", "quiet", fl),
             parameters = list(
               elevation = dem_name_out,
               accumulation = "accums"
@@ -233,4 +235,20 @@ derive_streams2 <- function(burn = 5, accum_threshold = 700, condition = TRUE,
                 columns = c("strahler","horton","shreve","hack","topo_dim","scheidegger","drwal_old","stright",
                             "sinosoid","source_elev","outlet_elev","elev_drop","out_drop","gradient")
               ))
+}
+
+#' Calculate RAM needed for deriving the stream network from DEM.
+#'
+#' See \link{https://grass.osgeo.org/grass73/manuals/r.watershed.html}
+#' 
+#' @param dem character; path to DEM raster file.
+#' 
+#' @return MB of RAM needed to derive the stream network with \code{mem = F} in 
+#' \code{derive_streams}.
+#' 
+watershed_memory <- function(dem) {
+  nc <-  ncell(raster(dem))
+  ram <- 31 * nc / 1000000
+  message('A maximum of ', ram, ' MB are needed to process this raster.')
+  return(ram)
 }
