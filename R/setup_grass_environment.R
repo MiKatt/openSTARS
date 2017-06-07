@@ -72,7 +72,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
                 epsg = epsg
               ))
     # set proj4 from epsg for dem projection
-    proj4 <- CRS(paste0("+init=epsg:", epsg))
+    proj4 <- paste0("+init=epsg:", epsg)
   }
 
   # set Region -----------------
