@@ -106,8 +106,8 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
   dem_extent <- raster::extent(dem_raster)
   dem_extent <- as(dem_extent, 'SpatialPolygons')
   dem_extent <- SpatialPolygonsDataFrame(dem_extent, data.frame(ID = 1))
-  dem_res_x <- raster::xres(dem_raster)
-  dem_res_y <- raster::yres(dem_raster)
+  dem_res_x <- as.character(raster::xres(dem_raster))
+  dem_res_y <- as.character(raster::yres(dem_raster))
   if(dem_res_x != dem_res_y)
     warning("North-south and east-west resolution of dem differ. Please check!")
   if (is.null(proj4)) {
