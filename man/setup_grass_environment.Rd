@@ -4,24 +4,31 @@
 \alias{setup_grass_environment}
 \title{Setup GRASS environment.}
 \usage{
-setup_grass_environment(dem, sites = NULL, epsg = NULL)
+setup_grass_environment(dem, sites = NULL, epsg = NULL, proj4 = NULL)
 }
 \arguments{
 \item{dem}{character; path to DEM.}
 
-\item{sites}{character; path to sites.}
+\item{sites}{character; path to sites or sp data object.}
 
 \item{epsg}{number; EPSG code for the spatial reference to be used}
+
+\item{proj4}{(optional) proj4 string; character string of projection arguments}
 }
 \value{
 Nothing, the GRASS mapset is set to PERMANENT,
-projection is set to the one of the sites shape or to the epsg code provided, the extent of the region is set to the one of the dem.
+projection is set to the one of the sites shape, to the proj4 string or to 
+the epsg code provided, the extent of the region is set to the one of bounding
+box of the dem.
 }
 \description{
 This function sets the GRASS mapset to PERMANENT and sets its projection and extension.
 }
 \note{
-Either \code{sites} or \code{epsg} must be provided. A GRASS session must be initiated before, see  \code{\link[rgrass7]{initGRASS}}.
+Either \code{sites}, \code{epsg} or \code{proj4} must be provided. Make
+sure that all raster and vector files are in the same projection; it will be
+overwritten without warning. A GRASS session must be initiated before, see
+\code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
 \donttest{
@@ -36,5 +43,5 @@ gmeta()
 
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
+Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }

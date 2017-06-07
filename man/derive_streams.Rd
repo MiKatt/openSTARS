@@ -5,7 +5,7 @@
 \title{Derive stream network from DEM.}
 \usage{
 derive_streams(burn = 5, accum_threshold = 700, condition = TRUE,
-  min_stream_length = 0, dem_name = NULL, clean = TRUE)
+  min_stream_length = 0, dem_name = NULL, clean = TRUE, mem = FALSE)
 }
 \arguments{
 \item{burn}{numeric; how many meters should the streams be burned into the
@@ -15,7 +15,7 @@ DEM?}
 flow accumulation value in cells that will initiate a new stream).}
 
 \item{condition}{logical; should the DEM be conditioned using
-\href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?}
+\href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?#'}
 
 \item{min_stream_length}{integer: minimum stream length in number of DEM
 raster cells; shorter first order stream segments are deleted; default: 0}
@@ -25,6 +25,9 @@ conditioned and / or burnt in DEM raster from previous runs shall be used.}
 
 \item{clean}{logical; should intermediate raster layer of imported streams
 ('streams_or') be removed from GRASS session?}
+
+\item{mem}{logical; should -m flag in GRASS r.watershed be used (as indicated in its help)
+see also \code{\link{watershed_memory}}-function}
 }
 \value{
 Nothing. The function produces the following maps:

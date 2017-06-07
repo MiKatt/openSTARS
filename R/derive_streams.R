@@ -65,7 +65,7 @@
 #' points(sites, pch = 4)
 #' }
 
-derive_streams2 <- function(burn = 5, accum_threshold = 700, condition = TRUE,
+derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
                            min_stream_length = 0, dem_name = NULL, clean = TRUE,
                            mem = FALSE) {
 
@@ -237,17 +237,17 @@ derive_streams2 <- function(burn = 5, accum_threshold = 700, condition = TRUE,
               ))
 }
 
-#' Calculate RAM needed for deriving the stream network from DEM.
-#'
-#' See \link{https://grass.osgeo.org/grass73/manuals/r.watershed.html}
+#' Calculate RAM needed for deriving the stream network from DEM
+#' 
+#' See GRASS function \href{https://grass.osgeo.org/grass73/manuals/r.watershed.html}{r.watershed}.
 #' 
 #' @param dem character; path to DEM raster file.
 #' 
 #' @return MB of RAM needed to derive the stream network with \code{mem = F} in 
-#' \code{derive_streams}.
+#' \code{\link{derive_streams}}.
 #' 
 watershed_memory <- function(dem) {
-  nc <-  ncell(raster(dem))
+  nc <-  raster::ncell(raster::raster(dem))
   ram <- 31 * nc / 1000000
   message('A maximum of ', ram, ' MB are needed to process this raster.')
   return(ram)

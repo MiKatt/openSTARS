@@ -4,13 +4,15 @@
 \alias{import_data}
 \title{Import data into GRASS.}
 \usage{
-import_data(dem, sites, streams = NULL, snap_streams = FALSE,
+import_data(dem, band = 1, sites, streams = NULL, snap_streams = FALSE,
   pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL)
 }
 \arguments{
 \item{dem}{character; path to DEM raster file.}
 
-\item{sites}{character; path to sites vector file.}
+\item{band}{integer (optional); defines which band is used}
+
+\item{sites}{character or object; path to sites vector file or sp object.}
 
 \item{streams}{character (optional); path to network vector file.
 If available it can be burnt into DEM.}

@@ -6,7 +6,7 @@
 #'
 #' @param dem character; path to DEM raster file.
 #' @param band integer (optional); defines which band is used
-#' @param sites character or object; path to sites vector file or sp of sf object.
+#' @param sites character or object; path to sites vector file or sp object.
 #' @param streams character (optional); path to network vector file.
 #'  If available it can be burnt into DEM.
 #' @param snap_streams boolean (optional); snap line ends.
@@ -84,10 +84,11 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if(inherits(sites, 'Spatial')) {
     writeVECT(sites, "sites_o",  v.in.ogr_flags = c("o", "overwrite", "quiet"),
               ignore.stderr=T)
-  } else if(inherits(sites, 'sf')) { 
-    sites_sp <- as(sites, 'Spatial') # AS:  no method for sf yet imho
-    writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
-              ignore.stderr=T)
+  #} # MiKatt: exclude as long as under development
+  # else if(inherits(sites, 'sf')) { 
+  #   sites_sp <- as(sites, 'Spatial') # AS:  no method for sf yet imho
+  #   writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
+  #             ignore.stderr=T)
   } else {
   execGRASS("v.in.ogr", flags = c("o", "overwrite", "quiet"),
             parameters = list(

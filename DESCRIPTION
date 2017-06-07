@@ -25,6 +25,7 @@ Imports:
     progress,
     rgdal,
     sp,
+    raster,
     SSN
 RoxygenNote: 6.0.1
 Suggests: knitr,
