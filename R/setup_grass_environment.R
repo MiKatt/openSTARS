@@ -102,9 +102,14 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
   ##AS: Wenn doch, müsste man sie über writeVECT wrapen
   ##AS: Zusätzlich werden jetzt das raster u sp package verwendet, aber das sind eh standards
   # MiKatt changed to more readable names
-  dem_extent <- raster::extent(raster::raster(dem))
+  dem_raster <- raster::raster(dem)
+  dem_extent <- raster::extent(dem_raster)
   dem_extent <- as(dem_extent, 'SpatialPolygons')
   dem_extent <- SpatialPolygonsDataFrame(dem_extent, data.frame(ID = 1))
+  dem_res_x <- raster::xres(dem_raster)
+  dem_res_y <- raster::yres(dem_raster)
+  if(dem_res_x != dem_res_y)
+    warning("North-south and east-west resolution of dem differ. Please check!")
   if (is.null(proj4)) {
     raster::projection(dem_extent) <- raster::projection(raster::raster(dem))
   } else {
@@ -116,7 +121,9 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
             v.in.ogr_flags = c("overwrite", "quiet"))
   execGRASS("g.region", flags = c("quiet"),
             parameters = list(
-              vector = "bbox_dem" 
+              vector = "bbox_dem",
+              nsres = dem_res_y,
+              ewres = dem_res_x
               ))
   # remove temporary dem file
   execGRASS("g.remove", flags = c("quiet", "f"),
