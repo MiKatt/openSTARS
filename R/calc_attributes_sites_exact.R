@@ -286,18 +286,18 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
               n <- st2[grep("^n=", st2)]
               n <- as.numeric(substring(n,3,nchar(n)))
               st <- rbindlist(list(st, data.table(X1 = "n2", X2 = n)))
-              dat[i,j+1] <- round(st[X1 == "n", X2] / st[X1 == "n2", X2], round_dig[j + 1])
+              dat[i,attr_name[j]] <- round(st[X1 == "n", X2] / st[X1 == "n2", X2], round_dig[j + 1])
               # this was wrong cells and non_null_cells stell refers to the 
               # whole map; MASK only sets to null value
               # dat[i,j+1] <- round((st[X1 == "cells", X2] - st[X1 == "null_cells", X2])/
               #                     st[X1 == "cells", X2], round_dig[j+1])
             } else{  # if coded as 1 and 0, "mean" gives ratio
-              dat[i,j+1] <- round(st[X1 == "mean",X2],round_dig[j+1])
+              dat[i,attr_name[j]] <- round(st[X1 == "mean",X2],round_dig[j+1])
             }
           }else
-            dat[i,j+1] <- round(st[X1 == stat[j],X2],round_dig[j+1])
+            dat[i,attr_name[j]] <- round(st[X1 == stat[j],X2],round_dig[j+1])
         } else
-          dat[i,j+1] <- 0
+          dat[i,attr_name[j]] <- 0
       }
     }
     # Remove the mask!
