@@ -109,7 +109,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
   dem_extent <- SpatialPolygonsDataFrame(dem_extent, data.frame(ID = 1))
   dem_res_x <- as.character(raster::xres(dem_raster))
   dem_res_y <- as.character(raster::yres(dem_raster))
-  if(round(dem_res_x,10) != round(dem_res_y,10))
+  if(round(as.numeric(dem_res_x),10) != round(as.numeric(dem_res_y),10))
     warning("North-south and east-west resolution of dem differ. Please check!")
   if (is.null(proj4)) {
     raster::projection(dem_extent) <- raster::projection(raster::raster(dem))

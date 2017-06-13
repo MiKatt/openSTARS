@@ -83,8 +83,9 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   message("Loading sites into GRASS as sites_o ...\n")
   # sites data
+  # flag "-r": only current region
   if(inherits(sites, 'Spatial')) {
-    writeVECT(sites, "sites_o",  v.in.ogr_flags = c("o", "overwrite", "quiet"),
+    writeVECT(sites, "sites_o",  v.in.ogr_flags = c("o", "overwrite", "quiet", "r"),
               ignore.stderr=T)
   #} # MiKatt: exclude as long as under development
   # else if(inherits(sites, 'sf')) { 
@@ -92,7 +93,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   #   writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
   #             ignore.stderr=T)
   } else {
-  execGRASS("v.in.ogr", flags = c("o", "overwrite", "quiet"),
+  execGRASS("v.in.ogr", flags = c("o", "overwrite", "quiet", "r"),
             parameters = list(
               input = sites,
               output = "sites_o"),ignore.stderr=T)
