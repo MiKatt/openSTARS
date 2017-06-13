@@ -9,7 +9,8 @@ setup_grass_environment(dem, sites = NULL, epsg = NULL, proj4 = NULL)
 \arguments{
 \item{dem}{character; path to DEM.}
 
-\item{sites}{character; path to sites or sp data object.}
+\item{sites}{character string or object; path to sites vector file (shape) 
+or sp data object.}
 
 \item{epsg}{number; EPSG code for the spatial reference to be used}
 

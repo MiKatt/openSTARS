@@ -3,7 +3,8 @@
 #' This function sets the GRASS mapset to PERMANENT and sets its projection and extension.
 #'
 #' @param dem character; path to DEM.
-#' @param sites character; path to sites or sp data object.
+#' @param sites character string or object; path to sites vector file (shape) 
+#' or sp data object.
 #' @param epsg number; EPSG code for the spatial reference to be used
 #' @param proj4 (optional) proj4 string; character string of projection arguments
 #'  
@@ -108,7 +109,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
   dem_extent <- SpatialPolygonsDataFrame(dem_extent, data.frame(ID = 1))
   dem_res_x <- as.character(raster::xres(dem_raster))
   dem_res_y <- as.character(raster::yres(dem_raster))
-  if(dem_res_x != dem_res_y)
+  if(round(dem_res_x,10) != round(dem_res_y,10))
     warning("North-south and east-west resolution of dem differ. Please check!")
   if (is.null(proj4)) {
     raster::projection(dem_extent) <- raster::projection(raster::raster(dem))

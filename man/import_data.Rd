@@ -12,10 +12,12 @@ import_data(dem, band = 1, sites, streams = NULL, snap_streams = FALSE,
 
 \item{band}{integer (optional); defines which band is used}
 
-\item{sites}{character or object; path to sites vector file or sp object.}
+\item{sites}{character string or object; path to sites vector file (shape) 
+or sp data object.}
 
-\item{streams}{character (optional); path to network vector file.
-If available it can be burnt into DEM.}
+\item{streams}{character string or object (optional); path to network vector 
+file (shape) or sp data object.
+ If available it can be burnt into DEM.}
 
 \item{snap_streams}{boolean (optional); snap line ends.
 If TRUE line ends of the streams are snapped to the next feature if they are

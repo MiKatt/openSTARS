@@ -6,8 +6,10 @@
 #'
 #' @param dem character; path to DEM raster file.
 #' @param band integer (optional); defines which band is used
-#' @param sites character or object; path to sites vector file or sp object.
-#' @param streams character (optional); path to network vector file.
+#' @param sites character string or object; path to sites vector file (shape) 
+#' or sp data object.
+#' @param streams character string or object (optional); path to network vector 
+#' file (shape) or sp data object.
 #'  If available it can be burnt into DEM.
 #' @param snap_streams boolean (optional); snap line ends.
 #'  If TRUE line ends of the streams are snapped to the next feature if they are
@@ -141,11 +143,18 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # streams data
   if (!is.null(streams)) {
     message("Loading streams into GRASS as streams_o  ...\n")
-    execGRASS("v.in.ogr",
-              flags = c("overwrite", "quiet"),
+    # flag "-r": only current region
+
+    if(inherits(streams, 'Spatial')) {
+      writeVECT(streams, "streams_o",  v.in.ogr_flags = c("o", "overwrite", "quiet", "r"),
+                ignore.stderr=T)
+    } else {
+       execGRASS("v.in.ogr",
+              flags = c("overwrite", "quiet", "r"),
               parameters = list(
                 input = streams,
                 output = "streams_o"),ignore.stderr=T)
+    }
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
       execGRASS("v.clean",
