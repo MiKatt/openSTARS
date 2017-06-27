@@ -13,6 +13,8 @@
 #' @param clean logical; should intermediate files be removed from GRASS
 #'   session?
 #' @param temp_dir string; temporary directory to store intermediate files.
+#' @param celltoldig integer; number of digits the cell size dimensions are
+#'  rounded to before it is checked wether they are identical
 #'
 #' @return Nothing. The function changes features in \itemize{
 #'   \item{'streams_v':} {Updated streams with topology (vector)}
@@ -52,7 +54,7 @@
 #' lines(streams, col = 'blue')
 #' }
 
-correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
+correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp", celltoldig = 2){
   cnames<-execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
@@ -70,7 +72,7 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp"){
   # get cellcize of dem raster
   cellsize <- execGRASS("g.region", flags = "p",intern=T)
   cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2])
-  if(cellsize[1] != cellsize[2]){
+  if(round(cellsize[1], celltoldig) != round(cellsize[2], celltoldig)){
     stop("north-south cell size != east-west cell size. Please check")
   } else cellsize <- cellsize[1]
 

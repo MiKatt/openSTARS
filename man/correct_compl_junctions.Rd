@@ -4,13 +4,16 @@
 \alias{correct_compl_junctions}
 \title{Correct junctions with three inflows.}
 \usage{
-correct_compl_junctions(clean = TRUE, temp_dir = "temp")
+correct_compl_junctions(clean = TRUE, temp_dir = "temp", celltoldig = 2)
 }
 \arguments{
 \item{clean}{logical; should intermediate files be removed from GRASS
 session?}
 
 \item{temp_dir}{string; temporary directory to store intermediate files.}
+
+\item{celltoldig}{integer; number of digits the cell size dimensions are
+rounded to before it is checked wether they are identical}
 }
 \value{
 Nothing. The function changes features in \itemize{
