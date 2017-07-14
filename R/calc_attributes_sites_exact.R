@@ -165,7 +165,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
     # calculate drainage area in km^2
     if(calc_basin_area){
-      # If the distance ration is 0, the site lies within the outflow cell of
+      # If the distance ratio is 0, the site lies within the outflow cell of
       # the edge; then, r.stream.basins will extract a too large basin including
       # the second tributary of the confluence
       if(d.sites@data$ratio[ii] == 0){
@@ -316,7 +316,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     pb$tick()
   }
 
-  # Join attributes to edges attribute table
+  # Join attributes to sites attribute table
   message("Joining tables...")
   dir.create(temp_dir)
   utils::write.csv(dat, file.path(temp_dir,"sites_attributes_exact.csv"),row.names = F)
