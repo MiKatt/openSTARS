@@ -64,6 +64,10 @@
 #' points(sites, pch = 4)
 #' points(preds, pch = 19, col = "steelblue")
 #' }
+#' 
+predictions = "preds"
+dist = 500
+netIDs = 26
 
 calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
                                   netIDs = NULL, temp_dir = "temp") {
@@ -162,6 +166,16 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
               map = predictions,
               column = "out_dist,upDist"
             ))
+  
+  message("Setting cat_edge...\n")
+  # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
+  execGRASS("v.distance",
+            flags = c("overwrite", "quiet"),
+            parameters = list(from = predictions,
+                              to = "edges",
+                              #output = "connectors",
+                              upload = "cat,dist",
+                              column = "cat_edge,dist"))
 
   message("Setting pid and locID...\n")
   execGRASS("v.db.update",
@@ -237,17 +251,6 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
             parameters = list(
               sql=sql_str
             ))
-
-
-  # sql_str <- paste0("UPDATE ", predictions, " SET distRatio=1-",
-  #                   "round((((SELECT upDist FROM edges WHERE edges.cat=",
-  #                   predictions, ".cat_edge)-upDist)),2)/",
-  #                   "(SELECT Length FROM edges WHERE edges.cat=",
-  #                   predictions, ".cat_edge)")
-  # execGRASS("db.execute",
-  #           parameters = list(
-  #             sql=sql_str
-  #           ))
 
   # delete temporary files
   unlink(temp_dir, recursive =T, force = TRUE)

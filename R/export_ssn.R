@@ -82,7 +82,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
               columns = "stream,next_str,prev_str01,prev_str02"
             ))
   execGRASS("v.out.ogr",
-            c("overwrite", "quiet"),
+            flags = c("overwrite", "quiet"),
             parameters = list(
               input = "edges2",
               type = "line",
