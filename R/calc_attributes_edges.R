@@ -179,7 +179,6 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
 
   # Join attributes to edges attribute table
   message("Joining tables...")
-  dir.create(temp_dir)
   utils::write.csv(dt.streams, file.path(temp_dir,"edge_attributes.csv"),row.names = F)
   write.table(t(gsub("numeric","Real",sapply(dt.streams,class))),file.path(temp_dir,"edge_attributes.csvt"),quote=T,sep=",",row.names = F,col.names = F)
   execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
@@ -207,7 +206,6 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
                 table = "edge_attributes"
               ))
   }
-  unlink(temp_dir, recursive = TRUE, force = TRUE)
 }
 
 #' calc_catchment_attributes

@@ -63,9 +63,8 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     stop("There are four or more inflows to one outflow. Currently, this
          function only works for complex juctions with three inflows.")
 
-  # Create temporary directory
+  # temporary directory
   temp_dir <- tempdir()
-  dir.create(temp_dir)
 
   # get cellcize of dem raster
   cellsize <- execGRASS("g.region", flags = "p",intern=T)
@@ -493,8 +492,5 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                 name = c("complex_flows","complex_flows_cp","complex_flows_p")
               ))
   }
-  # Remove temporary directory
-  unlink(temp_dir, recursive =T, force = TRUE)
-
   message("Complex junctions were removed. Please check changed features in streams_v.\n")
 }

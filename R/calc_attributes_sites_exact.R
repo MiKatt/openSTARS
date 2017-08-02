@@ -113,8 +113,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
   
   temp_dir <- tempdir()
-  dir.create(temp_dir)
-  
+
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat)+1)
   if(length(round_dig) == length(stat))
@@ -329,7 +328,6 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
               other_table = "sites_attributes_exact",
               other_column = "locID"
             ))
-  unlink(temp_dir, recursive = TRUE, force = TRUE)
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
               table = "sites_attributes_exact"

@@ -86,8 +86,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
          prediction sites (nsites) must be given.")
   
   temp_dir <- tempdir()
-  dir.create(temp_dir)
-  
+
   dt.streams <- do.call(rbind,strsplit(
     execGRASS("db.select",
               parameters = list(
@@ -245,9 +244,6 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
             parameters = list(
               sql=sql_str
             ))
-
-  # delete temporary files
-  unlink(temp_dir, recursive =T, force = TRUE)
 }
 
 #' Calculate offset

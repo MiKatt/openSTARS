@@ -62,7 +62,6 @@ calc_edges <- function() {
     stop("Missing data. Did you run derive_streams()?")
   
   temp_dir <- tempdir()
-  dir.create(temp_dir )
 
   execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
@@ -212,8 +211,6 @@ calc_edges <- function() {
               map = "edges",
               column = "area,rcaArea"
             ))
-
-  unlink(temp_dir, recursive =T, force = TRUE)
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
               table = "stream_network"
