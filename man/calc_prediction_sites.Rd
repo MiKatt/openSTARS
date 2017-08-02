@@ -5,7 +5,7 @@
 \title{Calculate prediction sites for SSN object.}
 \usage{
 calc_prediction_sites(predictions, dist = NULL, nsites = 10,
-  netIDs = NULL, temp_dir = "temp")
+  netIDs = NULL)
 }
 \arguments{
 \item{predictions}{string giving the name for the prediction sites map.}
@@ -17,8 +17,6 @@ units.}
 
 \item{netIDs}{integer (optional): create prediction sites only on streams with
 these netID(s).}
-
-\item{temp_dir}{string; temporary directory to store intermediate files.}
 }
 \description{
 A vector (points) map of prediction sites is created and several
@@ -39,9 +37,9 @@ position of the site on the edge (= distance traveled from lower end of the
 edge to the site) and the total length of the edge.} }
 
 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
-\href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+\href{https://grass.osgeo.org/grass72/manuals/addons/r.stream.distance.html}{r.stream.distance}.
 Points are created using
-\href{https://grass.osgeo.org/grass73/manuals/v.segment.html}{v.segment}.
+\href{https://grass.osgeo.org/grass72/manuals/v.segment.html}{v.segment}.
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}} and

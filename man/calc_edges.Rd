@@ -4,13 +4,7 @@
 \alias{calc_edges}
 \title{Calcuate edges for SSN object.}
 \usage{
-calc_edges(clean = FALSE, temp_dir = "temp")
-}
-\arguments{
-\item{clean}{logical; should intermediate layer (rca, reach contributing area)
-be removed from GRASS session?}
-
-\item{temp_dir}{string; temporary directory to store intermediate files.}
+calc_edges()
 }
 \value{
 Nothing. The function produces the following map: \itemize{

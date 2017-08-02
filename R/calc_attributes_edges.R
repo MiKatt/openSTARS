@@ -12,7 +12,6 @@
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param clean logical; should intermediate files be deleted
-#' @param temp_dir string; temporary directory to store intermediate files.
 
 #' @return Nothing. The function appends new columns to the 'edges' attribute
 #'   table with column names given in \code{attr_name}. For each attribute, two
@@ -71,7 +70,7 @@
 #' }
 
 calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
-                                  clean = TRUE, temp_dir = "temp"){
+                                  clean = TRUE){
 
   if(length(input_raster) != length(stat) | length(input_raster) != length(attr_name) | length(attr_name) != length(stat))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -83,8 +82,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
   if(any(sapply(attr_name, nchar) > 8))
      stop("Attribute names must not be longer than eight characters.")
   
-  if(temp_dir == "temp")
-    temp_dir <- file.path(path.expand("~"), temp_dir)
+  temp_dir <- tempdir()
 
   rast <- execGRASS("g.list",
                     parameters = list(
@@ -208,8 +206,8 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
               parameters = list(
                 table = "edge_attributes"
               ))
-    unlink(temp_dir, recursive = TRUE, force = TRUE)
   }
+  unlink(temp_dir, recursive = TRUE, force = TRUE)
 }
 
 #' calc_catchment_attributes

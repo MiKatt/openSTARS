@@ -14,10 +14,6 @@
 #'segment in square km} }
 #'All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
 #'
-#'@param clean logical; should intermediate layer (rca, reach contributing area)
-#'  be removed from GRASS session?
-#'@param temp_dir string; temporary directory to store intermediate files.
-#'
 #'@return Nothing. The function produces the following map: \itemize{
 #'  \item{'edges'} {derived stream segments with computed attributes needed for
 #'  SSN (vector)} }
@@ -55,7 +51,7 @@
 #' lines(edges, col = 'blue')
 #' }
 
-calc_edges <- function(clean = FALSE, temp_dir = "temp") {
+calc_edges <- function() {
   rast <- execGRASS("g.list",
                     parameters = list(
                       type = "rast"
@@ -65,8 +61,8 @@ calc_edges <- function(clean = FALSE, temp_dir = "temp") {
   if (!"streams_r" %in% rast)
     stop("Missing data. Did you run derive_streams()?")
   
-  if(temp_dir == "temp")
-    temp_dir <- file.path(path.expand("~"), temp_dir)
+  temp_dir <- tempdir()
+  dir.create(temp_dir )
 
   execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
@@ -150,7 +146,6 @@ calc_edges <- function(clean = FALSE, temp_dir = "temp") {
   dt.streams[, rid := seq_len(nrow(dt.streams)) - 1]
   dt.streams[, OBJECTID := stream]
   dt.streams[,  ":=" (cat = NULL, next_str = NULL, prev_str01 = NULL, prev_str02 = NULL)]
-  dir.create(temp_dir )
   utils::write.csv(dt.streams, file.path(temp_dir, "stream_network.csv"), row.names = F)
   dtype <- t(gsub("numeric", "Integer", sapply(dt.streams, class)))
   dtype[,c("total_area","area")] <- c("Real", "Real")
@@ -223,15 +218,6 @@ calc_edges <- function(clean = FALSE, temp_dir = "temp") {
             parameters = list(
               table = "stream_network"
             ))
-
-  if (clean) {
-    execGRASS("g.remove",
-              flags = c("quiet", "f"),
-              parameters = list(
-                type = "raster",
-                name = "rca"
-              ))
-  }
 }
 
 #' calcCatchmArea_assignNetID

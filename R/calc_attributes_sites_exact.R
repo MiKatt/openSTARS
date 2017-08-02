@@ -26,8 +26,6 @@
 #' @param calc_basin_area boolean; shall the catchment area be calculated? (Useful
 #'  if the fuction has been called before with \code{keep_basins = TRUE}.)
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
-#' @param temp_dir string; temporary directory with read and write access to 
-#'   store intermediate files.
 #'
 #' @return Nothing. The function appends new columns to the \code{sites_map} attribute table
 #' \itemize{
@@ -102,8 +100,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                         attr_name = NULL,
                                         round_dig = 2,
                                         calc_basin_area = TRUE,
-                                        keep_basins = FALSE,
-                                        temp_dir = "temp"){
+                                        keep_basins = FALSE){
 
   if(length(input_raster) != length(stat) | length(input_raster) != length(attr_name) | length(attr_name) != length(stat))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -115,8 +112,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(is.null(stat) & !calc_basin_area)
     stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
   
-  if(temp_dir == "temp")
-    temp_dir <- file.path(path.expand("~"), temp_dir)
+  temp_dir <- tempdir()
+  dir.create(temp_dir)
   
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat)+1)
@@ -318,7 +315,6 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
   # Join attributes to sites attribute table
   message("Joining tables...")
-  dir.create(temp_dir)
   utils::write.csv(dat, file.path(temp_dir,"sites_attributes_exact.csv"),row.names = F)
   write.table(t(gsub("numeric","Real",apply(dat,2,class))),file.path(temp_dir,"sites_attributes_exact.csvt"),quote=T,sep=",",row.names = F,col.names = F)
   execGRASS("db.in.ogr", flags = c("overwrite","quiet"),

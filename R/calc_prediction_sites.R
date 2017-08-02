@@ -9,7 +9,6 @@
 #'@param nsites integer giving the approximate number of sites to create
 #'@param netIDs integer (optional): create prediction sites only on streams with
 #'  these netID(s).
-#'@param temp_dir string; temporary directory to store intermediate files.
 #'
 #'@details Either \code{dist} or \code{nsites} must be provided. If \code{dist}
 #'is NULL, it is estimated by deviding the total stream length in the map by
@@ -25,9 +24,9 @@
 #'edge to the site) and the total length of the edge.} }
 #'
 #''pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
-#'\href{https://grass.osgeo.org/grass73/manuals/r.stream.distance.html}{r.stream.distance}.
+#'\href{https://grass.osgeo.org/grass72/manuals/addons/r.stream.distance.html}{r.stream.distance}.
 #'Points are created using
-#'\href{https://grass.osgeo.org/grass73/manuals/v.segment.html}{v.segment}.
+#'\href{https://grass.osgeo.org/grass72/manuals/v.segment.html}{v.segment}.
 #'
 #'@note \code{\link{import_data}}, \code{\link{derive_streams}} and
 #'  \code{\link{calc_edges}} must be run before.
@@ -64,13 +63,9 @@
 #' points(sites, pch = 4)
 #' points(preds, pch = 19, col = "steelblue")
 #' }
-#' 
-predictions = "preds"
-dist = 500
-netIDs = 26
 
 calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
-                                  netIDs = NULL, temp_dir = "temp") {
+                                  netIDs = NULL) {
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vect"
@@ -90,9 +85,9 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
     stop("Either the distance between prediction sites (dist) or the number of
          prediction sites (nsites) must be given.")
   
-  if(temp_dir == "temp")
-    temp_dir <- file.path(path.expand("~"), temp_dir)
-
+  temp_dir <- tempdir()
+  dir.create(temp_dir)
+  
   dt.streams <- do.call(rbind,strsplit(
     execGRASS("db.select",
               parameters = list(
@@ -132,7 +127,6 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
     }
   }
   str1 <- substring(str1, 2)
-  dir.create(temp_dir)
   write(str1, file.path(temp_dir,"pt.txt"))
 
   execGRASS("v.segment", flags = c("overwrite", "quiet"),

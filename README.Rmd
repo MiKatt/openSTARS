@@ -3,6 +3,9 @@ output:
   html_document:
     keep_md: yes
 ---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 openSTARS
 =============
 
@@ -102,7 +105,7 @@ Next, the streams should be derived from the DEM.
 ```{r derive_streams, results='hide', message=TRUE}
 derive_streams()
 ```
-An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to the existing one. Additionally, other specifications on how the streams shall be created can be provided (see `?derive_streams` and  [r.stream.extract](https://grass.osgeo.org/grass73/manuals/r.stream.extract.html) for details).
+An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to the existing one. Additionally, other specifications on how the streams shall be created can be provided (see `?derive_streams` and the GRASS function  [r.stream.extract](https://grass.osgeo.org/grass72/manuals/r.stream.extract.html) for details).
 
 ```{r derive_streams2, results='hide', message=TRUE, eval=FALSE}
 derive_streams(burn = 10, accum_threshold = 1000)
@@ -113,6 +116,7 @@ dem <- readRAST("dem", ignore.stderr = TRUE)
 streams <- readVECT("streams_v", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(streams, col = "blue")
+cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value)]
 points(sites, pch = 16, col = cols)
 ```
 
@@ -134,7 +138,7 @@ calc_edges()
 
 ```{r edges}
 edges <- readVECT("edges", ignore.stderr = TRUE)
-head(edges@data, n=4)
+head(edges@data, n = 4)
 ```
 
 `edges` now holds the derived network plus attributes needed for the .ssn object
@@ -150,12 +154,15 @@ head(edges@data, n=4)
 The additional fields hold information about the network: 'next_str' is the 'stream' this segment flows into, 'prev_str01' and 'prev_str02' are the two segments that flow into this segment.
 
 ### Prepare sites
-Often, survey sites do not lay exactly on the stream network (due to GPS imprecision, stream representation as lines, derivation of streams from a DEM, etc.). To assign an exact position of the sites on the network they are moved to the closest stream segment (snapped) using
-[v.distance](https://grass.osgeo.org/grass73/manuals/v.distance.html). Additionally, attributes needed for .ssn object are assigned: 
+Often, survey sites do not lay exactly on the stream network (due to GPS imprecision, stream representation as lines, derivation of streams from a DEM, etc.). To assign an exact position of the sites on the network they are moved to the closest stream segment (snapped) using the GRASS function
+[v.distance](https://grass.osgeo.org/grass72/manuals/v.distance.html). Additionally, attributes needed for .ssn object are assigned: 
 ```{r prep_sites, results='hide', message=FALSE, warning=FALSE}
 calc_sites()
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data)
+```
+
+```{r show_sites, message=FALSE, warning=FALSE}
+head(sites@data, n = 4)
 ```
 
 * point identifier (pid)
@@ -176,11 +183,11 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites_orig, pch = 21, cex=0.75, bg = "grey")
 points(sites, pch = 20, col = "black")
-legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01,, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("original sites","snapped sites"))
+legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("original sites","snapped sites"))
 ```
 
 ### Prepare prediction sites
-Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to a certain networks (`netIDs`).
+Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to certain networks (`netIDs`).
 
 Similar as for the observation sites, attributes needed for .ssn object are assigned: 
 
@@ -206,8 +213,8 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites, pch = 21, cex=0.75, bg = "grey")
 points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
-legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("observation sites","prediction sites"))
-head(pred_sites@data)
+legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("(snapped) observation sites","prediction sites"))
+head(pred_sites@data, n = 4)
 ```
 
 ### Calculate attributes from raster maps
@@ -234,7 +241,7 @@ calc_attributes_sites_approx(sites_map = "sites",
                              output_attr_name = "avSloA",
                              stat = "mean")
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data)
+head(sites@data, n = 4)
 ```
 
 The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points) because for each point the total catchment is first delineated based on the DEM and then intersected with the raster map(s) provided. Note that if no raster map is provided the total catchment area for each point is calculated.
@@ -248,7 +255,7 @@ calc_attributes_sites_exact(sites_map = "sites",
                             attr_name = "avSloE", 
                             round_dig = 4)
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data)
+head(sites@data, n = 4)
 ```
 
 In both alternatives, the catchment area for each site is calculated automatically ('H2OAreaA' for `calc_attributes_sites_appox` and 'H2OArea' for `calc_attributes_sites_exact`).

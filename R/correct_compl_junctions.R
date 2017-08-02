@@ -12,7 +12,6 @@
 #'
 #' @param clean logical; should intermediate files be removed from GRASS
 #'   session?
-#' @param temp_dir string; temporary directory to store intermediate files.
 #' @param celltoldig integer; number of digits the cell size dimensions are
 #'  rounded to before it is checked wether they are identical
 #'
@@ -54,7 +53,7 @@
 #' lines(streams, col = 'blue')
 #' }
 
-correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp", celltoldig = 2){
+correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   cnames<-execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
@@ -65,8 +64,7 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp", celltoldig 
          function only works for complex juctions with three inflows.")
 
   # Create temporary directory
-  if(temp_dir == "temp")
-    temp_dir <- file.path(path.expand("~"), temp_dir)
+  temp_dir <- tempdir()
   dir.create(temp_dir)
 
   # get cellcize of dem raster
@@ -487,9 +485,6 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp", celltoldig 
             ))
 
   if(clean){
-    # Remove temporary directory
-    unlink(temp_dir, recursive =T, force = TRUE)
-
     # Remove temporary vector files
     execGRASS("g.remove",
               flags = c("quiet", "f"),
@@ -498,6 +493,8 @@ correct_compl_junctions <- function(clean = TRUE, temp_dir = "temp", celltoldig 
                 name = c("complex_flows","complex_flows_cp","complex_flows_p")
               ))
   }
+  # Remove temporary directory
+  unlink(temp_dir, recursive =T, force = TRUE)
 
   message("Complex junctions were removed. Please check changed features in streams_v.\n")
 }

@@ -5,7 +5,7 @@
 \title{Calcuate attributes of the edges.}
 \usage{
 calc_attributes_edges(input_raster, stat, attr_name, round_dig = 2,
-  clean = TRUE, temp_dir = "temp")
+  clean = TRUE)
 }
 \arguments{
 \item{input_raster}{name or character vector of names of the raster map(s)
@@ -21,8 +21,6 @@ to be caculated. Attribute names must not be longer than 8 characters.}
 of different values or just one value for all attributes.}
 
 \item{clean}{logical; should intermediate files be deleted}
-
-\item{temp_dir}{string; temporary directory to store intermediate files.}
 }
 \value{
 Nothing. The function appends new columns to the 'edges' attribute

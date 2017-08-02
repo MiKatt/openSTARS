@@ -1,3 +1,6 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 openSTARS
 =============
 
@@ -35,9 +38,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpmdRLF8 
-#> location    file308843aa2814 
-#> mapset      file308817544725 
+#> gisdbase    /tmp/Rtmpl0kXK5 
+#> location    file13d762b46c02 
+#> mapset      file13d75c436e68 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -117,7 +120,7 @@ derive_streams()
 #> Deriving streams from DEM...
 #> Calculating stream topology...
 ```
-An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to the existing one. Additionally, other specifications on how the streams shall be created can be provided (see `?derive_streams` and  [r.stream.extract](https://grass.osgeo.org/grass73/manuals/r.stream.extract.html) for details).
+An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to the existing one. Additionally, other specifications on how the streams shall be created can be provided (see `?derive_streams` and the GRASS function  [r.stream.extract](https://grass.osgeo.org/grass72/manuals/r.stream.extract.html) for details).
 
 
 ```r
@@ -130,6 +133,7 @@ dem <- readRAST("dem", ignore.stderr = TRUE)
 streams <- readVECT("streams_v", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(streams, col = "blue")
+cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value)]
 points(sites, pch = 16, col = cols)
 ```
 
@@ -156,7 +160,7 @@ calc_edges()
 
 ```r
 edges <- readVECT("edges", ignore.stderr = TRUE)
-head(edges@data, n=4)
+head(edges@data, n = 4)
 #>   cat stream prev_str01 prev_str02 next_str flow_accu netID rid OBJECTID
 #> 1   1      1          0          0       30  903.7007    15   0        1
 #> 2   2      2          0          0       15 1893.0472    15   1        2
@@ -182,13 +186,27 @@ head(edges@data, n=4)
 The additional fields hold information about the network: 'next_str' is the 'stream' this segment flows into, 'prev_str01' and 'prev_str02' are the two segments that flow into this segment.
 
 ### Prepare sites
-Often, survey sites do not lay exactly on the stream network (due to GPS imprecision, stream representation as lines, derivation of streams from a DEM, etc.). To assign an exact position of the sites on the network they are moved to the closest stream segment (snapped) using
-[v.distance](https://grass.osgeo.org/grass73/manuals/v.distance.html). Additionally, attributes needed for .ssn object are assigned: 
+Often, survey sites do not lay exactly on the stream network (due to GPS imprecision, stream representation as lines, derivation of streams from a DEM, etc.). To assign an exact position of the sites on the network they are moved to the closest stream segment (snapped) using the GRASS function
+[v.distance](https://grass.osgeo.org/grass72/manuals/v.distance.html). Additionally, attributes needed for .ssn object are assigned: 
 
 ```r
 calc_sites()
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data)
+```
+
+
+```r
+head(sites@data, n = 4)
+#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5  79.90783 631046.1 226074.1     1   1    15   4
+#> 2   2    2     2        5  76.09862 631495.3 225849.5     2   2    15   4
+#> 3   3    3     1        5 112.90480 631787.3 225580.0     3   3    15   4
+#> 4   4    4     1        5  61.15861 632011.9 225175.7     4   4    15   4
+#>     upDist distalong     ratio
+#> 1 22490.34  289.7056 0.8457322
+#> 2 21983.36  796.6905 0.5757636
+#> 3 21613.95 1166.1017 0.3790527
+#> 4 21166.96 1613.0866 0.1410340
 ```
 
 * point identifier (pid)
@@ -213,13 +231,13 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites_orig, pch = 21, cex=0.75, bg = "grey")
 points(sites, pch = 20, col = "black")
-legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01,, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("original sites","snapped sites"))
+legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("original sites","snapped sites"))
 ```
 
 ![](README_files/figure-html/plot_data3-1.png)<!-- -->
 
 ### Prepare prediction sites
-Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to a certain networks (`netIDs`).
+Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to certain networks (`netIDs`).
 
 Similar as for the observation sites, attributes needed for .ssn object are assigned: 
 
@@ -250,20 +268,23 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites, pch = 21, cex=0.75, bg = "grey")
 points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
-legend(x=par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("observation sites","prediction sites"))
+legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("(snapped) observation sites","prediction sites"))
 ```
 
 ![](README_files/figure-html/plot_data4-1.png)<!-- -->
 
 ```r
-head(pred_sites@data)
-#>   cat cat_edge         dist pid rid locID netID   upDist distRatio
-#> 1   1        1 0.000000e+00   1   0     1    15 18452.04 0.4665558
-#> 2   2        1 2.910383e-11   2   0     2    15 19128.73 1.0000000
-#> 3   3        2 0.000000e+00   3   1     3    15 21076.97 0.1736880
-#> 4   4        2 0.000000e+00   4   1     4    15 21751.53 0.8437652
-#> 5   5        5 2.910383e-11   5   4     5    15 21094.54 0.1024687
-#> 6   6        5 2.910383e-11   6   4     6    15 21741.23 0.4468300
+head(pred_sites@data, n = 4)
+#>   cat cat_edge         dist pid rid distalong     ratio locID netID
+#> 1   1        1 0.000000e+00   1   0       676 0.4670997     1    15
+#> 2   2        1 2.910383e-11   2   0        17 0.9865987     2    15
+#> 3   3        2 0.000000e+00   3   1       820 0.1854493     3    15
+#> 4   4        2 0.000000e+00   4   1       161 0.8400699     4    15
+#>     upDist
+#> 1 18452.73
+#> 2 19111.73
+#> 3 21088.81
+#> 4 21747.81
 ```
 
 ### Calculate attributes from raster maps
@@ -291,21 +312,17 @@ calc_attributes_sites_approx(sites_map = "sites",
                              output_attr_name = "avSloA",
                              stat = "mean")
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data)
-#>   cat cat_ value cat_edge       dist       xm       ym pid locID netID rid
-#> 1   1    1     1        5  79.907826 631046.1 226074.1   1     1    15   4
-#> 2   2    2     2        5  76.098623 631495.3 225849.5   2     2    15   4
-#> 3   3    3     1        5 112.904797 631787.3 225580.0   3     3    15   4
-#> 4   4    4     1        5  61.158605 632011.9 225175.7   4     4    15   4
-#> 5   5    5     1        2  72.041077 631203.4 224771.5   5     5    15   1
-#> 6   6    6     2        2   4.226159 631540.2 224883.8   6     6    15   1
-#>     upDist distRatio H2OAreaA avSloA
-#> 1 22490.35 0.8457352     0.38 3.2165
-#> 2 21983.36 0.5757639     1.04 3.2165
-#> 3 21613.95 0.3790536     1.53 3.2165
-#> 4 21166.97 0.1410375     2.11 3.2165
-#> 5 21823.95 0.9157039     0.11 2.6833
-#> 6 21359.39 0.4542312     0.74 2.6833
+head(sites@data, n = 4)
+#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5  79.90783 631046.1 226074.1     1   1    15   4
+#> 2   2    2     2        5  76.09862 631495.3 225849.5     2   2    15   4
+#> 3   3    3     1        5 112.90480 631787.3 225580.0     3   3    15   4
+#> 4   4    4     1        5  61.15861 632011.9 225175.7     4   4    15   4
+#>     upDist distalong     ratio H2OAreaA avSloA
+#> 1 22490.34  289.7056 0.8457322     0.38 3.2165
+#> 2 21983.36  796.6905 0.5757636     1.04 3.2165
+#> 3 21613.95 1166.1017 0.3790527     1.53 3.2165
+#> 4 21166.96 1613.0866 0.1410340     2.11 3.2165
 ```
 
 The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points) because for each point the total catchment is first delineated based on the DEM and then intersected with the raster map(s) provided. Note that if no raster map is provided the total catchment area for each point is calculated.
@@ -324,25 +341,21 @@ calc_attributes_sites_exact(sites_map = "sites",
 #> v.out.ogr complete. 87 features (Point type) written to <sites> (SQLite
 #> format).
 #> OGR data source with driver: SQLite 
-#> Source: "/tmp/RtmpmdRLF8/file308843aa2814/PERMANENT/.tmp/mira-Linux/543.0", layer: "sites"
+#> Source: "/tmp/Rtmpl0kXK5/file13d762b46c02/PERMANENT/.tmp/mira-mint/638.0", layer: "sites"
 #> with 87 features
-#> It has 15 fields
+#> It has 16 fields
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data)
-#>   cat cat_ value cat_edge       dist       xm       ym pid locID netID rid
-#> 1   1    1     1        5  79.907826 631046.1 226074.1   1     1    15   4
-#> 2   2    2     2        5  76.098623 631495.3 225849.5   2     2    15   4
-#> 3   3    3     1        5 112.904797 631787.3 225580.0   3     3    15   4
-#> 4   4    4     1        5  61.158605 632011.9 225175.7   4     4    15   4
-#> 5   5    5     1        2  72.041077 631203.4 224771.5   5     5    15   1
-#> 6   6    6     2        2   4.226159 631540.2 224883.8   6     6    15   1
-#>     upDist distRatio H2OAreaA avSloA H2OArea avSloE
-#> 1 22490.35 0.8457352     0.38 3.2165  1.0476 2.8314
-#> 2 21983.36 0.5757639     1.04 3.2165  1.6569 3.0192
-#> 3 21613.95 0.3790536     1.53 3.2165  1.8675 3.0915
-#> 4 21166.97 0.1410375     2.11 3.2165  2.4192 3.1704
-#> 5 21823.95 0.9157039     0.11 2.6833  0.6696 2.3850
-#> 6 21359.39 0.4542312     0.74 2.6833  1.0998 2.5393
+head(sites@data, n = 4)
+#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5  79.90783 631046.1 226074.1     1   1    15   4
+#> 2   2    2     2        5  76.09862 631495.3 225849.5     2   2    15   4
+#> 3   3    3     1        5 112.90480 631787.3 225580.0     3   3    15   4
+#> 4   4    4     1        5  61.15861 632011.9 225175.7     4   4    15   4
+#>     upDist distalong     ratio H2OAreaA avSloA H2OArea avSloE
+#> 1 22490.34  289.7056 0.8457322     0.38 3.2165  1.0476 2.8314
+#> 2 21983.36  796.6905 0.5757636     1.04 3.2165  1.6569 3.0192
+#> 3 21613.95 1166.1017 0.3790527     1.53 3.2165  1.8675 3.0915
+#> 4 21166.96 1613.0866 0.1410340     2.11 3.2165  2.4192 3.1704
 ```
 
 In both alternatives, the catchment area for each site is calculated automatically ('H2OAreaA' for `calc_attributes_sites_appox` and 'H2OArea' for `calc_attributes_sites_exact`).
@@ -395,9 +408,9 @@ names(ssn_obj@data)
 names(ssn_obj)
 #> $Obs
 #>  [1] "cat"       "cat_"      "value"     "cat_edge"  "dist"     
-#>  [6] "xm"        "ym"        "pid"       "locID"     "netID"    
-#> [11] "rid"       "upDist"    "distRatio" "H2OAreaA"  "avSloA"   
-#> [16] "H2OArea"   "avSloE"
+#>  [6] "xm"        "ym"        "locID"     "pid"       "netID"    
+#> [11] "rid"       "upDist"    "distalong" "ratio"     "H2OAreaA" 
+#> [16] "avSloA"    "H2OArea"   "avSloE"
 ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
 
 # non-spatial model
@@ -410,12 +423,12 @@ summary(ssn_obj.glmssn0)
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#>      NA -2.4153 -0.2151  2.6684      NA 
+#>      NA -2.4181 -0.2146  2.6689      NA 
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  6.655e+00  6.868e-01   9.690  < 2e-16 ***
-#> upDist      -1.951e-04  5.799e-05  -3.365  0.00117 ** 
+#> (Intercept)  6.657e+00  6.868e-01   9.693  < 2e-16 ***
+#> upDist      -1.953e-04  5.797e-05  -3.368  0.00115 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -423,8 +436,8 @@ summary(ssn_obj.glmssn0)
 #>  Covariance.Model Parameter Estimate
 #>            Nugget   parsill     8.51
 #> 
-#> Residual standard error: 2.91691
-#> Generalized R-squared: 0.1213394
+#> Residual standard error: 2.916576
+#> Generalized R-squared: 0.1215401
 # same as
 summary(lm(value ~ upDist, getSSNdata.frame(ssn_obj)))
 #> 
@@ -433,19 +446,19 @@ summary(lm(value ~ upDist, getSSNdata.frame(ssn_obj)))
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#> -4.9690 -2.4153 -0.2151  2.6684  5.0848 
+#> -4.9703 -2.4181 -0.2146  2.6689  5.0855 
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  6.655e+00  6.868e-01   9.690 3.06e-15 ***
-#> upDist      -1.951e-04  5.799e-05  -3.365  0.00117 ** 
+#> (Intercept)  6.657e+00  6.868e-01   9.693 3.02e-15 ***
+#> upDist      -1.953e-04  5.797e-05  -3.368  0.00115 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Residual standard error: 2.917 on 82 degrees of freedom
 #>   (3 observations deleted due to missingness)
-#> Multiple R-squared:  0.1213,	Adjusted R-squared:  0.1106 
-#> F-statistic: 11.32 on 1 and 82 DF,  p-value: 0.001166
+#> Multiple R-squared:  0.1215,	Adjusted R-squared:  0.1108 
+#> F-statistic: 11.35 on 1 and 82 DF,  p-value: 0.001154
 
 
 # # # spatial model
@@ -460,31 +473,31 @@ summary(ssn_obj.glmssn1)
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#>      NA -2.1099 -0.1461  2.8481      NA 
+#>      NA -2.1142 -0.1435  2.8441      NA 
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  6.138e+00  1.195e+00   5.136   <2e-16 ***
-#> upDist      -1.642e-04  9.382e-05  -1.750   0.0839 .  
+#> (Intercept)  6.142e+00  1.204e+00   5.100   <2e-16 ***
+#> upDist      -1.644e-04  9.473e-05  -1.735   0.0864 .  
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Covariance Parameters:
-#>      Covariance.Model Parameter   Estimate
-#>    Exponential.tailup   parsill     7.3759
-#>    Exponential.tailup     range 98497.1672
-#>  Exponential.taildown   parsill     0.0230
-#>  Exponential.taildown     range 69256.8975
-#>                Nugget   parsill     2.3826
+#>      Covariance.Model Parameter     Estimate
+#>    Exponential.tailup   parsill     7.586491
+#>    Exponential.tailup     range 98564.621409
+#>  Exponential.taildown   parsill     0.000496
+#>  Exponential.taildown     range 57168.642227
+#>                Nugget   parsill     2.430493
 #> 
-#> Residual standard error: 3.127556
-#> Generalized R-squared: 0.03521677
+#> Residual standard error: 3.16504
+#> Generalized R-squared: 0.03542456
 varcomp(ssn_obj.glmssn1)
-#>                VarComp  Proportion
-#> 1    Covariates (R-sq) 0.035216775
-#> 2   Exponential.tailup 0.727504029
-#> 3 Exponential.taildown 0.002272824
-#> 4               Nugget 0.235006373
+#>                VarComp   Proportion
+#> 1    Covariates (R-sq) 3.542456e-02
+#> 2   Exponential.tailup 7.304974e-01
+#> 3 Exponential.taildown 4.776411e-05
+#> 4               Nugget 2.340303e-01
 ```
 
 

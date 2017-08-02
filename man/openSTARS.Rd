@@ -4,7 +4,7 @@
 \name{openSTARS}
 \alias{openSTARS}
 \alias{openSTARS-package}
-\title{openSTARS: An open source implementation of the ArcGIS toolbox STARS.}
+\title{openSTARS: An Open Source Implementation of the ArcGIS Toolbox STARS.}
 \description{
 openSTARS provides functions to prepare data so that it can be imported by
 the \code{\link[SSN]{SSN}} package for spatial modelling on stream networks.
@@ -18,7 +18,6 @@ initGRASS(gisBase = "/usr/lib/grass72/",
     home = tempdir(),
     override = TRUE)
 
-# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)

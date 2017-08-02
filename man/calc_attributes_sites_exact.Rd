@@ -6,7 +6,7 @@
 \usage{
 calc_attributes_sites_exact(sites_map = "sites", input_raster = NULL,
   stat = NULL, attr_name = NULL, round_dig = 2, calc_basin_area = TRUE,
-  keep_basins = FALSE, temp_dir = "temp")
+  keep_basins = FALSE)
 }
 \arguments{
 \item{sites_map}{character; name of the sites (observation or prediction) 
@@ -31,9 +31,6 @@ of different values or just one value for all attributes.}
 if the fuction has been called before with \code{keep_basins = TRUE}.)}
 
 \item{keep_basins}{boolean; shall raster maps of all the watersheds be kept?}
-
-\item{temp_dir}{string; temporary directory with read and write access to 
-store intermediate files.}
 }
 \value{
 Nothing. The function appends new columns to the \code{sites_map} attribute table

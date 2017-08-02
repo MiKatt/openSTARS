@@ -132,17 +132,4 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
               type = "vector",
               name = "bbox_dem"
             ))
-  
-  # execGRASS("g.region",
-  #           flags = c("quiet"),
-  #           parameters = list(
-  #             raster = "dem_temp"))
-  # 
-  # # remove temporary dem file
-  # execGRASS("g.remove",
-  #           flags = c("quiet", "f"),
-  #           parameters = list(
-  #             type = "raster",
-  #             name = "dem_temp"
-  #           ))
 }
