@@ -3,7 +3,7 @@
 #' openSTARS provides functions to prepare data so that it can be imported by
 #' the \code{\link[SSN]{SSN}} package for spatial modelling on stream networks.
 #' GRASS GIS 7.0 (or greater) with installed addons r.stream.basins,
-#' r.stream.distance, r.stream.order and r.hydrodem is needed.
+#' r.stream.distance, r.stream.order, and r.hydrodem is needed.
 #'
 #' @import rgrass7
 #' @import data.table
