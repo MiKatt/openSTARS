@@ -18,7 +18,7 @@
 #'     home = tempdir(),
 #'     override = TRUE)
 #'
-# Load files into GRASS
+#' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
@@ -28,6 +28,13 @@
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #'
+#' # Check and correct complex junctions (there are no complex juctions in this 
+#' # example date set)
+#' cj <- check_compl_junctions()
+#' if(cj){
+#'   correct_compl_junctions()
+#' }
+#' 
 #' # Prepare edges
 #' calc_edges()
 #'
@@ -39,9 +46,11 @@
 #' # Plot data
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)
+#' sites_orig <-  readVECT('sites_o', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
 #' lines(edges, col = 'blue')
+#' points(sites_o, pch = 4)
 #' cols <- colorRampPalette(c("blue", 'red'))(length(sites$H2OArea))[rank(sites$H2OArea)]
 #' points(sites, pch = 16, col = cols)
 #'

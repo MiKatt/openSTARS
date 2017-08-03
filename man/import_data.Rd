@@ -53,18 +53,19 @@ A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
 \donttest{
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass72/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
+gmeta()
 dem <- readRAST('dem')
 plot(dem)
 }
-
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com},  Mira Kattwinkel

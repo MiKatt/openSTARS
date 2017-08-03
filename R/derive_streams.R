@@ -46,17 +46,23 @@
 #' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}, Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #'
+
 #' @examples
 #' \donttest{
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass72/",
-#'   home = tempdir(),
-#'   override = TRUE)
-#' gmeta()
+#'     home = tempdir(),
+#'     override = TRUE)
+#'
+#' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
-#' derive_streams()
+#' gmeta()
+#'
+#' # Derive streams from DEM
+#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' sites <- readVECT('sites_o', ignore.stderr = TRUE)
 #' streams <- readVECT('streams_v', ignore.stderr = TRUE)
@@ -64,6 +70,7 @@
 #' lines(streams, col = 'blue', lwd = 2)
 #' points(sites, pch = 4)
 #' }
+#' 
 
 derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
                            min_stream_length = 0, dem_name = NULL, clean = TRUE,

@@ -45,6 +45,7 @@
 #'   
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' 
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
@@ -90,8 +91,8 @@
 #' points(sites, pch = 19, col = cols)
 #' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right=F))]
 #' points(sites, pch = 21,bg = cols,cex=0.7)
-#' # points in the middle of the map indicate a difference in max slope between
-#' # approximate and exact calculation
+#' # Some points in the centre of the map indicate a difference in max slope between
+#' # approximate and exact calculation (different colors for inner and outer points)
 #' }
 
 calc_attributes_sites_exact <- function(sites_map = "sites",

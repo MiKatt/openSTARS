@@ -35,21 +35,23 @@
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com},  Mira Kattwinkel
 #'  \email{mira.kattwinkel@@gmx.net}
 #' @export
-#'
+#' 
 #' @examples
 #' \donttest{
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass72/",
-#'   home = tempdir(),
-#'   override = TRUE)
-#' gmeta()
+#'     home = tempdir(),
+#'     override = TRUE)
+#'
+# Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
+#' gmeta()
 #' dem <- readRAST('dem')
 #' plot(dem)
 #' }
-#'
 
 import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FALSE, 
                         pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL) {

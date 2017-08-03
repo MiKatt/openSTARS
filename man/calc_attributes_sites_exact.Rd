@@ -104,8 +104,8 @@ cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSlo,breaks = b,right=F))]
 points(sites, pch = 19, col = cols)
 cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right=F))]
 points(sites, pch = 21,bg = cols,cex=0.7)
-# points in the middle of the map indicate a difference in max slope between
-# approximate and exact calculation
+# Some points in the centre of the map indicate a difference in max slope between
+# approximate and exact calculation (different colors for inner and outer points)
 }
 }
 \author{
