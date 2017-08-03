@@ -1,4 +1,4 @@
-#' Calcuate attributes of the edges.
+#' Calculate attributes of the edges.
 #'
 #' For each edge (i.e. stream segment) additional attributes (predictor variables)
 #' are derived based on given raster maps.
@@ -8,7 +8,7 @@
 #' @param stat name or character vector giving the statistics to be calulated,
 #'   must be one of: min, max, mean, percent.
 #' @param attr_name name or character vector of column names for the attribute(s)
-#'   to be caculated. Attribute names must not be longer than 8 characters.
+#'   to be calculated. Attribute names must not be longer than 8 characters.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param clean logical; should intermediate files be deleted
@@ -20,7 +20,7 @@
 #'   the edge ("attribute_name_c").
 #'
 #'@details First, the subcatchments for all edges are calculated. Then these are
-#' intersected with the given raster maps and the desired statitics are computed.
+#' intersected with the given raster maps and the desired statistics are computed.
 #' This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
 #'
 #'For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
@@ -231,8 +231,8 @@ calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
   for(i in outlets){
     calc_catchment_attributes_rec(dt, id=i, stat, paste0(attr_name,"_c"))
   }
-  # for "mean" and "percent", calc_catchment_attributes_rec gives the cummulative sum of mean value * non_null_cells
-  # => devide here by total number of cells
+  # for "mean" and "percent", calc_catchment_attributes_rec gives the cmmulative sum of mean value * non_null_cells
+  # => divide here by total number of cells
   ind <- c(grep("mean", stat), grep("percent", stat))
   if(length(ind) > 0)
     dt[, paste0(attr_name[ind], "_c") := round(dt[,paste0(attr_name[ind],"_c"), with = FALSE] / dt[,cumsum_cells], round_dig[ind])]
@@ -255,11 +255,11 @@ calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
 #' @param attr_name name or character vector of column names for the attribute(s)
 #'   to be caculated.
 #'
-#' @return One row data.table with the cummulative number of cells of the total
+#' @return One row data.table with the cumulative number of cells of the total
 #'  catchment of each segment and the values for each attribute and changes the
 #'  values in dt.
 #'
-#' @note The values for stats "mean" and "percent" need to be devided by the cummulative
+#' @note The values for stats "mean" and "percent" need to be divided by the cumulative
 #'  number of cells of the total catchment in a subsequent step.
 #'
 calc_catchment_attributes_rec <- function(dt, id, stat, attr_name){

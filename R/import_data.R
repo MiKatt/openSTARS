@@ -13,7 +13,7 @@
 #'  If available it can be burnt into DEM.
 #' @param snap_streams boolean (optional); snap line ends.
 #'  If TRUE line ends of the streams are snapped to the next feature if they are
-#'   unconncted with threshold of 10 m using GRASS function v.clean.
+#'   unconnected with threshold of 10 m using GRASS function v.clean.
 #' @param pred_sites character vector (optional); paths to prediction sites 
 #' vector files
 #' @param predictor_maps character vector (optional); paths to raster data to 
@@ -24,7 +24,7 @@
 #' @return Nothing, the data is loaded into the GRASS session (mapset PERMANENT).
 #' The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
 #' vector(s) using the original file names with an appended '_o' (without extension),
-#' streams as vector 'streams_o' in the GRASS location. Additinally, predictor 
+#' streams as vector 'streams_o' in the GRASS location. Additionally, predictor 
 #' map raster(s) can be read in and are stroed in GRASS using either the 
 #' original file names (without extension) or using the names provides in 
 #' predictor_names. The latter option may be usefull if ArcGIS grid data 

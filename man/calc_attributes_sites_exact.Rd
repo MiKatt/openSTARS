@@ -16,7 +16,7 @@ attributes shall be calculated for. "sites" (default) refers to the observation 
 maps to calculate attributes from.}
 
 \item{stat}{character vector (optional); statistics to be calulated, one of:
-min, max, mean, stddev, variance, sum, median or precentile_X (where X
+min, max, mean, stddev, variance, sum, median or percentile_X (where X
 gives the desired percentile e.g. 25 for the first). Must be provided if 
 \code{input_raster} are given.}
 
@@ -49,14 +49,14 @@ can be derived based on given raster maps. This fuction calculates
 exact values for catchments derived with
 \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 and can take considerable time if there are many sites.
-Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = locID).
+Catchment raster maps can optionally be stored as "sitename_catchm_X" (X = locID).
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}},
   \code{\link{calc_edges}} and \code{\link{calc_sites}} or
   \code{\link{calc_prediction_sites}} must be run before.
   
-If \code{calc_basin_area = F} but there are no raster maps called 'sitesname_catchm_x' 
+If \code{calc_basin_area = F} but there are no raster maps called 'sitename_catchm_x' 
 with x = locID of all sites the catchments (and their area) are derived.
 }
 \examples{

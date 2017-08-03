@@ -1,9 +1,9 @@
 #' Calcuate attributes of the sites.
 #'
 #' For each site (observations or predictions) attributes (predictor variables)
-#' are derived based on the values caluclated for the edge the site lies on.
-#' This fuction calculates approximate values for site catchments as described
-#' in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Toolset Used to Calculate the
+#' are derived based on the values calculated for the edge the site lies on.
+#' This function calculates approximate values for site catchments as described
+#' in Peterson & Ver Hoef, 2014: STARS: An ArcGIS Toolset Used to Calculate the
 #' Spatial Information Needed to Fit Spatial Statistical Models to Stream
 #' Network Data. J. Stat. Softw., 56 (2).
 #'
@@ -26,7 +26,7 @@
 #'  \item{attr_name:} {Additional optional attributes calculated based on \code{input_attr_name}.}
 #' }
 #'
-#' @details The apporximate total catchment area (H2OAreaA) is always calculated.
+#' @details The approximate total catchment area (H2OAreaA) is always calculated.
 #' If \code{stat} is one of "min", "max", "mean" or "percent" the
 #'   function assigns the value of the edge the site lies on. Otherwise, the
 #'   value is calculated as the sum of all edges upstream of the previous

@@ -18,7 +18,7 @@
 #'@details Steps include:
 #'\itemize{
 #'\item{Snap points to derived network. 'dist'
-#'gives the distance of the original position to the closest streams segement.}
+#'gives the distance of the original position to the closest streams segment.}
 #'\item{Assign unique 'pid' and 'locID'.}
 #'\item{Get 'rid' and 'netID' of the
 #'stream segment the site intersects with (from map "edges").}
@@ -26,9 +26,9 @@
 #' \item{Calculate distance ratio
 #'('ratio') between position of site on edge (distance traveled from lower
 #'end of the edge to the site) and the total length of the edge.} }
-#'Often, survey sites do not lay exactly on the stream network (due to GPS inprecision,
+#'Often, survey sites do not lay exactly on the stream network (due to GPS imprecision,
 #'stream representation as lines, derivation of streams from dem, etc.). To
-#'assigne an exact position of the sites on the network they are moved to the
+#'assign an exact position of the sites on the network they are moved to the
 #'closest stream segment (snapped) using
 #'\href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance}.
 #'

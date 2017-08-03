@@ -24,12 +24,12 @@ attributes are assigned.
 }
 \details{
 Either \code{dist} or \code{nsites} must be provided. If \code{dist}
-is NULL, it is estimated by deviding the total stream length in the map by
+is NULL, it is estimated by dividing the total stream length in the map by
 \code{nsites}; the number of sites actually derived might therefore be a bit
 smaller than \code{nsites}.
 
 Steps include: \itemize{ \item{Place points on edges with given distance form
-each other} \item{Assign unique identifiers (neede by the SSN package) 'pid'
+each other} \item{Assign unique identifiers (needed by the SSN package) 'pid'
 and 'locID'.} \item{Get 'rid' and 'netID' of the stream segment the site
 intersects with (from map 'edges').} \item{Calculate upstream distance for
 each point ('upDist').} \item{Calculate distance ratio ('distRatio') between

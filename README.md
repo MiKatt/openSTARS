@@ -21,6 +21,14 @@ A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with
 [r.hydrodem](https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html) is needed.
 These add-ons can be installed from within GRASS using the console and g.extension or in the GUI under 'Settings'/'Addons extensions'/'Install extensions from add-ons' under 'raster'.
 
+Installation from CRAN repository:
+
+```r
+install.packages("openSTARS")
+library("openSTARS")
+```
+
+For the lastest github version of openSTARS (carefull, might be experimental):
 
 ```r
 # install.packages("devtools")
@@ -38,9 +46,9 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/Rtmpl0kXK5 
-#> location    file13d762b46c02 
-#> mapset      file13d75c436e68 
+#> gisdbase    /tmp/RtmpQq5CYy 
+#> location    file2d877f1b2fdb 
+#> mapset      file2d876d285359 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -139,7 +147,7 @@ points(sites, pch = 16, col = cols)
 
 ![](README_files/figure-html/plot_data2-1.png)<!-- -->
 
-### Check the network
+### Check and correct the network
 Next, the stream network should be checked if there are stream segments with more than two inflows. This must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be no complex junctions.
 
 
@@ -148,6 +156,22 @@ cp <- check_compl_junctions()
 if (cp)
   correct_compl_junctions()
 ```
+
+An example of a complex junction and the correction would look like this:
+
+![Original network with complex junction. Arrows indicate flow direction.](README_files/compl_junction1.PNG)  ![Corrected network. Arrows indicate flow direction.](README_files/compl_junction2.PNG)
+
+*Left* Original network with complex junction (i.e. three inflows to one outflow). 
+*Right* Corrected network. Arrows indicate flow direction.
+
+The end node of the inflowing segment with the smalles angle to the outflowing 
+segment is moved 0.25 times the cell size of the DEM downstream. The outflowing
+segment is split into tow parts at this new junction. All features are corrected
+accordingly (cat, length, prev_str01, prev_str02, next_str etc.). Currently, this 
+only works for three inflows to the same outflow but not more.
+
+Other topological errors as mentioned for the ArcGIS toolbox STARS do not occur
+if the stream network is derived from a DEM
 
 ### Prepare edges
 Now, information needed for the .ssn object can be derived for the streams and stored in a new vector map `edges`.
@@ -229,9 +253,9 @@ sites_orig <- readVECT("sites_o", ignore.stderr = TRUE)
 edges <- readVECT("edges", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
-points(sites_orig, pch = 21, cex=0.75, bg = "grey")
-points(sites, pch = 20, col = "black")
-legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("original sites","snapped sites"))
+points(sites_orig, pch = 20, col = "black")
+points(sites, pch = 21, cex=0.75, bg = "grey")
+legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("snapped sites", "original sites"))
 ```
 
 ![](README_files/figure-html/plot_data3-1.png)<!-- -->
@@ -341,7 +365,7 @@ calc_attributes_sites_exact(sites_map = "sites",
 #> v.out.ogr complete. 87 features (Point type) written to <sites> (SQLite
 #> format).
 #> OGR data source with driver: SQLite 
-#> Source: "/tmp/Rtmpl0kXK5/file13d762b46c02/PERMANENT/.tmp/mira-mint/638.0", layer: "sites"
+#> Source: "/tmp/RtmpQq5CYy/file2d877f1b2fdb/PERMANENT/.tmp/mira-mint/970.0", layer: "sites"
 #> with 87 features
 #> It has 16 fields
 sites <- readVECT("sites", ignore.stderr = TRUE)

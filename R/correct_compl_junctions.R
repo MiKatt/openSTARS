@@ -13,7 +13,7 @@
 #' @param clean logical; should intermediate files be removed from GRASS
 #'   session?
 #' @param celltoldig integer; number of digits the cell size dimensions are
-#'  rounded to before it is checked wether they are identical
+#'  rounded to before it is checked whether they are identical
 #'
 #' @return Nothing. The function changes features in \itemize{
 #'   \item{'streams_v':} {Updated streams with topology (vector)}

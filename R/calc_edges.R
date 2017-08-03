@@ -229,7 +229,7 @@ calc_edges <- function() {
 #' @param netID integer; network ID
 #' @keywords internal
 #'
-#' @return Total catchement area upstream of the segment
+#' @return Total catchment area upstream of the segment
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #'

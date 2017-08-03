@@ -19,7 +19,7 @@ must be one of: min, max, mean, percent.}
 to be caculated.}
 }
 \value{
-One row data.table with the cummulative number of cells of the total
+One row data.table with the cumulative number of cells of the total
  catchment of each segment and the values for each attribute and changes the
  values in dt.
 }
@@ -29,6 +29,6 @@ segment. It is called by \code{\link{calc_catchment_attributes}} for each
 outlet and should not be called by the user.
 }
 \note{
-The values for stats "mean" and "percent" need to be devided by the cummulative
+The values for stats "mean" and "percent" need to be divided by the cumulative
  number of cells of the total catchment in a subsequent step.
 }

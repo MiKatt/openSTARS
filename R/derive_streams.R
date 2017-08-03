@@ -4,7 +4,7 @@
 #' \href{https://grass.osgeo.org/grass70/manuals/r.stream.extract.html}{r.stream.extract}.
 #' If a stream network is available (see \code{\link{import_data}}) and burn > 0
 #' it will be first burnt into the digital elevation model (DEM). Stream
-#' topolology is derived using
+#' topology is derived using
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
 #'
 #' @param burn numeric; how many meters should the streams be burned into the

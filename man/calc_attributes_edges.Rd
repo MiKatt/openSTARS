@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_attributes_edges.R
 \name{calc_attributes_edges}
 \alias{calc_attributes_edges}
-\title{Calcuate attributes of the edges.}
+\title{Calculate attributes of the edges.}
 \usage{
 calc_attributes_edges(input_raster, stat, attr_name, round_dig = 2,
   clean = TRUE)
@@ -15,7 +15,7 @@ to calculate attributes from.}
 must be one of: min, max, mean, percent.}
 
 \item{attr_name}{name or character vector of column names for the attribute(s)
-to be caculated. Attribute names must not be longer than 8 characters.}
+to be calculated. Attribute names must not be longer than 8 characters.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
@@ -35,7 +35,7 @@ are derived based on given raster maps.
 }
 \details{
 First, the subcatchments for all edges are calculated. Then these are
-intersected with the given raster maps and the desired statitics are computed.
+intersected with the given raster maps and the desired statistics are computed.
 This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
 
 For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0

@@ -11,7 +11,7 @@ correct_compl_junctions(clean = TRUE, celltoldig = 2)
 session?}
 
 \item{celltoldig}{integer; number of digits the cell size dimensions are
-rounded to before it is checked wether they are identical}
+rounded to before it is checked whether they are identical}
 }
 \value{
 Nothing. The function changes features in \itemize{

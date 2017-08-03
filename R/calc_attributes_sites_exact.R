@@ -6,7 +6,7 @@
 #' exact values for catchments derived with
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 #' and can take considerable time if there are many sites.
-#' Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = locID).
+#' Catchment raster maps can optionally be stored as "sitename_catchm_X" (X = locID).
 
 #' @import progress
 #'
@@ -15,7 +15,7 @@
 #' @param input_raster character vector (optional); name of additional raster
 #'   maps to calculate attributes from.
 #' @param stat character vector (optional); statistics to be calulated, one of:
-#'   min, max, mean, stddev, variance, sum, median or precentile_X (where X
+#'   min, max, mean, stddev, variance, sum, median or percentile_X (where X
 #'   gives the desired percentile e.g. 25 for the first). Must be provided if 
 #'   \code{input_raster} are given.
 #' @param attr_name character vector (optional); column name for the attributes
@@ -40,7 +40,7 @@
 #'   \code{\link{calc_edges}} and \code{\link{calc_sites}} or
 #'   \code{\link{calc_prediction_sites}} must be run before.
 #'   
-#' If \code{calc_basin_area = F} but there are no raster maps called 'sitesname_catchm_x' 
+#' If \code{calc_basin_area = F} but there are no raster maps called 'sitename_catchm_x' 
 #' with x = locID of all sites the catchments (and their area) are derived. 
 #'   
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
@@ -107,7 +107,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 length(stat), ") and attribute names (", length(attr_name),")."))
 
   if(!is.null(stat) & any(stat %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat)) == 0) # TRUE = 1, FALSE = 0
-    stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "precentile_X" or "precent".')
+    stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "percentile_X" or "percent".')
 
   if(is.null(stat) & !calc_basin_area)
     stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
@@ -256,7 +256,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                           parameters = list(
                             map = input_raster[j]), intern = TRUE)
         } else {
-          if(grepl("precentile",stat[j])){
+          if(grepl("percentile",stat[j])){
             p <- as.numeric(as.character(unlist(strsplit(stat[j],"_"))[2]))
             st <- execGRASS("r.univar",
                             flags = c("overwrite", "quiet","g", "e"),
