@@ -5,7 +5,7 @@
 #'
 #' @param input_raster name or character vector of names of the raster map(s)
 #'   to calculate attributes from.
-#' @param stat name or character vector giving the statistics to be calulated,
+#' @param stat name or character vector giving the statistics to be calculated,
 #'   must be one of: min, max, mean, percent.
 #' @param attr_name name or character vector of column names for the attribute(s)
 #'   to be calculated. Attribute names must not be longer than 8 characters.
@@ -216,10 +216,10 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
 #' and should not be called by the user.
 #'
 #' @param dt data.table of stream topology and attributes per segment.
-#' @param stat name or character vector giving the statistics to be calulated,
+#' @param stat name or character vector giving the statistics to be calculated,
 #'   must be one of: min, max, mean, percent, sum.
 #' @param attr_name name or character vector of column names for the attribute(s)
-#'   to be caculated.
+#'   to be calculated.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #'
@@ -250,10 +250,10 @@ calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
 #'
 #' @param dt data.table of stream topology and attributes per segment.
 #' @param id integer; 'stream' of outlet segment to start the calculation from.
-#' @param stat name or character vector giving the statistics to be calulated,
+#' @param stat name or character vector giving the statistics to be calculated,
 #'   must be one of: min, max, mean, percent.
 #' @param attr_name name or character vector of column names for the attribute(s)
-#'   to be caculated.
+#'   to be calculated.
 #'
 #' @return One row data.table with the cumulative number of cells of the total
 #'  catchment of each segment and the values for each attribute and changes the

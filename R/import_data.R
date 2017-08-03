@@ -27,7 +27,7 @@
 #' streams as vector 'streams_o' in the GRASS location. Additionally, predictor 
 #' map raster(s) can be read in and are stroed in GRASS using either the 
 #' original file names (without extension) or using the names provides in 
-#' predictor_names. The latter option may be usefull if ArcGIS grid data 
+#' predictor_names. The latter option may be useful if ArcGIS grid data 
 #' (typically stored as 'grid_name/w001001.adf') are used.
 #'.
 #'

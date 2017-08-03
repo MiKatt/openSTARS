@@ -11,7 +11,7 @@ calc_attributes_edges(input_raster, stat, attr_name, round_dig = 2,
 \item{input_raster}{name or character vector of names of the raster map(s)
 to calculate attributes from.}
 
-\item{stat}{name or character vector giving the statistics to be calulated,
+\item{stat}{name or character vector giving the statistics to be calculated,
 must be one of: min, max, mean, percent.}
 
 \item{attr_name}{name or character vector of column names for the attribute(s)

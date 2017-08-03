@@ -15,7 +15,7 @@
 #'   raster cells; shorter first order stream segments are deleted; default: 0
 #' @param condition logical; should the DEM be conditioned using
 #'   \href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?#'
-#' @param dem_name character vector, optional; default: 'dem'; usefull if
+#' @param dem_name character vector, optional; default: 'dem'; useful if
 #'   conditioned and / or burnt in DEM raster from previous runs shall be used.
 #' @param clean logical; should intermediate raster layer of imported streams
 #'   ('streams_or') be removed from GRASS session?

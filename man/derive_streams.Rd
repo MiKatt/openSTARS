@@ -20,7 +20,7 @@ flow accumulation value in cells that will initiate a new stream).}
 \item{min_stream_length}{integer: minimum stream length in number of DEM
 raster cells; shorter first order stream segments are deleted; default: 0}
 
-\item{dem_name}{character vector, optional; default: 'dem'; usefull if
+\item{dem_name}{character vector, optional; default: 'dem'; useful if
 conditioned and / or burnt in DEM raster from previous runs shall be used.}
 
 \item{clean}{logical; should intermediate raster layer of imported streams

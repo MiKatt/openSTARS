@@ -17,7 +17,7 @@ rounded to before it is checked whether they are identical}
 Nothing. The function changes features in \itemize{
   \item{'streams_v':} {Updated streams with topology (vector)}
   \item{'streams_r':} {Updated stream raster (new cat) (raster)} } and copies
-  the oringial to \itemize{ \item{'streams_v_o':} {Originally derived streams
+  the original to \itemize{ \item{'streams_v_o':} {Originally derived streams
   with topology (vector)} \item{'streams_r_o':} {Originally derived stream
   raster (raster).} }
 }

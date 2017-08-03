@@ -2,7 +2,7 @@
 #'
 #' For each site (observation or prediction) the total catchment area is
 #' calculated ('H2OArea'). Additionally, other attributes (predictor variables)
-#' can be derived based on given raster maps. This fuction calculates
+#' can be derived based on given raster maps. This function calculates
 #' exact values for catchments derived with
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 #' and can take considerable time if there are many sites.
@@ -14,7 +14,7 @@
 #' attributes shall be calculated for. "sites" (default) refers to the observation sites.
 #' @param input_raster character vector (optional); name of additional raster
 #'   maps to calculate attributes from.
-#' @param stat character vector (optional); statistics to be calulated, one of:
+#' @param stat character vector (optional); statistics to be calculated, one of:
 #'   min, max, mean, stddev, variance, sum, median or percentile_X (where X
 #'   gives the desired percentile e.g. 25 for the first). Must be provided if 
 #'   \code{input_raster} are given.
@@ -24,7 +24,7 @@
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param calc_basin_area boolean; shall the catchment area be calculated? (Useful
-#'  if the fuction has been called before with \code{keep_basins = TRUE}.)
+#'  if the function has been called before with \code{keep_basins = TRUE}.)
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
 #'
 #' @return Nothing. The function appends new columns to the \code{sites_map} attribute table

@@ -15,7 +15,7 @@
 #'   appended to the site attribute data table. If not provided it is set to
 #'   \code{input_attr_name}. Attribute names must not be longer than 10
 #'   characters.
-#' @param stat name or character vector giving the statistics to be calulated.
+#' @param stat name or character vector giving the statistics to be calculated.
 #'   See details below.
 #' @param round_dig integer; number of digits to round results to.
 #'
@@ -31,7 +31,7 @@
 #'   function assigns the value of the edge the site lies on. Otherwise, the
 #'   value is calculated as the sum of all edges upstream of the previous
 #'   junction and the proportional value of the edge the site lies on (based on
-#'   the distance ratio 'ratio'); this is usefull e.g. for counts of dams or waste water
+#'   the distance ratio 'ratio'); this is useful e.g. for counts of dams or waste water
 #'   treatment plant or total catchment area.
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
