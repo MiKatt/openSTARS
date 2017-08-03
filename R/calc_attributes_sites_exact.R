@@ -1,4 +1,4 @@
-#' Calcuate attributes of the sites.
+#' Calculate attributes of the sites.
 #'
 #' For each site (observation or prediction) the total catchment area is
 #' calculated ('H2OArea'). Additionally, other attributes (predictor variables)

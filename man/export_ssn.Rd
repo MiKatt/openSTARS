@@ -25,7 +25,7 @@ to a folder which then can be read using the SSN package.
 First it is checked if one of the column names is longer than 10
 characters (which cannot be exported to ESRI shape files as required by SSN).
 
-\code{delete_directory = TRUE} is usefull if the same directory name has been
+\code{delete_directory = TRUE} is useful if the same directory name has been
 used before and the existing data shall be overwritten.
 }
 \examples{

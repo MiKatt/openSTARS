@@ -1,4 +1,4 @@
-#'Calcuate edges for SSN object.
+#'Calculate edges for SSN object.
 #'
 #'@description A vector (lines) map 'edges' is derived from 'streams_v' and
 #'  several attributes are assigned.

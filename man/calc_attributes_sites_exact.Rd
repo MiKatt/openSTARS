@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_attributes_sites_exact.R
 \name{calc_attributes_sites_exact}
 \alias{calc_attributes_sites_exact}
-\title{Calcuate attributes of the sites.}
+\title{Calculate attributes of the sites.}
 \usage{
 calc_attributes_sites_exact(sites_map = "sites", input_raster = NULL,
   stat = NULL, attr_name = NULL, round_dig = 2, calc_basin_area = TRUE,

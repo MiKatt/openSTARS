@@ -1,4 +1,4 @@
-#' Calcuate attributes of the sites.
+#' Calculate attributes of the sites.
 #'
 #' For each site (observations or predictions) attributes (predictor variables)
 #' are derived based on the values calculated for the edge the site lies on.

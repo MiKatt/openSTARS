@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_attributes_sites_approx.R
 \name{calc_attributes_sites_approx}
 \alias{calc_attributes_sites_approx}
-\title{Calcuate attributes of the sites.}
+\title{Calculate attributes of the sites.}
 \usage{
 calc_attributes_sites_approx(sites_map = "sites", input_attr_name,
   output_attr_name = NULL, stat, round_dig = 2)

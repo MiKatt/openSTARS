@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_edges.R
 \name{calc_edges}
 \alias{calc_edges}
-\title{Calcuate edges for SSN object.}
+\title{Calculate edges for SSN object.}
 \usage{
 calc_edges()
 }

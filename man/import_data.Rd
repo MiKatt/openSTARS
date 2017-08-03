@@ -37,7 +37,7 @@ Nothing, the data is loaded into the GRASS session (mapset PERMANENT).
 The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
 vector(s) using the original file names with an appended '_o' (without extension),
 streams as vector 'streams_o' in the GRASS location. Additionally, predictor 
-map raster(s) can be read in and are stroed in GRASS using either the 
+map raster(s) can be read in and are stored in GRASS using either the 
 original file names (without extension) or using the names provides in 
 predictor_names. The latter option may be useful if ArcGIS grid data 
 (typically stored as 'grid_name/w001001.adf') are used.
