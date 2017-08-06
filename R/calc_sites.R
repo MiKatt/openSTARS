@@ -89,8 +89,10 @@
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)
+#' sites_orig <-  readVECT('sites_o', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
 #' lines(edges, col = 'blue')
+#' points(sites_o, pch = 4, col = "red")
 #' points(sites, pch = 4)
 #'  }
 #' 

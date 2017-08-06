@@ -6,20 +6,17 @@ LICENSE_full
 
 # Git
 .gitignore
-
 # Travis
 .travis.yml
-
 # appveyor
 ^appveyor\.yml$
 travis-tool.sh.cmd
-
 # READMES
 README.html
 README.Rmd
 README.md
 README_files
 CONTRIBUTING.md
-
 # CRAN-COMMENTS
 cran-comments.md
+^NEWS\.md$

@@ -40,20 +40,7 @@
 #'
 #' # Prepare site
 #' calc_sites()
-#' # Calculate H2OArea
-#' calc_attributes_sites_exact()
-#'
-#' # Plot data
-#' dem <- readRAST('dem', ignore.stderr = TRUE)
-#' sites <- readVECT('sites', ignore.stderr = TRUE)
-#' sites_orig <-  readVECT('sites_o', ignore.stderr = TRUE)
-#' edges <- readVECT('edges', ignore.stderr = TRUE)
-#' plot(dem, col = terrain.colors(20))
-#' lines(edges, col = 'blue')
-#' points(sites_o, pch = 4)
-#' cols <- colorRampPalette(c("blue", 'red'))(length(sites$H2OArea))[rank(sites$H2OArea)]
-#' points(sites, pch = 16, col = cols)
-#'
+#' 
 #' # Write data to SSN Folder
 #' ssn_dir <- file.path(tempdir(), 'nc.ssn')
 #' export_ssn(ssn_dir)
@@ -82,7 +69,7 @@
 # derive_streams(burn=5, at=700, condition=TRUE, clean = TRUE)
 # calc_edges()
 # streams<-readVECT('edges')
-# plot(streams,col="green")
+# plot(streams,add=T,col="green")
 #
 # calc_sites()
 # streams<-readVECT('sites')
