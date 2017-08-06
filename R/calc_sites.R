@@ -18,7 +18,7 @@
 #'@details Steps include:
 #'\itemize{
 #'\item{Snap points to derived network. 'dist'
-#'gives the distance of the original position to the closest streams segement.}
+#'gives the distance of the original position to the closest streams segment.}
 #'\item{Assign unique 'pid' and 'locID'.}
 #'\item{Get 'rid' and 'netID' of the
 #'stream segment the site intersects with (from map "edges").}
@@ -26,9 +26,9 @@
 #' \item{Calculate distance ratio
 #'('ratio') between position of site on edge (distance traveled from lower
 #'end of the edge to the site) and the total length of the edge.} }
-#'Often, survey sites do not lay exactly on the stream network (due to GPS inprecision,
+#'Often, survey sites do not lay exactly on the stream network (due to GPS imprecision,
 #'stream representation as lines, derivation of streams from dem, etc.). To
-#'assigne an exact position of the sites on the network they are moved to the
+#'assign an exact position of the sites on the network they are moved to the
 #'closest stream segment (snapped) using
 #'\href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance}.
 #'
@@ -52,10 +52,10 @@
 #'@note \code{\link{import_data}}, \code{\link{derive_streams}} and
 #'  \code{\link{calc_edges}} must be run before.
 #'
-#'@author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel
-#'  \email{mira.kattwinkel@@gmx.net}
-#'@export
-#' @examples
+#'@author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}, Eduard Szoecs, 
+#' \email{eduardszoecs@@gmail.com}, 
+#' 
+#' @examples 
 #' \donttest{
 #' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass72/",
@@ -72,16 +72,28 @@
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #'
+#' # Check and correct complex junctions (there are no complex juctions in this 
+#' # example date set)
+#' cj <- check_compl_junctions()
+#' if(cj){
+#'   correct_compl_junctions()
+#' }
+#' 
+#' # Prepare edges
 #' calc_edges()
+#'
+#' # Prepare site
 #' calc_sites()
 #'
 #' # Plot data
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
+#' sites <- readVECT('sites', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
 #' lines(edges, col = 'blue')
 #' points(sites, pch = 4)
-#' }
+#'  }
+#' 
 
 calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
   vect <- execGRASS("g.list",

@@ -24,15 +24,17 @@
 #'
 #' @examples
 #' \donttest{
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass72/",
-#'   home = tempdir(),
-#'   override = TRUE)
+#'     home = tempdir(),
+#'     override = TRUE)
+#'
+#' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-#' setup_grass_environment(dem = dem_path, epsg = 3358)
+#' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' gmeta()
 #' }
-#'
 
 setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)

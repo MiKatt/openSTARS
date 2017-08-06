@@ -13,7 +13,7 @@
 #'  If available it can be burnt into DEM.
 #' @param snap_streams boolean (optional); snap line ends.
 #'  If TRUE line ends of the streams are snapped to the next feature if they are
-#'   unconncted with threshold of 10 m using GRASS function v.clean.
+#'   unconnected with threshold of 10 m using GRASS function v.clean.
 #' @param pred_sites character vector (optional); paths to prediction sites 
 #' vector files
 #' @param predictor_maps character vector (optional); paths to raster data to 
@@ -24,10 +24,10 @@
 #' @return Nothing, the data is loaded into the GRASS session (mapset PERMANENT).
 #' The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
 #' vector(s) using the original file names with an appended '_o' (without extension),
-#' streams as vector 'streams_o' in the GRASS location. Additinally, predictor 
-#' map raster(s) can be read in and are stroed in GRASS using either the 
+#' streams as vector 'streams_o' in the GRASS location. Additionally, predictor 
+#' map raster(s) can be read in and are stored in GRASS using either the 
 #' original file names (without extension) or using the names provides in 
-#' predictor_names. The latter option may be usefull if ArcGIS grid data 
+#' predictor_names. The latter option may be useful if ArcGIS grid data 
 #' (typically stored as 'grid_name/w001001.adf') are used.
 #'.
 #'
@@ -35,21 +35,23 @@
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com},  Mira Kattwinkel
 #'  \email{mira.kattwinkel@@gmx.net}
 #' @export
-#'
+#' 
 #' @examples
 #' \donttest{
+#' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass72/",
-#'   home = tempdir(),
-#'   override = TRUE)
-#' gmeta()
+#'     home = tempdir(),
+#'     override = TRUE)
+#'
+# Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, sites = sites_path)
 #' import_data(dem = dem_path, sites = sites_path)
+#' gmeta()
 #' dem <- readRAST('dem')
 #' plot(dem)
 #' }
-#'
 
 import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FALSE, 
                         pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL) {

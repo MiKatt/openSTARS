@@ -1,4 +1,4 @@
-#'Calcuate edges for SSN object.
+#'Calculate edges for SSN object.
 #'
 #'@description A vector (lines) map 'edges' is derived from 'streams_v' and
 #'  several attributes are assigned.
@@ -24,6 +24,7 @@
 #'@author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel,
 #'  \email{mira.kattwinkel@@gmx.net}
 #'@export
+#'
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
@@ -39,17 +40,18 @@
 #' gmeta()
 #'
 #' # Derive streams from DEM
-#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = FALSE)
+#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #'
 #' # Prepare edges
 #' calc_edges()
-#'
+#' 
 #' # Plot data
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
 #' lines(edges, col = 'blue')
 #' }
+#' 
 
 calc_edges <- function() {
   rast <- execGRASS("g.list",
@@ -229,7 +231,7 @@ calc_edges <- function() {
 #' @param netID integer; network ID
 #' @keywords internal
 #'
-#' @return Total catchement area upstream of the segment
+#' @return Total catchment area upstream of the segment
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #'

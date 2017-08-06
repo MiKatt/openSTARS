@@ -10,11 +10,11 @@ calc_catchment_attributes(dt, stat, attr_name, round_dig)
 \arguments{
 \item{dt}{data.table of stream topology and attributes per segment.}
 
-\item{stat}{name or character vector giving the statistics to be calulated,
+\item{stat}{name or character vector giving the statistics to be calculated,
 must be one of: min, max, mean, percent, sum.}
 
 \item{attr_name}{name or character vector of column names for the attribute(s)
-to be caculated.}
+to be calculated.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}

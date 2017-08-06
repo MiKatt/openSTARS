@@ -1,12 +1,12 @@
-#' Calcuate attributes of the sites.
+#' Calculate attributes of the sites.
 #'
 #' For each site (observation or prediction) the total catchment area is
 #' calculated ('H2OArea'). Additionally, other attributes (predictor variables)
-#' can be derived based on given raster maps. This fuction calculates
+#' can be derived based on given raster maps. This function calculates
 #' exact values for catchments derived with
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
 #' and can take considerable time if there are many sites.
-#' Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = locID).
+#' Catchment raster maps can optionally be stored as "sitename_catchm_X" (X = locID).
 
 #' @import progress
 #'
@@ -14,8 +14,8 @@
 #' attributes shall be calculated for. "sites" (default) refers to the observation sites.
 #' @param input_raster character vector (optional); name of additional raster
 #'   maps to calculate attributes from.
-#' @param stat character vector (optional); statistics to be calulated, one of:
-#'   min, max, mean, stddev, variance, sum, median or precentile_X (where X
+#' @param stat character vector (optional); statistics to be calculated, one of:
+#'   min, max, mean, stddev, variance, sum, median or percentile_X (where X
 #'   gives the desired percentile e.g. 25 for the first). Must be provided if 
 #'   \code{input_raster} are given.
 #' @param attr_name character vector (optional); column name for the attributes
@@ -24,7 +24,7 @@
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param calc_basin_area boolean; shall the catchment area be calculated? (Useful
-#'  if the fuction has been called before with \code{keep_basins = TRUE}.)
+#'  if the function has been called before with \code{keep_basins = TRUE}.)
 #' @param keep_basins boolean; shall raster maps of all the watersheds be kept?
 #'
 #' @return Nothing. The function appends new columns to the \code{sites_map} attribute table
@@ -40,11 +40,12 @@
 #'   \code{\link{calc_edges}} and \code{\link{calc_sites}} or
 #'   \code{\link{calc_prediction_sites}} must be run before.
 #'   
-#' If \code{calc_basin_area = F} but there are no raster maps called 'sitesname_catchm_x' 
+#' If \code{calc_basin_area = F} but there are no raster maps called 'sitename_catchm_x' 
 #' with x = locID of all sites the catchments (and their area) are derived. 
 #'   
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' 
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
@@ -85,13 +86,13 @@
 #' b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
 #' c_ramp <- colorRampPalette(c("blue", "red"))
 #' cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e,breaks = b,right=F))]
-#' plot(edges,col=cols,add=T, lwd=2)
+#' plot(edges,col = cols, lwd = 2)
 #' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSlo,breaks = b,right=F))]
 #' points(sites, pch = 19, col = cols)
 #' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right=F))]
-#' points(sites, pch = 21,bg = cols,cex=0.7)
-#' # points in the middle of the map indicate a difference in max slope between
-#' # approximate and exact calculation
+#' points(sites, pch = 21, bg = cols, cex = 0.7)
+#' # Some points in the centre of the map indicate a difference in max slope between
+#' # approximate and exact calculation (different colors for inner and outer points)
 #' }
 
 calc_attributes_sites_exact <- function(sites_map = "sites",
@@ -107,7 +108,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 length(stat), ") and attribute names (", length(attr_name),")."))
 
   if(!is.null(stat) & any(stat %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat)) == 0) # TRUE = 1, FALSE = 0
-    stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "precentile_X" or "precent".')
+    stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "percentile_X" or "percent".')
 
   if(is.null(stat) & !calc_basin_area)
     stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
@@ -256,7 +257,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                           parameters = list(
                             map = input_raster[j]), intern = TRUE)
         } else {
-          if(grepl("precentile",stat[j])){
+          if(grepl("percentile",stat[j])){
             p <- as.numeric(as.character(unlist(strsplit(stat[j],"_"))[2]))
             st <- execGRASS("r.univar",
                             flags = c("overwrite", "quiet","g", "e"),

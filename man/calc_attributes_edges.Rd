@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_attributes_edges.R
 \name{calc_attributes_edges}
 \alias{calc_attributes_edges}
-\title{Calcuate attributes of the edges.}
+\title{Calculate attributes of the edges.}
 \usage{
 calc_attributes_edges(input_raster, stat, attr_name, round_dig = 2,
   clean = TRUE)
@@ -11,11 +11,11 @@ calc_attributes_edges(input_raster, stat, attr_name, round_dig = 2,
 \item{input_raster}{name or character vector of names of the raster map(s)
 to calculate attributes from.}
 
-\item{stat}{name or character vector giving the statistics to be calulated,
+\item{stat}{name or character vector giving the statistics to be calculated,
 must be one of: min, max, mean, percent.}
 
 \item{attr_name}{name or character vector of column names for the attribute(s)
-to be caculated. Attribute names must not be longer than 8 characters.}
+to be calculated. Attribute names must not be longer than 8 characters.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
@@ -35,7 +35,7 @@ are derived based on given raster maps.
 }
 \details{
 First, the subcatchments for all edges are calculated. Then these are
-intersected with the given raster maps and the desired statitics are computed.
+intersected with the given raster maps and the desired statistics are computed.
 This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
 
 For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
@@ -65,23 +65,23 @@ gmeta()
 # Derive streams from DEM
 derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 
+# Check and correct complex junctions (there are no complex juctions in this 
+# example date set)
+cj <- check_compl_junctions()
+if(cj){
+  correct_compl_junctions()
+}
+
 # Prepare edges
 calc_edges()
-execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
-parameters = list(
-  elevation = "dem",
-  slope = "slope"
-  ))
-calc_attributes_edges(input_raster = rep("slope",3),
-  stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slo"))
 
 # Plot data
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
-plot(edges,col=cols,add=T, lwd=2)
+plot(edges, col = "blue", lwd = 2)
 }
+
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}

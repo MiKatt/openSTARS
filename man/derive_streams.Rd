@@ -20,7 +20,7 @@ flow accumulation value in cells that will initiate a new stream).}
 \item{min_stream_length}{integer: minimum stream length in number of DEM
 raster cells; shorter first order stream segments are deleted; default: 0}
 
-\item{dem_name}{character vector, optional; default: 'dem'; usefull if
+\item{dem_name}{character vector, optional; default: 'dem'; useful if
 conditioned and / or burnt in DEM raster from previous runs shall be used.}
 
 \item{clean}{logical; should intermediate raster layer of imported streams
@@ -45,7 +45,7 @@ Streams are derived from a digital elevation model (DEM) using
 \href{https://grass.osgeo.org/grass70/manuals/r.stream.extract.html}{r.stream.extract}.
 If a stream network is available (see \code{\link{import_data}}) and burn > 0
 it will be first burnt into the digital elevation model (DEM). Stream
-topolology is derived using
+topology is derived using
 \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
 }
 \details{
@@ -63,15 +63,20 @@ For this, the stream network needs to be pre-processed before loading it with
 }
 \examples{
 \donttest{
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass72/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-derive_streams()
+gmeta()
+
+# Derive streams from DEM
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 dem <- readRAST('dem', ignore.stderr = TRUE)
 sites <- readVECT('sites_o', ignore.stderr = TRUE)
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
@@ -79,6 +84,7 @@ plot(dem, col = terrain.colors(20))
 lines(streams, col = 'blue', lwd = 2)
 points(sites, pch = 4)
 }
+
 }
 \author{
 Mira Kattwinkel \email{mira.kattwinkel@gmx.net}, Eduard Szoecs, \email{eduardszoecs@gmail.com}

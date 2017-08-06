@@ -1,9 +1,9 @@
-#' Calcuate attributes of the sites.
+#' Calculate attributes of the sites.
 #'
 #' For each site (observations or predictions) attributes (predictor variables)
-#' are derived based on the values caluclated for the edge the site lies on.
-#' This fuction calculates approximate values for site catchments as described
-#' in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Toolset Used to Calculate the
+#' are derived based on the values calculated for the edge the site lies on.
+#' This function calculates approximate values for site catchments as described
+#' in Peterson & Ver Hoef, 2014: STARS: An ArcGIS Toolset Used to Calculate the
 #' Spatial Information Needed to Fit Spatial Statistical Models to Stream
 #' Network Data. J. Stat. Softw., 56 (2).
 #'
@@ -15,7 +15,7 @@
 #'   appended to the site attribute data table. If not provided it is set to
 #'   \code{input_attr_name}. Attribute names must not be longer than 10
 #'   characters.
-#' @param stat name or character vector giving the statistics to be calulated.
+#' @param stat name or character vector giving the statistics to be calculated.
 #'   See details below.
 #' @param round_dig integer; number of digits to round results to.
 #'
@@ -26,12 +26,12 @@
 #'  \item{attr_name:} {Additional optional attributes calculated based on \code{input_attr_name}.}
 #' }
 #'
-#' @details The apporximate total catchment area (H2OAreaA) is always calculated.
+#' @details The approximate total catchment area (H2OAreaA) is always calculated.
 #' If \code{stat} is one of "min", "max", "mean" or "percent" the
 #'   function assigns the value of the edge the site lies on. Otherwise, the
 #'   value is calculated as the sum of all edges upstream of the previous
 #'   junction and the proportional value of the edge the site lies on (based on
-#'   the distance ratio 'ratio'); this is usefull e.g. for counts of dams or waste water
+#'   the distance ratio 'ratio'); this is useful e.g. for counts of dams or waste water
 #'   treatment plant or total catchment area.
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
@@ -41,7 +41,8 @@
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
-#' @examples
+#' 
+#' @examples 
 #' \donttest{
 #' # Initiate GRASS session
 #' initGRASS(gisBase = "/usr/lib/grass72/",
@@ -58,37 +59,28 @@
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #'
-#' # Test for and correct complex junctions
-#' cp <- check_compl_junctions()
-#' if (cp)
-#'   correct_compl_junctions(clean=T)
-#'
+#' # Check and correct complex junctions (there are no complex juctions in this 
+#' # example date set)
+#' cj <- check_compl_junctions()
+#' if(cj){
+#'   correct_compl_junctions()
+#' }
+#' 
 #' # Prepare edges
 #' calc_edges()
-#' execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
-#' parameters = list(
-#'   elevation = "dem",
-#'   slope = "slope"
-#'   ))
-#' calc_attributes_edges(input_raster = rep("slope",3),
-#'   stat = c("mean", "min","sum"), attr_name = paste0(c("mean", "min","sum"),"Slo"))
 #'
-#' # Prepare sites
+#' # Prepare site
 #' calc_sites()
-#' calc_attributes_sites_approx(input_attr_name = paste0(c("mean", "min","sum"),"Slo"),
-#'   stat = c("mean", "min","sum"))
 #'
 #' # Plot data
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
-#' cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
-#' plot(edges,col=cols,add=T, lwd=2)
-#' cols <- colorRampPalette(c("blue", 'red'))(length(sites$meanSlo))[rank(sites$meanSlo)]
-#' points(sites, pch = 16, col = cols)
-#' }
-
+#' lines(edges, col = 'blue')
+#' points(sites, pch = 4)
+#'  }
+#' 
 calc_attributes_sites_approx <- function(sites_map = "sites",
                                          input_attr_name,
                                          output_attr_name = NULL,

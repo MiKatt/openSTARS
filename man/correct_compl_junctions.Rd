@@ -11,13 +11,13 @@ correct_compl_junctions(clean = TRUE, celltoldig = 2)
 session?}
 
 \item{celltoldig}{integer; number of digits the cell size dimensions are
-rounded to before it is checked wether they are identical}
+rounded to before it is checked whether they are identical}
 }
 \value{
 Nothing. The function changes features in \itemize{
   \item{'streams_v':} {Updated streams with topology (vector)}
   \item{'streams_r':} {Updated stream raster (new cat) (raster)} } and copies
-  the oringial to \itemize{ \item{'streams_v_o':} {Originally derived streams
+  the original to \itemize{ \item{'streams_v_o':} {Originally derived streams
   with topology (vector)} \item{'streams_r_o':} {Originally derived stream
   raster (raster).} }
 }
@@ -38,15 +38,23 @@ inflows, not more.
 }
 \examples{
 \donttest{
+# Initiate GRASS session
 initGRASS(gisBase = "/usr/lib/grass72/",
-  home = tempdir(),
-  override = TRUE)
-gmeta()
+    home = tempdir(),
+    override = TRUE)
+
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path, sites = sites_path)
 import_data(dem = dem_path, sites = sites_path)
-derive_streams()
+gmeta()
+
+# Derive streams from DEM
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+
+# Check and correct complex junctions (there are no complex juctions in this 
+# example date set)
 cj <- check_compl_junctions()
 if(cj){
   correct_compl_junctions()

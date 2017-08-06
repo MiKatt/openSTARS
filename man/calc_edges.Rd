@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_edges.R
 \name{calc_edges}
 \alias{calc_edges}
-\title{Calcuate edges for SSN object.}
+\title{Calculate edges for SSN object.}
 \usage{
 calc_edges()
 }
@@ -46,7 +46,7 @@ import_data(dem = dem_path, sites = sites_path)
 gmeta()
 
 # Derive streams from DEM
-derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = FALSE)
+derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 
 # Prepare edges
 calc_edges()
@@ -57,6 +57,7 @@ edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(edges, col = 'blue')
 }
+
 }
 \author{
 Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel,

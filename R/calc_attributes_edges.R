@@ -1,14 +1,14 @@
-#' Calcuate attributes of the edges.
+#' Calculate attributes of the edges.
 #'
 #' For each edge (i.e. stream segment) additional attributes (predictor variables)
 #' are derived based on given raster maps.
 #'
 #' @param input_raster name or character vector of names of the raster map(s)
 #'   to calculate attributes from.
-#' @param stat name or character vector giving the statistics to be calulated,
+#' @param stat name or character vector giving the statistics to be calculated,
 #'   must be one of: min, max, mean, percent.
 #' @param attr_name name or character vector of column names for the attribute(s)
-#'   to be caculated. Attribute names must not be longer than 8 characters.
+#'   to be calculated. Attribute names must not be longer than 8 characters.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' @param clean logical; should intermediate files be deleted
@@ -20,7 +20,7 @@
 #'   the edge ("attribute_name_c").
 #'
 #'@details First, the subcatchments for all edges are calculated. Then these are
-#' intersected with the given raster maps and the desired statitics are computed.
+#' intersected with the given raster maps and the desired statistics are computed.
 #' This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
 #'
 #'For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
@@ -34,6 +34,7 @@
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' 
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
@@ -51,24 +52,23 @@
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #'
+#' # Check and correct complex junctions (there are no complex juctions in this 
+#' # example date set)
+#' cj <- check_compl_junctions()
+#' if(cj){
+#'   correct_compl_junctions()
+#' }
+#' 
 #' # Prepare edges
 #' calc_edges()
-#' execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
-#' parameters = list(
-#'   elevation = "dem",
-#'   slope = "slope"
-#'   ))
-#' calc_attributes_edges(input_raster = rep("slope",3),
-#'   stat = c("mean", "min","max"), attr_name = paste0(c("mean", "min","max"),"Slo"))
-#'
+#' 
 #' # Plot data
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
-#' cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
-#' plot(edges,col=cols,add=T, lwd=2)
+#' plot(edges, col = "blue", lwd = 2)
 #' }
-
+#'
 calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
                                   clean = TRUE){
 
@@ -216,10 +216,10 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
 #' and should not be called by the user.
 #'
 #' @param dt data.table of stream topology and attributes per segment.
-#' @param stat name or character vector giving the statistics to be calulated,
+#' @param stat name or character vector giving the statistics to be calculated,
 #'   must be one of: min, max, mean, percent, sum.
 #' @param attr_name name or character vector of column names for the attribute(s)
-#'   to be caculated.
+#'   to be calculated.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #'
@@ -231,8 +231,8 @@ calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
   for(i in outlets){
     calc_catchment_attributes_rec(dt, id=i, stat, paste0(attr_name,"_c"))
   }
-  # for "mean" and "percent", calc_catchment_attributes_rec gives the cummulative sum of mean value * non_null_cells
-  # => devide here by total number of cells
+  # for "mean" and "percent", calc_catchment_attributes_rec gives the cmmulative sum of mean value * non_null_cells
+  # => divide here by total number of cells
   ind <- c(grep("mean", stat), grep("percent", stat))
   if(length(ind) > 0)
     dt[, paste0(attr_name[ind], "_c") := round(dt[,paste0(attr_name[ind],"_c"), with = FALSE] / dt[,cumsum_cells], round_dig[ind])]
@@ -250,16 +250,16 @@ calc_catchment_attributes <- function(dt, stat, attr_name, round_dig){
 #'
 #' @param dt data.table of stream topology and attributes per segment.
 #' @param id integer; 'stream' of outlet segment to start the calculation from.
-#' @param stat name or character vector giving the statistics to be calulated,
+#' @param stat name or character vector giving the statistics to be calculated,
 #'   must be one of: min, max, mean, percent.
 #' @param attr_name name or character vector of column names for the attribute(s)
-#'   to be caculated.
+#'   to be calculated.
 #'
-#' @return One row data.table with the cummulative number of cells of the total
+#' @return One row data.table with the cumulative number of cells of the total
 #'  catchment of each segment and the values for each attribute and changes the
 #'  values in dt.
 #'
-#' @note The values for stats "mean" and "percent" need to be devided by the cummulative
+#' @note The values for stats "mean" and "percent" need to be divided by the cumulative
 #'  number of cells of the total catchment in a subsequent step.
 #'
 calc_catchment_attributes_rec <- function(dt, id, stat, attr_name){

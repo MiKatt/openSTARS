@@ -14,7 +14,7 @@ calcCatchmArea_assignNetID(dt, id, net_ID)
 \item{netID}{integer; network ID}
 }
 \value{
-Total catchement area upstream of the segment
+Total catchment area upstream of the segment
 }
 \description{
 Recursive function to calculate the upstream area of each stream segment and
