@@ -82,7 +82,6 @@ plot(dem, col = terrain.colors(20))
 cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
 plot(edges,col=cols,add=T, lwd=2)
 }
-
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
