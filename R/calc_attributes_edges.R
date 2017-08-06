@@ -38,7 +38,12 @@
 #' @examples
 #' \donttest{
 #' # Initiate GRASS session
-#' initGRASS(gisBase = "/usr/lib/grass72/",
+#' if(.Platform$OS.type == "windows"){
+#'   gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+#'   } else {
+#'   gisbase = "/usr/lib/grass72/"
+#'   }
+#' initGRASS(gisBase = gisbase,
 #'     home = tempdir(),
 #'     override = TRUE)
 #'
@@ -66,8 +71,7 @@
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
-#' cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
-#' plot(edges,col=cols,add=T, lwd=2)
+#' plot(edges, col= "blue", lwd = 2)
 #' }
 
 calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,

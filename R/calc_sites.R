@@ -54,11 +54,17 @@
 #'
 #'@author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}, Eduard Szoecs, 
 #' \email{eduardszoecs@@gmail.com}, 
+#' @export
 #' 
 #' @examples 
 #' \donttest{
 #' # Initiate GRASS session
-#' initGRASS(gisBase = "/usr/lib/grass72/",
+#' if(.Platform$OS.type == "windows"){
+#'   gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+#'   } else {
+#'   gisbase = "/usr/lib/grass72/"
+#'   }
+#' initGRASS(gisBase = gisbase,
 #'     home = tempdir(),
 #'     override = TRUE)
 #'
