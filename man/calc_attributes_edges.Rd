@@ -84,7 +84,7 @@ calc_edges()
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-plot(edges, col = "blue", lwd = 2)
+lines(edges, col = "blue", lwd = 2)
 }
 
 }

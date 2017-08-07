@@ -59,7 +59,7 @@
 #'
 #' # Write data to SSN Folder
 #' ssn_dir <- file.path(tempdir(), 'nc.ssn')
-#' export_ssn(ssn_dir)
+#' export_ssn(ssn_dir, delete_directory = TRUE)
 #' list.files(ssn_dir)
 #' }
 #' 

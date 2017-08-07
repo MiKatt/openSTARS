@@ -4,16 +4,19 @@
 \alias{check_ssn}
 \title{Checking SSN object.}
 \usage{
-check_ssn(path)
+check_ssn(path, predictions = NULL)
 }
 \arguments{
 \item{path}{character; path to .ssn object.}
+
+\item{predictions}{name(s) of prediction map(s) (optional).}
 }
 \value{
 TRUE or FALSE depending if checks pass.
 }
 \description{
-This function roughly checks
+This function roughly checks the SSN object. It returns FALSE if some 
+essential columns are missing or values have illegal values.
 }
 \examples{
 \donttest{
@@ -59,13 +62,13 @@ sites_orig <-  readVECT('sites_o', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(edges, col = 'blue')
-points(sites_o, pch = 4)
+points(sites_orig, pch = 4)
 cols <- colorRampPalette(c("blue", 'red'))(length(sites$H2OArea))[rank(sites$H2OArea)]
 points(sites, pch = 16, col = cols)
 
 # Write data to SSN Folder
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
-export_ssn(ssn_dir)
+export_ssn(ssn_dir, delete_directory = TRUE)
 
 # Check if all files are ok
 library(SSN)
@@ -73,5 +76,6 @@ check_ssn(ssn_dir)
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}
+Mira Kattwinkel, \email{mira.kattwinkel@gmx.net},
+  Eduard Szoecs, \email{eduardszoecs@gmail.com}
 }

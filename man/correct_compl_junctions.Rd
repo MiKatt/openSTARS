@@ -56,22 +56,26 @@ import_data(dem = dem_path, sites = sites_path)
 gmeta()
 
 # Derive streams from DEM
-derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+derive_streams(burn = 0, accum_threshold = 100, condition = TRUE, clean = TRUE)
 
-# Check and correct complex junctions (there are no complex juctions in this 
-# example date set)
+# Check and correct complex junctions (there are complex juctions in the 
+# example date set if the accumulation threshold is low)
 cj <- check_compl_junctions()
 if(cj){
   correct_compl_junctions()
 }
+
+# plot
 dem <- readRAST('dem', ignore.stderr = TRUE)
-sites <- readVECT('sites_o', ignore.stderr = TRUE)
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
-streams_o <- readVECT('streams_v_o', ignore.stderr = TRUE)
-plot(dem, col = terrain.colors(20))
-points(sites, pch = 4)
-lines(streams_o, col = 'red')
-lines(streams, col = 'blue')
+streams_orig <- readVECT('streams_v_o', ignore.stderr = TRUE)
+# zoom to a relevant part of the dem
+plot(dem, col = terrain.colors(20), axes = TRUE, 
+  xlim = c(640050,640200), ylim = c(219700,219850))
+lines(streams_orig, col = 'red', lwd = 4)
+lines(streams, col = 'blue', lty = 2, lwd = 2)
+legend("topright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2), 
+  legend = c("original", "corrected"))
 }
 }
 \author{

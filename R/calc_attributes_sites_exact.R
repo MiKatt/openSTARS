@@ -87,14 +87,14 @@
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
-#' mm <- range(c(edges$maxSlo_e,sites$maxSlo,sites$maxSloE))
-#' b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
+#' mm <- range(c(edges$maxSlo_e, sites$maxSlo, sites$maxSloE))
+#' b <- seq(from = mm[1], to = mm[2] + diff(mm) * 0.01, length.out = 10)
 #' c_ramp <- colorRampPalette(c("blue", "red"))
-#' cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e,breaks = b,right=F))]
-#' plot(edges,col = cols, lwd = 2)
-#' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSlo,breaks = b,right=F))]
+#' cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e, breaks = b, right = FALSE))]
+#' lines(edges,col = cols, lwd = 2)
+#' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSlo,breaks = b,right = FALSE))]
 #' points(sites, pch = 19, col = cols)
-#' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right=F))]
+#' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right = FALSE))]
 #' points(sites, pch = 21, bg = cols, cex = 0.7)
 #' # Some points in the centre of the map indicate a difference in max slope between
 #' # approximate and exact calculation (different colors for inner and outer points)
