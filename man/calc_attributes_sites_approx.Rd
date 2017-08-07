@@ -72,29 +72,28 @@ gmeta()
 # Derive streams from DEM
 derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 
+# Check and correct complex junctions (there are no complex juctions in this 
+# example date set)
+cj <- check_compl_junctions()
+if(cj){
+  correct_compl_junctions()
+}
+
 # Prepare edges
 calc_edges()
-execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
-parameters = list(
-  elevation = "dem",
-  slope = "slope"
-  ))
-calc_attributes_edges(input_raster = "slope", stat = "max", attr_name = "maxSlo")
 
-# Prepare sites
+# Prepare site
 calc_sites()
-calc_attributes_sites_approx(input_attr_name = "maxSlo", stat = "max")
 
 # Plot data
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
-plot(edges,col=cols,add=T, lwd=2)
-cols <- colorRampPalette(c("blue", 'red'))(length(sites$meanSlo))[rank(sites$meanSlo)]
-points(sites, pch = 16, col = cols)
-}
+lines(edges, col = 'blue')
+points(sites, pch = 4)
+ }
+
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}

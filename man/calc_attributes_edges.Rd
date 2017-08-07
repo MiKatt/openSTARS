@@ -79,8 +79,7 @@ calc_edges()
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
-cols <- colorRampPalette(c("blue", 'red'))(length(edges$meanSlo_e))[rank(edges$meanSlo_e)]
-plot(edges,col=cols,add=T, lwd=2)
+plot(edges, col = "blue", lwd = 2)
 }
 
 }
