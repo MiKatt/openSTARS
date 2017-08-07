@@ -21,8 +21,8 @@
 #'@note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
 #'  \code{\link{derive_streams}} must be run before.
 #'
-#'@author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel,
-#'  \email{mira.kattwinkel@@gmx.net}
+#'@author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}, 
+#'  Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #'@export
 #'
 #' @examples

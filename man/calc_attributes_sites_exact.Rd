@@ -114,5 +114,6 @@ points(sites, pch = 21, bg = cols, cex = 0.7)
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
+Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}, 
+  Eduard Szoecs, \email{eduardszoecs@gmail.com}
 }

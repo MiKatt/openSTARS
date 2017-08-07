@@ -43,7 +43,8 @@
 #' If \code{calc_basin_area = F} but there are no raster maps called 'sitename_catchm_x' 
 #' with x = locID of all sites the catchments (and their area) are derived. 
 #'   
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}, 
+#'   Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #' 
 #' @examples

@@ -19,7 +19,8 @@
 #' \code{delete_directory = TRUE} is useful if the same directory name has been
 #' used before and the existing data shall be overwritten.
 #'
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}, Mira Kattwinkel,\email{mira.kattwinkel@gmx.net}
+#' @author Mira Kattwinkel,\email{mira.kattwinkel@gmx.net}, 
+#'   Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
 #' 
 #' @examples

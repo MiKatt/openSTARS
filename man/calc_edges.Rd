@@ -65,6 +65,6 @@ lines(edges, col = 'blue')
 
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com}, Mira Kattwinkel,
- \email{mira.kattwinkel@gmx.net}
+Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}, 
+ Eduard Szoecs, \email{eduardszoecs@gmail.com}
 }
