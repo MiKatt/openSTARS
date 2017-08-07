@@ -23,5 +23,8 @@ from the domain r-project.org.
 Notes on 'no visible binding for global variable' for (fixed) data.table column
 names are prevented by including them as utils::globalVariables.
 
+The examples take quite a while to run (> 5s) because they all contain the full
+workflow of loading and processing GIS files to be stand-alone examples.
+
 ## Downstream dependencies
 There are no downstream dependencies as this is the first release of the package.
