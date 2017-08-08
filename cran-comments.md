@@ -1,7 +1,7 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "August 2, 2017"
+date: "August 8, 2017"
 output: html_document
 ---
 
@@ -20,7 +20,7 @@ Maintainer: 'Mira Kattwinkel <mira.kattwinkel@gmx.net>'
 This is a stable e-mail address and the spam filter set to let through e-mails 
 from the domain r-project.org.
 
-Notes on 'no visible binding for global variable' for (fixed) data.table column
+Notes on 'no visible binding for global variable' for (static) data.table column
 names are prevented by including them as utils::globalVariables.
 
 Some examples take quite a while to run (> 5s) because they all contain the full
