@@ -2,7 +2,7 @@
 % Please edit documentation in R/check_ssn.R
 \name{check_ssn}
 \alias{check_ssn}
-\title{Checking SSN object.}
+\title{Checking 'SSN' object.}
 \usage{
 check_ssn(path, predictions = NULL)
 }
@@ -15,7 +15,7 @@ check_ssn(path, predictions = NULL)
 TRUE or FALSE depending if checks pass.
 }
 \description{
-This function roughly checks the SSN object. It returns FALSE if some 
+This function roughly checks the 'SSN' object. It returns FALSE if some 
 essential columns are missing or values have illegal values.
 }
 \examples{

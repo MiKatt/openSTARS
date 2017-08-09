@@ -2,7 +2,7 @@
 % Please edit documentation in R/import_data.R
 \name{import_data}
 \alias{import_data}
-\title{Import data into GRASS.}
+\title{Import data into 'GRASS.'}
 \usage{
 import_data(dem, band = 1, sites, streams = NULL, snap_streams = FALSE,
   pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL)
@@ -21,7 +21,7 @@ file (shape) or sp data object.
 
 \item{snap_streams}{boolean (optional); snap line ends.
 If TRUE line ends of the streams are snapped to the next feature if they are
- unconnected with threshold of 10 m using GRASS function v.clean.}
+ unconnected with threshold of 10 m using 'GRASS' function v.clean.}
 
 \item{pred_sites}{character vector (optional); paths to prediction sites 
 vector files}
@@ -33,18 +33,18 @@ import as predictors.}
 variables.}
 }
 \value{
-Nothing, the data is loaded into the GRASS session (mapset PERMANENT).
+Nothing, the data is loaded into the 'GRASS' session (mapset PERMANENT).
 The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
 vector(s) using the original file names with an appended '_o' (without extension),
-streams as vector 'streams_o' in the GRASS location. Additionally, predictor 
-map raster(s) can be read in and are stored in GRASS using either the 
+streams as vector 'streams_o' in the 'GRASS' location. Additionally, predictor 
+map raster(s) can be read in and are stored in 'GRASS' using either the 
 original file names (without extension) or using the names provides in 
 predictor_names. The latter option may be useful if ArcGIS grid data 
 (typically stored as 'grid_name/w001001.adf') are used.
 .
 }
 \description{
-This function loads dem and sites data (both required) into the GRASS session.
+This function loads dem and sites data (both required) into the 'GRASS' session.
 Optionally, prediction sites and streams data can be loaded and the streams 
 may be corrected by snapping to prevent lose ends.
 }

@@ -1,8 +1,8 @@
-#' openSTARS: An Open Source Implementation of the ArcGIS Toolbox STARS.
+#' openSTARS: An Open Source Implementation of the 'ArcGIS' Toolbox 'STARS'.
 #'
 #' openSTARS provides functions to prepare data so that it can be imported by
 #' the \code{\link[SSN]{SSN}} package for spatial modelling on stream networks.
-#' GRASS GIS 7.0 (or greater) with installed addons r.stream.basins,
+#' 'GRASS GIS 7.0' (or greater) with installed addons r.stream.basins,
 #' r.stream.distance, r.stream.order, and r.hydrodem is needed.
 #'
 #' @import rgrass7

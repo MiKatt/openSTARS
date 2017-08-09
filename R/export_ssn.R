@@ -1,7 +1,7 @@
-#' Export .ssn object
+#' Export 'SSN' object
 #'
 #' This function exports the calculated sites, edges and binary IDs
-#' to a folder which then can be read using the SSN package.
+#' to a folder which then can be read using the 'SSN' package.
 #'
 #' @import rgrass7
 #' @importFrom utils write.table
@@ -14,7 +14,7 @@
 #' @return Nothing. Files are written to the specified folder
 #'
 #' @details First it is checked if one of the column names is longer than 10
-#' characters (which cannot be exported to ESRI shape files as required by SSN).
+#' characters (which cannot be exported to ESRI shape files as required by 'SSN').
 #'
 #' \code{delete_directory = TRUE} is useful if the same directory name has been
 #' used before and the existing data shall be overwritten.

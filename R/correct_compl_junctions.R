@@ -10,7 +10,7 @@
 #' vertexmove). So far, this function works only for junctions with three
 #' inflows, not more.
 #'
-#' @param clean logical; should intermediate files be removed from GRASS
+#' @param clean logical; should intermediate files be removed from 'GRASS'
 #'   session?
 #' @param celltoldig integer; number of digits the cell size dimensions are
 #'  rounded to before it is checked whether they are identical

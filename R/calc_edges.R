@@ -16,7 +16,7 @@
 #'
 #'@return Nothing. The function produces the following map: \itemize{
 #'  \item{'edges'} {derived stream segments with computed attributes needed for
-#'  SSN (vector)} }
+#'  'SSN' (vector)} }
 #'
 #'@note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
 #'  \code{\link{derive_streams}} must be run before.

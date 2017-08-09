@@ -9,7 +9,7 @@ calc_edges()
 \value{
 Nothing. The function produces the following map: \itemize{
  \item{'edges'} {derived stream segments with computed attributes needed for
- SSN (vector)} }
+ 'SSN' (vector)} }
 }
 \description{
 A vector (lines) map 'edges' is derived from 'streams_v' and

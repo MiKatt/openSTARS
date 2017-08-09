@@ -1,6 +1,6 @@
-#' Setup GRASS environment.
+#' Setup 'GRASS' environment.
 #'
-#' This function sets the GRASS mapset to PERMANENT and sets its projection and extension.
+#' This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 #'
 #' @param dem character; path to DEM.
 #' @param sites character string or object; path to sites vector file (shape) 
@@ -9,14 +9,14 @@
 #' @param proj4 (optional) proj4 string; character string of projection arguments
 #'  
 #'
-#' @return Nothing, the GRASS mapset is set to PERMANENT,
+#' @return Nothing, the 'GRASS' mapset is set to PERMANENT,
 #' projection is set to the one of the sites shape, to the proj4 string or to 
 #' the epsg code provided, the extent of the region is set to the one of bounding
 #' box of the dem.
 #'
 #' @note Either \code{sites}, \code{epsg} or \code{proj4} must be provided. Make
 #' sure that all raster and vector files are in the same projection; it will be
-#' overwritten without warning. A GRASS session must be initiated before, see
+#' overwritten without warning. A 'GRASS' session must be initiated before, see
 #' \code{\link[rgrass7]{initGRASS}}.
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}

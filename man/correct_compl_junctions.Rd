@@ -7,7 +7,7 @@
 correct_compl_junctions(clean = TRUE, celltoldig = 2)
 }
 \arguments{
-\item{clean}{logical; should intermediate files be removed from GRASS
+\item{clean}{logical; should intermediate files be removed from 'GRASS'
 session?}
 
 \item{celltoldig}{integer; number of digits the cell size dimensions are

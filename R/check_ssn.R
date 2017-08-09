@@ -1,6 +1,6 @@
-#' Checking SSN object.
+#' Checking 'SSN' object.
 #'
-#' This function roughly checks the SSN object. It returns FALSE if some 
+#' This function roughly checks the 'SSN' object. It returns FALSE if some 
 #' essential columns are missing or values have illegal values.
 #'
 #' @importFrom rgdal readOGR

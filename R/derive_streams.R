@@ -18,7 +18,7 @@
 #' @param dem_name character vector, optional; default: 'dem'; useful if
 #'   conditioned and / or burnt in DEM raster from previous runs shall be used.
 #' @param clean logical; should intermediate raster layer of imported streams
-#'   ('streams_or') be removed from GRASS session?
+#'   ('streams_or') be removed from 'GRASS' session?
 #' @param mem logical; should -m flag in GRASS r.watershed be used (as indicated in its help)
 #'   see also \code{\link{watershed_memory}}-function
 #'

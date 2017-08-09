@@ -1,11 +1,11 @@
 Package: openSTARS
 Type: Package
-Title: An Open Source Implementation of the ArcGIS Toolbox STARS
-Description: An open source implementation of the STARS toolbox
-    (Peterson & Ver Hoef, 2014)) using R and GRASS GIS.
-    It prepares the *.ssn object needed for the SSN package.
+Title: An Open Source Implementation of the 'ArcGIS' Toolbox 'STARS'
+Description: An open source implementation of the 'STARS' toolbox
+    (Peterson & Ver Hoef, 2014, doi:10.18637/jss.v056.i02)) using 'R' and 'GRASS GIS'.
+    It prepares the *.ssn object needed for the 'SSN' package.
     A digital elevation model (DEM) is used to derive stream networks 
-    (in contrast to STARS that can clean an existing stream network).
+    (in contrast to 'STARS' that can clean an existing stream network).
 Version: 1.0.0
 Authors@R: c(person("Mira", "Kattwinkel", role = c("aut","cre"),
               email = "mira.kattwinkel@gmx.net"),

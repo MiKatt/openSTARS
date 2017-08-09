@@ -1,7 +1,7 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "August 8, 2017"
+date: "August 9, 2017"
 output: html_document
 ---
 
@@ -28,3 +28,11 @@ workflow of loading and processing GIS files to be stand-alone examples.
 
 ## Downstream dependencies
 There are no downstream dependencies as this is the first release of the package.
+
+## Submission review comments
+All comments were taken into account except one:
+"Please explain the acronym DEM in your description."
+
+This is already done in the description right before giving the acronym:
+"A digital elevation model (DEM) is used to derive stream networks"
+

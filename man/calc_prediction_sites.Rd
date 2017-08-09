@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_prediction_sites.R
 \name{calc_prediction_sites}
 \alias{calc_prediction_sites}
-\title{Calculate prediction sites for SSN object.}
+\title{Calculate prediction sites for 'SSN' object.}
 \usage{
 calc_prediction_sites(predictions, dist = NULL, nsites = 10,
   netIDs = NULL)
@@ -29,7 +29,7 @@ is NULL, it is estimated by dividing the total stream length in the map by
 smaller than \code{nsites}.
 
 Steps include: \itemize{ \item{Place points on edges with given distance form
-each other} \item{Assign unique identifiers (needed by the SSN package) 'pid'
+each other} \item{Assign unique identifiers (needed by the 'SSN' package) 'pid'
 and 'locID'.} \item{Get 'rid' and 'netID' of the stream segment the site
 intersects with (from map 'edges').} \item{Calculate upstream distance for
 each point ('upDist').} \item{Calculate distance ratio ('distRatio') between

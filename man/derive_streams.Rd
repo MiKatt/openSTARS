@@ -24,7 +24,7 @@ raster cells; shorter first order stream segments are deleted; default: 0}
 conditioned and / or burnt in DEM raster from previous runs shall be used.}
 
 \item{clean}{logical; should intermediate raster layer of imported streams
-('streams_or') be removed from GRASS session?}
+('streams_or') be removed from 'GRASS' session?}
 
 \item{mem}{logical; should -m flag in GRASS r.watershed be used (as indicated in its help)
 see also \code{\link{watershed_memory}}-function}

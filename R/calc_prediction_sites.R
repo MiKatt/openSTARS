@@ -1,4 +1,4 @@
-#'Calculate prediction sites for SSN object.
+#'Calculate prediction sites for 'SSN' object.
 #'
 #'@description A vector (points) map of prediction sites is created and several
 #'attributes are assigned.
@@ -16,7 +16,7 @@
 #'smaller than \code{nsites}.
 #'
 #'Steps include: \itemize{ \item{Place points on edges with given distance form
-#'each other} \item{Assign unique identifiers (needed by the SSN package) 'pid'
+#'each other} \item{Assign unique identifiers (needed by the 'SSN' package) 'pid'
 #'and 'locID'.} \item{Get 'rid' and 'netID' of the stream segment the site
 #'intersects with (from map 'edges').} \item{Calculate upstream distance for
 #'each point ('upDist').} \item{Calculate distance ratio ('distRatio') between
