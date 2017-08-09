@@ -5,6 +5,14 @@ date: "August 9, 2017"
 output: html_document
 ---
 
+## Submission review comments
+All comments were taken into account in particular:
+"Please explain the acronym DEM in your description."
+
+This is done in the description right before giving the abbreviation; 
+now starting with a capital letter:
+"A Digital Elevation Model (DEM) is used to derive stream networks"
+
 ## Test environments
 * Linux Mint 18.2 Sonya, R 3.4.1
 * Windows 7, R 3.4.1
@@ -29,10 +37,4 @@ workflow of loading and processing GIS files to be stand-alone examples.
 ## Downstream dependencies
 There are no downstream dependencies as this is the first release of the package.
 
-## Submission review comments
-All comments were taken into account except one:
-"Please explain the acronym DEM in your description."
-
-This is already done in the description right before giving the acronym:
-"A digital elevation model (DEM) is used to derive stream networks"
 
