@@ -16,9 +16,7 @@ and accounts for patterns of spatial autocorrelation among sampling locations.
 
 
 
-<div style = "float:right; position: relative;"> 
 <img src="release_announcement_files/figure-html/do_plot-1.png" style="display: block; margin: auto 0 auto auto;" />
-</div>
 
 ## Input data
 Required:
