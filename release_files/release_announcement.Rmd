@@ -2,9 +2,7 @@
 title: "New package openSTARS"
 author: "Mira Kattwinkel"
 date: "August 10, 2017"
-output:
-  html_document:
-    keep_md: yes
+output: html_document
 bibliography: bib.bib
 ---
 
@@ -45,6 +43,7 @@ pred_sites <- readVECT("preds", ignore.stderr = TRUE)
 
 ```
 
+<div style = "float:right; position: relative;"> 
 ``` {r do_plot, echo = FALSE, eval = TRUE, fig.height = 4.2, fig.width = 4.2, fig.align = "right"}
 plot(dem, col = terrain.colors(20), what = "image")
 lines(edges, col = "blue")
@@ -53,6 +52,7 @@ points(pred_sites, pch = 20, bg = "black")
 legend(x = par("usr")[1]*1.0008, y = par("usr")[3]*1.018, col = c(2,1,"blue"), pch = c(19,20,NA), lwd=c(NA,NA,2),
        legend = c("sampling sites", "created prediction sites","derived streams"), cex = 0.85)
 ```
+</div>
 
 ## Input data
 Required:
