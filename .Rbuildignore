@@ -20,3 +20,5 @@ CONTRIBUTING.md
 # CRAN-COMMENTS
 cran-comments.md
 ^NEWS\.md$
+# Release announcement
+release_files
