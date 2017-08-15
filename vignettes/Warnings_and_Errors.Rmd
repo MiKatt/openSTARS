@@ -8,6 +8,58 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+```{r echo=FALSE}
+knitr::opts_chunk$set(
+  eval = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Error when running the examples
+**_Problem_** Error message in R console: 
+
+```{r eval = TRUE, echo = FALSE, results = 'hide', message = FALSE}
+library(openSTARS)
+if(.Platform$OS.type == "windows"){
+    gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+    } else {
+    gisbase = "/usr/lib/grass72/"
+    }
+  initGRASS(gisBase = gisbase,
+      home = tempdir(),
+      override = TRUE)
+
+  # Load files into GRASS
+  dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
+  sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+  setup_grass_environment(dem = dem_path, sites = sites_path)
+```
+
+
+```{r id, error = TRUE, eval = TRUE}
+import_data(dem = dem_path, sites = sites_path)
+```
+
+**_Solution_** There are three ways to fix this issue:
+
+(a) Install openSTARS from github
+```{r install_gh, eval=FALSE}
+# install.packages("devtools")
+devtools::install_github("MiKatt/openSTARS")
+```
+
+(b) Download a fixed version of the example shape file for 
+monitoring sites ('sites_nc') from <https://github.com/MiKatt/openSTARS/tree/master/inst/extdata/nc> 
+and place them into the library folder ('.../openSTARS/extdata/nc/').
+
+(c) Open sites_nc.shp from the library folder in a GIS program (e.g. QGIS, GRASS
+might not work), open the attributes table, sort the 'value' column and start 
+editing. Replace all empty cells with an arbitrary integer value. Save and close.
+
 ## Special settings for MAC OS
 GRASS 7 does not run on Mac with system integrity check (<http://grassmac.wikidot.com>) and it needs to be disbaled. Additionally, GRASS addons (r.hydrodem etc.) need to be installed system-wide (see below how to install them using GRASS GUI).
 
