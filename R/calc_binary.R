@@ -14,6 +14,7 @@
 #'
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com}; Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' @importFrom rgrass7 execGRASS
 #'
 #' @examples
 #' \donttest{
@@ -55,7 +56,7 @@
 #' }
 
 calc_binary <- function(){
-  vect <- execGRASS("g.list",
+  vect <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = 'vect'
                     ),
@@ -67,7 +68,7 @@ calc_binary <- function(){
   if (!'sites' %in% vect)
     stop('sites not found. Did you run calc_sites()?')
 
-  dt.streams<-execGRASS('db.select',
+  dt.streams<-rgrass7::execGRASS('db.select',
                flags = 'c',
                parameters = list(
                sql = 'select rid,stream,next_str,prev_str01,prev_str02,netID from edges',

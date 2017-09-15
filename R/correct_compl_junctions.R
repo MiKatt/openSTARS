@@ -27,6 +27,7 @@
 #'
 #' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' @importFrom rgrass7 execGRASS readVECT writeVECT
 #'
 #' @examples
 #' \donttest{
@@ -71,7 +72,7 @@
 #' }
 
 correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
-  cnames<-execGRASS("db.columns",
+  cnames<-rgrass7::execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
                     ), intern=T)
@@ -84,7 +85,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   temp_dir <- tempdir()
 
   # get cellcize of dem raster
-  cellsize <- execGRASS("g.region", flags = "p",intern=T)
+  cellsize <- rgrass7::execGRASS("g.region", flags = "p",intern=T)
   cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2])
   if(round(cellsize[1], celltoldig) != round(cellsize[2], celltoldig)){
     stop("north-south cell size != east-west cell size. Please check")
@@ -92,7 +93,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
 
   # get stream ID of features that have more than two inflows, and stream IDs of those inflows
   dt.junctions<-do.call(rbind,strsplit(
-    execGRASS("db.select",
+    rgrass7::execGRASS("db.select",
               parameters = list(
                 sql = "select stream, prev_str01, prev_str02, prev_str03 from streams_v where prev_str03 > 0"
               ), intern=T),
@@ -105,7 +106,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   # Create new vector with all segments that form complex junctions
   str1<-paste(unique(unlist(c(dt.junctions))),collapse = ",")
   str1<-paste0("(", str1, ")",sep="")
-  execGRASS("v.extract",
+  rgrass7::execGRASS("v.extract",
             flags = c("overwrite","quiet"),
             parameters = list(
               input = "streams_v",
@@ -126,7 +127,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   str1<-paste(unlist(c(dt.junctions)),collapse = ",")
   str1<-paste0("(", str1, ")",sep="")
   dt<-data.table(do.call(rbind,strsplit(
-    execGRASS("db.select",
+    rgrass7::execGRASS("db.select",
               parameters = list(
                 sql = paste0("select stream, length from streams_v where stream in",str1)
               ), intern=T),
@@ -144,7 +145,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   write(paste(paste("P ", dt[, pcat], c(dt[, stream]), dt[, newlen], collapse="\n")),
         file = points)
   # Create point feature with points on complex flows based on points created above
-  execGRASS("v.segment",
+  rgrass7::execGRASS("v.segment",
             flags = c("overwrite","quiet"),
             parameters = list(
               input = "complex_flows",
@@ -152,12 +153,12 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
               rules = points
             ))
   # Get flow direction at these points
-  execGRASS("v.db.addtable", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.addtable", flags = c("quiet"),
             parameters = list(
               map = "complex_flows_p",
               columns = "dir int"
             ))
-  execGRASS("v.what.rast", flags = c("quiet"),
+  rgrass7::execGRASS("v.what.rast", flags = c("quiet"),
             parameters = list(
               map = "complex_flows_p",
               raster = "dirs",
@@ -166,7 +167,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
 
   # Get coordinates of ends of juction segments (only used for the inflows)
   dt.endcoord<-data.frame(do.call(rbind,strsplit(
-    execGRASS("v.to.db", flags =c("p","quiet"),
+    rgrass7::execGRASS("v.to.db", flags =c("p","quiet"),
               parameters = list(
                 map = "complex_flows", #"streams_v",
                 type = "line",
@@ -179,7 +180,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   setkey(dt.endcoord,cat)
 
   # Merge endcoordinates with flow directions one cell above / below juction
-  dt.dirs<-readVECT("complex_flows_p",ignore.stderr = T)
+  dt.dirs <- rgrass7::readVECT("complex_flows_p",ignore.stderr = T)
   dt.dirs<-merge(dt,dt.dirs,by.y="cat",by.x="pcat")
   dt.endcoord<- merge(dt.dirs,dt.endcoord,by.x="stream",by.y="cat")
   rm(list=c("dt.dirs"))
@@ -215,7 +216,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   # P <point id>   <line cat> <offset> [<side offset>]
   points <- file.path(temp_dir,"cut_points.txt")
   write(paste(paste("P ",dt.junctions[,stream],dt.junctions[,stream],c(rep(cellsize/4,nrow(dt.junctions)))),collapse="\n"), file = points)
-  execGRASS("v.segment",
+  rgrass7::execGRASS("v.segment",
             flags = c("overwrite","quiet"),
             parameters = list(
               input = "complex_flows",
@@ -223,7 +224,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
               rules = points
             ))
   dt.cut_coords<-data.table(do.call(rbind,strsplit(
-    execGRASS("v.out.ascii",
+    rgrass7::execGRASS("v.out.ascii",
               flags = c("overwrite", "quiet"),
               parameters = list(
                 input = "complex_flows_cp"
@@ -234,7 +235,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   df.move_streams <- merge(df.move_streams,dt.cut_coords,by="cut_stream")
 
   # Save originally derived network to streams_v_o
-  execGRASS("g.copy",
+  rgrass7::execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
               vector = "streams_v,streams_v_o"), ignore.stderr = TRUE)
@@ -245,7 +246,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   # Break features at cut coordinates
   for(i in 1:nrow(dt.junctions)){
     #print(i)
-    execGRASS("v.edit",
+    rgrass7::execGRASS("v.edit",
               flags = c("quiet","overwrite"),
               parameters = list(
                 map = "streams_v",
@@ -259,7 +260,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   # Move end vertices of move streams to cut coordinates
   for(i in 1:nrow(df.move_streams)){
     #print(i)
-    execGRASS("v.edit",
+    rgrass7::execGRASS("v.edit",
               flags = c("quiet","overwrite"),
               parameters = list(
                 map = "streams_v",
@@ -274,7 +275,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   }
 
   # Seems to be the easiest way to assingn new, unique cat values to all features
-  streams <- readVECT(vname = "streams_v", remove.duplicates = FALSE, ignore.stderr = T, type = "line")
+  streams <- rgrass7::readVECT(vname = "streams_v", remove.duplicates = FALSE, ignore.stderr = T, type = "line")
   streams$cat_old <- streams$cat
   ncat <- max(streams$cat) +1
   for(i in 1:nrow(dt.junctions)){
@@ -288,11 +289,11 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   }
   # writeVECT produces new cat column;
   # IMPORTANT: Take care not to base calculations on that but to use manually updated cat_ (= new 'stream'))
-  writeVECT(streams,"streams_v",v.in.ogr_flags=c("overwrite","quiet"), ignore.stderr = TRUE)
+  rgrass7::writeVECT(streams,"streams_v",v.in.ogr_flags=c("overwrite","quiet"), ignore.stderr = TRUE)
   rm("streams")
 
   # Recalculate length of line segments
-  execGRASS("v.to.db", flags = c("quiet"),
+  rgrass7::execGRASS("v.to.db", flags = c("quiet"),
             parameters = list(
               map = "streams_v",
               option = "length",
@@ -303,7 +304,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   str1<-paste(dt.junctions[,stream],collapse = ",")
   str1<-paste0("(", str1, ")",sep="")
   dt.cut <- do.call(rbind,strsplit(
-    execGRASS("db.select",
+    rgrass7::execGRASS("db.select",
               parameters = list(
                 sql = paste0("select stream, length, cat_ from streams_v where stream in", str1)
               ),intern = T),
@@ -344,7 +345,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   # assign updated cat_ value to 'stream' for cut stream segments
   str1<-paste(c(dt.smallcut[,cat_small],dt.largecut[,cat_large]),collapse = ",")
   str1<-paste0("(", str1, ")",sep="")
-  execGRASS("v.db.update", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.update", flags = c("quiet"),
             parameters = list(
               map = "streams_v",
               column = "stream",
@@ -360,7 +361,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
 
   for(i in 1:nrow(dt.junctions)){
     # set "next_str" of cat_small and move_stream to cat_large
-    execGRASS("v.db.update", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 column = "next_str",
@@ -370,14 +371,14 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     # set "prev_str01" and "prev_str02" of cat_small to the not moved streams
     prev <- as.data.frame(dt.junctions[i,c(prev_str01, prev_str02, prev_str03)])
     prev <- prev[prev != dt.junctions[i,move_stream]]
-    execGRASS("v.db.update", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 column = "prev_str01",
                 where = paste0("stream == ",dt.junctions[i,cat_small]),
                 value = paste0(prev[1])
               ))
-    execGRASS("v.db.update", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 column = "prev_str02",
@@ -385,7 +386,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                 value = paste0(prev[2])
               ))
     # set "next_str" of prev_str01 and prev_str02 to cat_small
-    execGRASS("v.db.update", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 column = "next_str",
@@ -394,14 +395,14 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
               ))
     # set "prev_str01" and "prev_str02" of cat_large to cat_small and move_stream
     prev <- c(dt.junctions[i,c(cat_small, move_stream)])
-    execGRASS("v.db.update", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 column = "prev_str01",
                 where = paste0("stream == ",dt.junctions[i,cat_large]),
                 value = paste0(prev[1])
               ))
-    execGRASS("v.db.update", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 column = "prev_str02",
@@ -409,12 +410,12 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                 value = paste0(prev[2])
               ))
     # set 'prev_str01' or 'prev_str02' of next_str of cat_large to cat_large
-    ns<-execGRASS("db.select",
+    ns<-rgrass7::execGRASS("db.select",
                 parameters = list(
                   sql = paste0("select next_str from streams_v where stream == ", dt.junctions[i,cat_large])
                 ),intern = T)[2]
     prev.ns<-unlist(strsplit(
-                  execGRASS("db.select",
+                  rgrass7::execGRASS("db.select",
                     parameters = list(
                       sql = paste0("select prev_str01, prev_str02 from streams_v where stream == ", ns)
                     ),intern = T)[2],
@@ -422,7 +423,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     prev<-which(as.numeric(prev.ns) == dt.junctions[i,cat_small])
     if(length(prev)>0){
       prev<-paste0("prev_str0",prev)
-      execGRASS("v.db.update", flags = c("quiet"),
+      rgrass7::execGRASS("v.db.update", flags = c("quiet"),
                 parameters = list(
                   map = "streams_v",
                   column = prev,
@@ -433,13 +434,13 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   }
 
   # Mark changed features
-  execGRASS("v.db.addcolumn", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.addcolumn", flags = c("quiet"),
             parameters = list(
               map = "streams_v",
               columns = "changed int"
             ))
   # Set 'changed' to '0' for all streams
-  execGRASS("v.db.update", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.update", flags = c("quiet"),
             parameters = list(
               map = "streams_v",
               column = "changed",
@@ -450,7 +451,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     #print(i)
     str1<-paste(unique(unlist(dt.junctions[i,c(prev_str01,prev_str02,prev_str03,cat_small,cat_large)])),collapse = ",")
     str1<-paste0("(", str1, ")",sep="")
-    execGRASS("v.db.update", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 column = "changed",
@@ -478,20 +479,20 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   #           ))
 
   # delete column prev_str03
-  execGRASS("v.db.dropcolumn", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.dropcolumn", flags = c("quiet"),
             parameters = list(
               map = "streams_v",
               columns = "prev_str03"
             ))
 
   message("Original stream raster moved to streams_r_o.\n")
-  execGRASS("g.copy",
+  rgrass7::execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
               raster = "streams_r,streams_r_o"))
 
   # now use automatically assigned "cat"
-  execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
+  rgrass7::execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
             parameters = list(
               input = "streams_v",
               type = "line",
@@ -502,7 +503,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
 
   if(clean){
     # Remove temporary vector files
-    execGRASS("g.remove",
+    rgrass7::execGRASS("g.remove",
               flags = c("quiet", "f"),
               parameters = list(
                 type = "vector",

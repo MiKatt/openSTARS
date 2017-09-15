@@ -2,6 +2,7 @@
 #'
 #'@importFrom methods as
 #'@import sp
+#'@importFrom rgrass7 execGRASS
 #'
 #'@description A vector (points) map 'sites' is derived and several attributes
 #'are assigned.
@@ -102,12 +103,12 @@
 #' 
 
 calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
-  vect <- execGRASS("g.list",
+  vect <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "vect"
                     ),
                     intern = TRUE)
-  rast <- execGRASS("g.list",
+  rast <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "rast"
                     ),
@@ -140,6 +141,7 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
 #'  table giving a unique site identifier. 
 #'@param pid_c character (optional); column name in the sites attribute table 
 #' that distinguishes between repeated measurements at a sampling site.
+#' @importFrom rgrass7 readVECT writeVECT
 #' 
 #' @details 
 #' This function is called by \code{calc_sites} and should not be called directly.
@@ -148,7 +150,7 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
 #'
 
 prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
-  execGRASS("g.copy",
+  rgrass7::execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
               vector = paste0(paste0(sites_map,"_o"), ",",sites_map)))
@@ -157,14 +159,14 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   # Snap sites to streams --------
   message("Snapping sites to streams...\n")
   # add 4 columns holding: stream, distance and coordinates of nearest streams
-  execGRASS("v.db.addcolumn",
+  rgrass7::execGRASS("v.db.addcolumn",
             parameters = list(
               map = sites_map,
               columns = "cat_edge int,dist double precision,xm double precision,ym double precision"
             ))
   # calc distance
   # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
-  execGRASS("v.distance",
+  rgrass7::execGRASS("v.distance",
             flags = c("overwrite", "quiet"),
             parameters = list(from = sites_map,
                               to = "edges",
@@ -174,7 +176,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   #! This is in R faster than in GRASS!? (which has to write to hard-drive)
   #! Other possibilities in GRASS to change coordinates?
   #! use r.stream.snap alternatively?
-  sites <- readVECT(sites_map, type = "point", ignore.stderr = TRUE)
+  sites <- rgrass7::readVECT(sites_map, type = "point", ignore.stderr = TRUE)
   proj4 <- proj4string(sites)
   sites <-  as(sites, "data.frame")
   coordinates(sites) <-  ~ xm + ym
@@ -203,7 +205,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
     sites@data$pid <- sites@data$locID
   }
   
-  writeVECT(sites, vname = sites_map,
+  rgrass7::writeVECT(sites, vname = sites_map,
             v.in.ogr_flags = c("overwrite", "quiet"),
             ignore.stderr = TRUE)
   rm(sites)
@@ -212,15 +214,15 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   message("Assigning netID and rid...\n")
   
   # MiKatt: This seems to be faster
-  execGRASS("v.db.addcolumn",
+  rgrass7::execGRASS("v.db.addcolumn",
             flags = c("quiet"),
             parameters = list(map = sites_map,
                               columns = "netID int, rid int"))
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql=paste0('UPDATE ', sites_map, ' SET rid=(SELECT rid FROM edges WHERE ', sites_map, '.cat_edge=edges.cat)')
             ))
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql=paste0('UPDATE ', sites_map, ' SET netID=(SELECT netID FROM edges WHERE ', sites_map, '.cat_edge=edges.cat)')
             ))
@@ -270,10 +272,10 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   #             sql=sql_str
   #           )) 
   # ### 
-  execGRASS("v.db.addcolumn",
+  rgrass7::execGRASS("v.db.addcolumn",
             parameters = list(map = sites_map,
                               columns = "upDist double precision, distalong double precision"))
-  execGRASS("v.distance", flags = c("quiet"),
+  rgrass7::execGRASS("v.distance", flags = c("quiet"),
             parameters =list(
               from = sites_map,
               to = "edges",
@@ -284,12 +286,12 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   sql_str <- paste0('UPDATE ', sites_map, ' SET upDist=',
                     'round(((SELECT upDist FROM edges WHERE edges.cat=', 
                     sites_map, '.cat_edge)-distalong),2)')
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql=sql_str
             ))
 
-  execGRASS("v.db.addcolumn",
+  rgrass7::execGRASS("v.db.addcolumn",
             flags = c("quiet"),
             parameters = list(
               map = sites_map,
@@ -298,7 +300,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   sql_str <- paste0('UPDATE ', sites_map, ' SET ratio=1-',
                     'distalong/',
                     '(SELECT Length FROM edges WHERE edges.cat=', sites_map, '.cat_edge)')
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql=sql_str
             ))

@@ -14,8 +14,7 @@ Authors@R: c(person("Mira", "Kattwinkel", role = c("aut","cre"),
 URL: https://github.com/MiKatt/openSTARS
 Depends:
     R (>= 3.3.1),
-    data.table,
-    rgrass7
+    data.table
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyLoad: true
@@ -26,7 +25,8 @@ Imports:
     rgdal,
     sp,
     raster,
-    SSN
+    SSN,
+    rgrass7
 RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown

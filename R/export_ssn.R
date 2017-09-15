@@ -22,6 +22,7 @@
 #' @author Mira Kattwinkel,\email{mira.kattwinkel@gmx.net}, 
 #'   Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
+#' @importFrom rgrass7 execGRASS
 #' 
 #' @examples
 #' \donttest{
@@ -69,12 +70,12 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
     stop(paste(path, "already exists. To delete it use 'delete_directory = TRUE'."))
   if(file.exists(path) & delete_directory == TRUE)
     unlink(path, recursive = T)
-  cnames<-execGRASS("db.columns",
+  cnames<-rgrass7::execGRASS("db.columns",
                     parameters = list(
                       table = "edges"
                     ), intern=T)
 
-  cnames<-c(cnames,execGRASS("db.columns",
+  cnames<-c(cnames,rgrass7::execGRASS("db.columns",
                     parameters = list(
                       table = "sites"
                     ), intern=T))
@@ -82,7 +83,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
   if(!is.null(predictions)){
     cnames <- NULL
     for(i in 1:length(predictions)){
-    cnames<-c(cnames,c(cnames,execGRASS("db.columns",
+    cnames<-c(cnames,c(cnames,rgrass7::execGRASS("db.columns",
                                parameters = list(
                                  table = predictions[i]
                                ), intern=T)))
@@ -97,17 +98,17 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
   message("Exporting to ", path)
   # write edges
   # MiKatt first copy edges and drop attributes not needed for ssn
-  execGRASS("g.copy",
+  rgrass7::execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
               vector = "edges,edges2"))
-  execGRASS("v.db.dropcolumn",
+  rgrass7::execGRASS("v.db.dropcolumn",
             flags = "quiet",
             parameters = list(
               map = "edges2",
               columns = "stream,next_str,prev_str01,prev_str02"
             ))
-  execGRASS("v.out.ogr",
+  rgrass7::execGRASS("v.out.ogr",
             flags = c("overwrite", "quiet"),
             parameters = list(
               input = "edges2",
@@ -115,7 +116,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
               output = path,
               output_layer = "edges"
             ))
-  execGRASS("g.remove",
+  rgrass7::execGRASS("g.remove",
             flags = c("quiet", "f"),
             parameters = list(
               type = "vector",
@@ -123,7 +124,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
             ))
 
   # write sites
-  execGRASS("v.out.ogr",
+  rgrass7::execGRASS("v.out.ogr",
             c("overwrite", "quiet"),
             parameters = list(
               input = "sites",
@@ -135,7 +136,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
   # write preds
   if(!is.null(predictions)){
     for(i in seq_along(predictions))
-      execGRASS("v.out.ogr",
+      rgrass7::execGRASS("v.out.ogr",
                 c("overwrite", "quiet"),
                 parameters = list(
                   input = predictions[i],
@@ -183,7 +184,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
 #'  @export
 #'
 calc_binary <- function(){
-  vect <- execGRASS("g.list",
+  vect <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "vect"
                     ),
@@ -195,7 +196,7 @@ calc_binary <- function(){
   if (!"sites" %in% vect)
     stop("sites not found. Did you run calc_sites()?")
 
-  dt.streams<-execGRASS("db.select",
+  dt.streams<-rgrass7::execGRASS("db.select",
                         flags = "c",
                         parameters = list(
                           sql = "select rid,stream,next_str,prev_str01,prev_str02,netID from edges",

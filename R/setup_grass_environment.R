@@ -21,6 +21,7 @@
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' @importFrom rgrass7 execGRASS writeVECT
 #'
 #' @examples
 #' \donttest{
@@ -50,7 +51,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
 
   # Set Projection to input file -------------------------
   ## AS: Habe optionen hinzugefügt, dass Punkte auch SP*-Objekte aus R sein können
-  execGRASS("g.mapset", flags = c("quiet"),
+  rgrass7::execGRASS("g.mapset", flags = c("quiet"),
             parameters = list(
               mapset = "PERMANENT"))
   # MiKatt: shortend
@@ -64,17 +65,17 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
     # }
   }
   if(!is.null(proj4)){
-    execGRASS("g.proj", flags = c("c"),
+    rgrass7::execGRASS("g.proj", flags = c("c"),
               parameters = list(
                 proj4 = proj4
               ))
   } else if(!is.null(sites)){
-    execGRASS("g.proj", flags = c("c"),
+    rgrass7::execGRASS("g.proj", flags = c("c"),
               parameters = list(
                 georef = sites
               ))
   } else {
-    execGRASS("g.proj",
+    rgrass7::execGRASS("g.proj",
               flags = c("c"),#, "quiet"),
               parameters = list(
                 epsg = epsg
@@ -125,16 +126,16 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
   }
   
   # write bounding box of dem
-  writeVECT(SDF = dem_extent, vname = 'bbox_dem', driver = 'SQLite',
+  rgrass7::writeVECT(SDF = dem_extent, vname = 'bbox_dem', driver = 'SQLite',
             v.in.ogr_flags = c("overwrite", "quiet"))
-  execGRASS("g.region", flags = c("quiet"),
+  rgrass7::execGRASS("g.region", flags = c("quiet"),
             parameters = list(
               vector = "bbox_dem",
               nsres = dem_res_y,
               ewres = dem_res_x
               ))
   # remove temporary dem file
-  execGRASS("g.remove", flags = c("quiet", "f"),
+  rgrass7::execGRASS("g.remove", flags = c("quiet", "f"),
             parameters = list(
               type = "vector",
               name = "bbox_dem"

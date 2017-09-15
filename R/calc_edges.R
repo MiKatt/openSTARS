@@ -24,6 +24,7 @@
 #'@author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}, 
 #'  Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #'@export
+#'@importFrom rgrass7 execGRASS
 #'
 #' @examples
 #' \donttest{
@@ -59,7 +60,7 @@
 #' 
 
 calc_edges <- function() {
-  rast <- execGRASS("g.list",
+  rast <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "rast"
                     ),
@@ -70,7 +71,7 @@ calc_edges <- function() {
   
   temp_dir <- tempdir()
 
-  execGRASS("g.copy",
+  rgrass7::execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
               vector = "streams_v,edges"))
@@ -79,14 +80,14 @@ calc_edges <- function() {
   # Only needed if correct_compl_junctions was not run.
   # get maximum category value plus 1
   nocat<-as.character(max(as.numeric(
-                                     execGRASS("v.db.select",
+                                     rgrass7::execGRASS("v.db.select",
                                                parameters = list(
                                                  map= "edges",
                                                  columns= "cat"),
                                                intern =T )[-1]
                                      ))+1)
   # delete all points
-  execGRASS("v.edit",
+  rgrass7::execGRASS("v.edit",
             flags = c("r", "quiet"),    # r: reverse selection = all
             parameters = list(
               map = "edges",
@@ -98,7 +99,7 @@ calc_edges <- function() {
   message("Calculating reach contributing area (RCA)...\n")
   # MiKatt: Could this be done in one step in r.watershed when accumulation map is computed in derive_streams.R?
   # MiKatt: Check if that would be faster: results in approx. two time more basins due to tiny stream snipplets from r.watershed --> keep it as it is.
-  execGRASS("r.stream.basins",
+  rgrass7::execGRASS("r.stream.basins",
             flags = c("overwrite", "quiet"),
             parameters = list(direction = "dirs",
                               stream_rast = "streams_r",
@@ -111,7 +112,7 @@ calc_edges <- function() {
   # calculate area (in m^2) of catchments
   # MiKatt: r.stats with flag "a" gives area in sqrt m, not map units!
   areas <- do.call(rbind,
-                   strsplit(execGRASS("r.stats",
+                   strsplit(rgrass7::execGRASS("r.stats",
                                       flags = c("a", "quiet"),
                                       parameters = list(input = "rca"),
                                       intern = TRUE),
@@ -124,7 +125,7 @@ calc_edges <- function() {
 
   # calculate upstream area per stream segment
   dt.streams <- do.call(rbind,strsplit(
-    execGRASS("db.select",
+    rgrass7::execGRASS("db.select",
               parameters = list(
                 sql = "select cat, stream, next_str, prev_str01,prev_str02 from edges"
               ),intern = T),
@@ -156,12 +157,12 @@ calc_edges <- function() {
   dtype <- t(gsub("numeric", "Integer", sapply(dt.streams, class)))
   dtype[,c("total_area","area")] <- c("Real", "Real")
   write.table(dtype, file.path(temp_dir, "stream_network.csvt"), quote = T, sep = ",", row.names = F, col.names = F)
-  execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
+  rgrass7::execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
             parameters = list(
               input = file.path(temp_dir, "stream_network.csv"),
               output = "stream_network"
             ),ignore.stderr = T)
-  execGRASS("v.db.join", flags = "quiet",
+  rgrass7::execGRASS("v.db.join", flags = "quiet",
             parameters = list(
               map = "edges",
               column = "stream",
@@ -170,55 +171,55 @@ calc_edges <- function() {
             ))
 
   # MiKatt: 2 steps necessary because SQLite is not case sensitive
-  execGRASS("v.db.renamecolumn",
+  rgrass7::execGRASS("v.db.renamecolumn",
             parameters = list(
               map = "edges",
               column = "length,segLength"
             ))
-  execGRASS("v.db.renamecolumn",
+  rgrass7::execGRASS("v.db.renamecolumn",
             parameters = list(
               map = "edges",
               column = "segLength,Length"
             ))
-  execGRASS("v.db.update", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.update", flags = c("quiet"),
             parameters = list(
               map = "edges",
               column = "Length",
               value = "round(Length, 2)"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
               column = "cum_length,sourceDist"
             ))
-  execGRASS("v.db.update", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.update", flags = c("quiet"),
             parameters = list(
               map = "edges",
               column = "sourceDist",
               value = "round(sourceDist, 2)"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
               column = "out_dist,upDist"
             ))
-  execGRASS("v.db.update", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.update", flags = c("quiet"),
             parameters = list(
               map = "edges",
               column = "upDist",
               value = "round(upDist, 2)"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
               column = "total_area,H2OArea"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
               column = "area,rcaArea"
             ))
-  execGRASS("db.droptable", flags = c("quiet","f"),
+  rgrass7::execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
               table = "stream_network"
             ))

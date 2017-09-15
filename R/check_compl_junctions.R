@@ -12,6 +12,7 @@
 #'
 #' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' @importFrom rgrass7 execGRASS
 #'
 #' @examples
 #' \donttest{
@@ -40,7 +41,7 @@
 
 check_compl_junctions <- function(){
   ret <- FALSE
-  cnames<-execGRASS("db.columns",
+  cnames<-rgrass7::execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
                     ), intern=T)

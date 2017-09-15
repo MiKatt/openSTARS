@@ -46,6 +46,7 @@
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}, 
 #'   Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
+#' @importFrom rgrass7 execGRASS readVECT
 #' 
 #' @examples
 #' \donttest{
@@ -126,21 +127,21 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(length(round_dig) == length(stat))
     round_dig <- c(round_dig[1], round_dig)
 
-  rast <- execGRASS("g.list",
+  rast <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "rast"
                     ),
                     intern = TRUE)
   if ("MASK" %in% rast)
-    execGRASS("r.mask",flags = c("r", "quiet"))
+    rgrass7::execGRASS("r.mask",flags = c("r", "quiet"))
 
-  d.sites <- readVECT(sites_map, ignore.stderr = FALSE)
+  d.sites <- rgrass7::readVECT(sites_map, ignore.stderr = FALSE)
   
   if(!all(paste0(sites_map,"_catchm_",d.sites@data$locID) %in% rast)){
     calc_basin_area <- TRUE
   }
   if(any(d.sites@data$ratio == 0) & calc_basin_area){
-    d.edges <- readVECT("edges", ignore.stderr = FALSE)
+    d.edges <- rgrass7::readVECT("edges", ignore.stderr = FALSE)
     dt.edges <- setDT(d.edges@data)
     dt.edges[, colnames(dt.edges)[-which(colnames(dt.edges) %in% c("cat", "stream","prev_str01","prev_str02","rid","H2OArea"))] := NULL]
     rm(d.edges)
@@ -181,54 +182,54 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         ## workaround:
         n <- length(cats) %/% 100
         if(n == 0){
-          execGRASS("r.mask", flags = c("overwrite","quiet"),
+          rgrass7::execGRASS("r.mask", flags = c("overwrite","quiet"),
                     parameters = list(
                       raster = "rca",
                       maskcats = paste0(cats, collapse = " "))
           )
-          execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+          rgrass7::execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                     parameters = list(
                       expression = paste0("'", paste0(sites_map, "_catchm_",locID), "=MASK'")
                     ))
-          execGRASS("r.mask", flags = c("r","quiet")
+          rgrass7::execGRASS("r.mask", flags = c("r","quiet")
           )
         } else {
           count <- 0
           for(j in 1:n){
-            execGRASS("r.mask", flags = c("overwrite","quiet"),
+            rgrass7::execGRASS("r.mask", flags = c("overwrite","quiet"),
                       parameters = list(
                         raster = "rca",
                         maskcats = paste0(cats[((j-1)*100+1):(j*100)], collapse = " "))
             )
-            execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+            rgrass7::execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                       parameters = list(
                         expression = paste0("'temp", j, "=MASK'")
                       ))
-            execGRASS("r.mask", flags = c("r","quiet")
+            rgrass7::execGRASS("r.mask", flags = c("r","quiet")
             )
             count <- count + 1
           }
           if(length(cats) %% 100 != 0){
-            execGRASS("r.mask", flags = c("overwrite","quiet"),
+            rgrass7::execGRASS("r.mask", flags = c("overwrite","quiet"),
                       parameters = list(
                         raster = "rca",
                         maskcats = paste0(cats[(n*100+1):length(cats)], collapse = " "))
             )
-            execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+            rgrass7::execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                       parameters = list(
                         expression = paste0("'temp", n+1, "=MASK'")
                       ))
-            execGRASS("r.mask", flags = c("r","quiet")
+            rgrass7::execGRASS("r.mask", flags = c("r","quiet")
             )
             count <- count + 1
           }
           m <- paste0("temp",1:count)
           m <- paste0("if(", paste0(m, collapse = "|||"),",1)")
-          execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+          rgrass7::execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                     parameters = list(
                       expression = paste0('\"', paste0(sites_map, '_catchm_',locID), '=', m,'\"')
                     ))
-          execGRASS("g.remove", flags = c("f","quiet"),
+          rgrass7::execGRASS("g.remove", flags = c("f","quiet"),
                     parameters = list(
                       type = "raster",
                       name = paste0("temp",1:count)
@@ -237,13 +238,13 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         }
       } else {
         coord <- coordinates(d.sites[ii,])
-        execGRASS("r.stream.basins",
+        rgrass7::execGRASS("r.stream.basins",
                   flags = c("overwrite", "l", "quiet"),
                   parameters = list(direction = "dirs",
                                     coordinates = coord,
                                     basins = paste0(sites_map, "_catchm_",locID)))
         dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
-          execGRASS("r.stats",
+          rgrass7::execGRASS("r.stats",
                     flags = c("a", "quiet"),
                     parameters = list(input = paste0(sites_map, "_catchm_",locID)),
                     intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
@@ -251,27 +252,27 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     }
     # calculate unviriate statistics per watershed
     # set mask to the current basin
-    execGRASS("r.mask",
+    rgrass7::execGRASS("r.mask",
               flags = c("overwrite", "quiet"),
               parameters = list(
                 raster = paste0(sites_map, "_catchm_",locID)))
     if(length(stat) > 0){
       for(j in 1:length(stat)){
         if(stat[j] == "median"){
-          st <- execGRASS("r.univar",
+          st <- rgrass7::execGRASS("r.univar",
                           flags = c("overwrite", "quiet","g", "e"),
                           parameters = list(
                             map = input_raster[j]), intern = TRUE)
         } else {
           if(grepl("percentile",stat[j])){
             p <- as.numeric(as.character(unlist(strsplit(stat[j],"_"))[2]))
-            st <- execGRASS("r.univar",
+            st <- rgrass7::execGRASS("r.univar",
                             flags = c("overwrite", "quiet","g", "e"),
                             parameters = list(
                               map = input_raster[j],
                               percentile = p), intern = TRUE)
           } else{
-            st <- execGRASS("r.univar",
+            st <- rgrass7::execGRASS("r.univar",
                             flags = c("overwrite", "quiet","g"),
                             parameters = list(
                               map = input_raster[j]), intern = TRUE)
@@ -282,7 +283,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           st[,X2 := as.numeric(as.character(X2))]
           if(grepl("percent", stat[j])){
             if(st[X1=="variance",X2] == 0){  # if coded as something and NA, null(), no data value
-              st2 <- execGRASS("r.univar",
+              st2 <- rgrass7::execGRASS("r.univar",
                                flags = c("overwrite", "quiet","g"),
                                parameters = list(
                                  map = "MASK"), intern = TRUE)
@@ -304,12 +305,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       }
     }
     # Remove the mask!
-    execGRASS("r.mask",
+    rgrass7::execGRASS("r.mask",
               flags = c("r", "quiet"))
 
     # Delete watershed raster
     if (!keep_basins) {
-      execGRASS("g.remove",
+      rgrass7::execGRASS("g.remove",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "raster",
@@ -323,19 +324,19 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   message("Joining tables...")
   utils::write.csv(dat, file.path(temp_dir,"sites_attributes_exact.csv"),row.names = F)
   write.table(t(gsub("numeric","Real",apply(dat,2,class))),file.path(temp_dir,"sites_attributes_exact.csvt"),quote=T,sep=",",row.names = F,col.names = F)
-  execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
+  rgrass7::execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
             parameters = list(
               input = file.path(temp_dir,"sites_attributes_exact.csv"),
               output = "sites_attributes_exact"
             ),ignore.stderr = T)
-  execGRASS("v.db.join", flags = "quiet",
+  rgrass7::execGRASS("v.db.join", flags = "quiet",
             parameters = list(
               map = sites_map,
               column = "locID",
               other_table = "sites_attributes_exact",
               other_column = "locID"
             ))
-  execGRASS("db.droptable", flags = c("quiet","f"),
+  rgrass7::execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
               table = "sites_attributes_exact"
             ))

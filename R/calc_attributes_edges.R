@@ -34,6 +34,7 @@
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' @importFrom rgrass7 execGRASS
 #' 
 #' @examples
 #' \donttest{
@@ -90,7 +91,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
   
   temp_dir <- tempdir()
 
-  rast <- execGRASS("g.list",
+  rast <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "rast"
                     ),
@@ -99,21 +100,21 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
     stop("Missing data. Did you run derive_streams()?")
 
   if ("MASK" %in% rast)
-    execGRASS("r.mask",flags = c("r", "quiet"))
+    rgrass7::execGRASS("r.mask",flags = c("r", "quiet"))
 
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat)+1)
 
   ## Calculate reach contributing area (=sub chatchment) for each segment.
   message("Calculating reach contributing area (RCA)...\n")
-  execGRASS("r.stream.basins",
+  rgrass7::execGRASS("r.stream.basins",
             flags = c("overwrite", "quiet"),
             parameters = list(direction = "dirs",
                               stream_rast = "streams_r",
                               basins = "rca"))
 
   message("Intersecting attributes...")
-  rca_cell_count <- execGRASS("r.univar",
+  rca_cell_count <- rgrass7::execGRASS("r.univar",
                               flags = c("overwrite", "quiet","t"),
                               parameters = list(
                                 map = "rca",
@@ -127,7 +128,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
   setDT(rca_cell_count)
 
   for(j in 1:length(stat)){
-    st <- execGRASS("r.univar",
+    st <- rgrass7::execGRASS("r.univar",
                     flags = c("overwrite", "quiet","t"),
                     parameters = list(
                       map = input_raster[j],
@@ -158,7 +159,7 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
   }
 
   dt.streams <- do.call(rbind,strsplit(
-    execGRASS("db.select",
+    rgrass7::execGRASS("db.select",
               parameters = list(
                 sql = "select cat, stream, next_str, prev_str01, prev_str02, netID from edges"
               ),intern = T),
@@ -187,12 +188,12 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
   message("Joining tables...")
   utils::write.csv(dt.streams, file.path(temp_dir,"edge_attributes.csv"),row.names = F)
   write.table(t(gsub("numeric","Real",sapply(dt.streams,class))),file.path(temp_dir,"edge_attributes.csvt"),quote=T,sep=",",row.names = F,col.names = F)
-  execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
+  rgrass7::execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
             parameters = list(
               input = file.path(temp_dir,"edge_attributes.csv"),
               output = "edge_attributes"
             ),ignore.stderr = T)
-  execGRASS("v.db.join", flags = "quiet",
+  rgrass7::execGRASS("v.db.join", flags = "quiet",
             parameters = list(
               map = "edges",
               column = "cat",
@@ -201,13 +202,13 @@ calc_attributes_edges <- function(input_raster, stat, attr_name, round_dig = 2,
             ))
 
   if (clean) {
-    execGRASS("g.remove",
+    rgrass7::execGRASS("g.remove",
               flags = c("quiet", "f"),
               parameters = list(
                 type = "raster",
                 name = "rca"
               ))
-    execGRASS("db.droptable", flags = c("quiet","f"),
+    rgrass7::execGRASS("db.droptable", flags = c("quiet","f"),
               parameters = list(
                 table = "edge_attributes"
               ))
