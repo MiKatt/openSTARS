@@ -33,6 +33,7 @@
 #'
 #'@author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
 #'@export
+#'@importFrom rgrass7 execGRASS
 #'
 #' @examples
 #' \donttest{
@@ -72,7 +73,7 @@
 
 calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
                                   netIDs = NULL) {
-  vect <- execGRASS("g.list",
+  vect <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "vect"
                     ),
@@ -80,7 +81,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   if (!"edges" %in% vect)
     stop("Edges not found. Did you run calc_edges()?")
   if(predictions %in% vect)
-    execGRASS("g.remove",
+    rgrass7::execGRASS("g.remove",
               flags = c("quiet", "f"),
               parameters = list(
                 type = "vector",
@@ -94,7 +95,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   temp_dir <- tempdir()
 
   dt.streams <- do.call(rbind,strsplit(
-    execGRASS("db.select",
+    rgrass7::execGRASS("db.select",
               parameters = list(
                 sql = "select cat, stream, next_str, prev_str01,prev_str02,netID,Length from edges"
               ),intern = T),
@@ -134,7 +135,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   str1 <- substring(str1, 2)
   write(str1, file.path(temp_dir,"pt.txt"))
 
-  execGRASS("v.segment", flags = c("overwrite", "quiet"),
+  rgrass7::execGRASS("v.segment", flags = c("overwrite", "quiet"),
             parameters = list(
               input = "edges",
               output = predictions,
@@ -143,24 +144,24 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
 
   # MiKatt: No line break in long strings on Windows!
   message("Creating attribute table...\n")
-  execGRASS("v.db.addtable", flags = c("quiet"),
+  rgrass7::execGRASS("v.db.addtable", flags = c("quiet"),
             parameters = list(
               map = predictions,
               columns = "cat_edge int,dist double precision,pid int,loc int,net int,rid int,out_dist double,distalong double precision,ratio double precision"
            ))
 
   # MiKatt: Necessary to get upper and lower case column names
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = predictions,
               column = "loc,locID"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = predictions,
               column = "net,netID"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = predictions,
               column = "out_dist,upDist"
@@ -168,7 +169,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   
   message("Setting cat_edge...\n")
   # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
-  execGRASS("v.distance",
+  rgrass7::execGRASS("v.distance",
             flags = c("overwrite", "quiet"),
             parameters = list(from = predictions,
                               to = "edges",
@@ -177,11 +178,11 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
                               column = "cat_edge,dist"))
 
   message("Setting pid and locID...\n")
-  execGRASS("v.db.update",
+  rgrass7::execGRASS("v.db.update",
             parameters = list(map = predictions,
                               column = "pid",
                               value = "cat"))
-  execGRASS("v.db.update",
+  rgrass7::execGRASS("v.db.update",
             parameters = list(map = predictions,
                               column = "locID",
                               value = "pid"))
@@ -191,13 +192,13 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
 
   sql_str<- paste0("UPDATE ", predictions, " SET rid=(SELECT rid FROM edges WHERE ",
                    predictions,".cat_edge=edges.cat)")
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql = sql_str
             ))
   sql_str<- paste0("UPDATE ", predictions, " SET netID=(SELECT netID FROM edges WHERE ",
                    predictions,".cat_edge=edges.cat)")
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql = sql_str
             ))
@@ -225,7 +226,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   #           ))
   # MiKatt: ! Round upDist to m
 
-  execGRASS("v.distance", flags = c("quiet"),
+  rgrass7::execGRASS("v.distance", flags = c("quiet"),
             parameters =list(
               from = predictions,
               to = "edges",
@@ -236,7 +237,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   sql_str <- paste0('UPDATE ', predictions, ' SET upDist=',
                     'round(((SELECT upDist FROM edges WHERE edges.cat=', 
                     predictions, '.cat_edge)-distalong),2)')
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql=sql_str
             ))
@@ -246,7 +247,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   sql_str <- paste0('UPDATE ', predictions, ' SET ratio=1-',
                     'distalong/',
                     '(SELECT Length FROM edges WHERE edges.cat=', predictions, '.cat_edge)')
-  execGRASS("db.execute",
+  rgrass7::execGRASS("db.execute",
             parameters = list(
               sql=sql_str
             ))

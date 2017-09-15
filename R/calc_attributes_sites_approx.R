@@ -41,6 +41,7 @@
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' @importFrom rgrass7 execGRASS
 #' 
 #' @examples 
 #' \donttest{
@@ -118,7 +119,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                 output attribute names (", length(output_attr_name), ") and
                 statistics to calculate  (", length(stat),")."))
 
-  execGRASS("v.db.addcolumn",
+  rgrass7::execGRASS("v.db.addcolumn",
             flags = c("quiet"),
             parameters = list(
               map = sites_map,
@@ -127,7 +128,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
 
   for(i in seq_along(input_attr_name)){
     if(stat[i] %in% c("min", "max", "mean", "percent")){
-      execGRASS("db.execute",
+      rgrass7::execGRASS("db.execute",
                 parameters = list(
                   sql = paste0("UPDATE ", sites_map," SET ", output_attr_name[i], "=",
                                "(SELECT ", paste0(input_attr_name[i],"_c"),
@@ -153,7 +154,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                          "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev1,") +",
                          "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
       }
-      execGRASS("db.execute",
+      rgrass7::execGRASS("db.execute",
                 parameters = list(
                   sql = sql_str
                 ))
@@ -169,12 +170,12 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                           " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
                           "(SELECT cat FROM edges WHERE prev_str01=0)")
       }
-      execGRASS("db.execute",
+      rgrass7::execGRASS("db.execute",
                 parameters = list(
                   sql = sql_str
                 ))
       # ROUND does not work with WHERE ... IN ...
-      execGRASS("db.execute",
+      rgrass7::execGRASS("db.execute",
                 parameters = list(
                   sql = paste0("UPDATE ",sites_map, " SET ",output_attr_name[i],
                                "= ROUND(",output_attr_name[i],",",round_dig[i],")")

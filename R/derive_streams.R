@@ -45,6 +45,7 @@
 
 #' @author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}, Eduard Szoecs, \email{eduardszoecs@@gmail.com}
 #' @export
+#' @importFrom rgrass7 execGRASS
 #'
 #' @examples
 #' \donttest{
@@ -90,12 +91,12 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
     dem_name <- "dem"
   dem_name_out <- dem_name
 
-  vect <- execGRASS("g.list",
+  vect <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "vect"
                     ),
                     intern = TRUE)
-  rast <- execGRASS("g.list",
+  rast <- rgrass7::execGRASS("g.list",
                     parameters = list(
                       type = "rast"
                     ),
@@ -107,7 +108,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
   if (condition) {
     message("Conditioning DEM...\n")
     # MiKatt: Make 'mod' and 'size' user defined (optionally)?
-    execGRASS("r.hydrodem",
+    rgrass7::execGRASS("r.hydrodem",
               flags = c("overwrite"),
               parameters = list(
                 input = dem_name,
@@ -119,7 +120,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
   if ("streams_o" %in% vect & burn > 0) {
     message("Burning streams into DEM...\n")
     # rasterize streams, set value to 1
-    execGRASS("v.to.rast",
+    rgrass7::execGRASS("v.to.rast",
               flags = c("overwrite", "quiet"),
               parameters = list(
                 input = "streams_o",
@@ -144,26 +145,26 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
     # MiKatt: Unable to rename cell file '.../PERMANENT/.tmp/unknown/548.0' to '.../PERMANENT/fcell/dem':  File exists
     # MiKatt: Solution: 1) write r.mapcalc results to dem2, 2) copy dem2 to dem, 3) delete dem2
     if(.Platform$OS.type == "windows"){
-      execGRASS("r.mapcalc",
+      rgrass7::execGRASS("r.mapcalc",
                 flags = c("overwrite", "quiet"),
                 parameters = list(
                   expression =
                     paste0('\"dem2 = if(isnull(streams_or),  ', dem_name, ', ', dem_name,'-',
                          burn, ')\"')
                 ))
-      execGRASS("g.copy",
+      rgrass7::execGRASS("g.copy",
                 flags = c("overwrite", "quiet"),
                 parameters = list(
                   raster = paste0("dem2,", dem_name_out)
                   ))
-      execGRASS("g.remove",
+      rgrass7::execGRASS("g.remove",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "raster",
                   name = "dem2"
                 ))
     } else{
-      execGRASS("r.mapcalc",
+      rgrass7::execGRASS("r.mapcalc",
                 flags = c("overwrite", "quiet"),
                 parameters = list(
                   expression =
@@ -173,7 +174,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
     }
     # MiKatt: remove temporary stream raster file 'streams_or'
     if (clean) {
-      execGRASS("g.remove",
+      rgrass7::execGRASS("g.remove",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "raster",
@@ -188,7 +189,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
     } else {
       fl <- NULL
     }
-    execGRASS("r.watershed", flags = c("overwrite", "quiet", fl),
+    rgrass7::execGRASS("r.watershed", flags = c("overwrite", "quiet", fl),
             parameters = list(
               elevation = dem_name_out,
               accumulation = "accums"
@@ -201,9 +202,9 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
   message("Deriving streams from DEM...\n")
   # MiKatt: Known Windows issue ([GRASS-dev] [GRASS GIS] #2919): "Missing value for parameter <d8cut>"; default value infinity is not used even if accumulation map is given.
   # MiKatt: Solution: set d8cut to total number of cells in g.region.
-    ncell <- execGRASS("g.region",flags="p",intern=T)
+    ncell <- rgrass7::execGRASS("g.region",flags="p",intern=T)
     ncell <- as.numeric(unlist(strsplit(ncell[grep("cells",ncell)],split=":"))[2])
-    execGRASS("r.stream.extract",
+    rgrass7::execGRASS("r.stream.extract",
             flags =  c("overwrite", "quiet"),
             parameters = list(elevation = dem_name_out,
                               accumulation = "accums",
@@ -217,7 +218,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
     message("Calculating stream topology...\n")
     # MiKatt: Is accumulation needed here? r.stream.order: "This map is an option only if Horton's or Hack's ordering is performed."
     # MiKatt: Yes, does not work without.
-    execGRASS("r.stream.order",
+    rgrass7::execGRASS("r.stream.order",
               flags = c("overwrite", "quiet","z","m"),
               parameters = list(stream_rast = "streams_r",     # input
                                 direction = "dirs",            # input
@@ -227,20 +228,20 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
               ignore.stderr=T)
 
     # MiKatt: ESRI shape files must not have column names with more than 10 characters
-    execGRASS("v.db.renamecolumn", flags = "quiet",
+    rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
               parameters = list(
                 map = "streams_v",
                 column = "next_stream,next_str"
               ))
     # to keep column "next_str" next to prev_str
-    execGRASS("v.db.renamecolumn", flags = "quiet",
+    rgrass7::execGRASS("v.db.renamecolumn", flags = "quiet",
               parameters = list(
                 map = "streams_v",
                 column = "flow_accum, flow_accu"
               ))
 
     # delete unused columns
-    execGRASS("v.db.dropcolumn", flags = c("quiet"),
+    rgrass7::execGRASS("v.db.dropcolumn", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 columns = c("strahler","horton","shreve","hack","topo_dim","scheidegger","drwal_old","stright",

@@ -53,6 +53,7 @@ library("openSTARS")
 First, a GRASS session must be initiated:
 ```{r init_grass1}
 library(openSTARS)
+library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           override = TRUE)
@@ -61,6 +62,7 @@ initGRASS(gisBase = "/usr/lib/grass72/",
 Alternatively, the path to a specific GRASS database directory and a Location name can be provided.
 ```{r init_grass2, eval = FALSE}
 library(openSTARS)
+library(rgrass7)
 initGRASS(gisBase = "/usr/lib/grass72/",
           home = tempdir(),
           gisDbase = "./GRASSDB",

@@ -23,7 +23,9 @@ knitr::opts_chunk$set(
 **_Problem_** Error message in R console: 
 
 ```{r eval = TRUE, echo = FALSE, results = 'hide', message = FALSE}
+library(rgrass7)
 library(openSTARS)
+
 if(.Platform$OS.type == "windows"){
     gisbase = "c:/Program Files/GRASS GIS 7.2.0"
     } else {

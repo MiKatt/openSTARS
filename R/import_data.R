@@ -35,6 +35,7 @@
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com},  Mira Kattwinkel
 #'  \email{mira.kattwinkel@@gmx.net}
 #' @export
+#' @importFrom rgrass7 execGRASS writeVECT
 #' 
 #' @examples
 #' \donttest{
@@ -73,14 +74,14 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   #         using flag "e" when importing the dem does not work
   #         (r.hydrodem produces very huge raster)
   if(.Platform$OS.type == "windows"){
-    execGRASS("r.in.gdal",
+    rgrass7::execGRASS("r.in.gdal",
               flags = c("overwrite","quiet","o"),
               parameters = list(
                 input = dem,
                 band = band,
                 output = "dem"),ignore.stderr=T)
   } else{
-    execGRASS("r.in.gdal",
+    rgrass7::execGRASS("r.in.gdal",
               flags = c("overwrite", "quiet"),
               parameters = list(
                 input = dem,
@@ -92,7 +93,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # sites data
   # flag "-r": only current region
   if(inherits(sites, 'Spatial')) {
-    writeVECT(sites, "sites_o",  v.in.ogr_flags = c("o", "overwrite", "quiet", "r"),
+    rgrass7::writeVECT(sites, "sites_o",  v.in.ogr_flags = c("o", "overwrite", "quiet", "r"),
               ignore.stderr=T)
   #} # MiKatt: exclude as long as under development
   # else if(inherits(sites, 'sf')) { 
@@ -100,7 +101,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   #   writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
   #             ignore.stderr=T)
   } else {
-  execGRASS("v.in.ogr", flags = c("o", "overwrite", "quiet", "r"),
+  rgrass7::execGRASS("v.in.ogr", flags = c("o", "overwrite", "quiet", "r"),
             parameters = list(
               input = sites,
               output = "sites_o"),ignore.stderr=T)
@@ -116,7 +117,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
       message(paste0("Loading preditions sites into GRASS as ",
                      paste(pred_sites_names, collapse=", ", sep=""), " ...\n"))
       for(i in 1:length(pred_sites)){
-        execGRASS("v.in.ogr",
+        rgrass7::execGRASS("v.in.ogr",
                   flags = c("o", "overwrite", "quiet"),
                   parameters = list(
                     input = pred_sites[i],
@@ -133,13 +134,13 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_names, collapse = ", ", sep=""), " ...\n"))
     for(i in 1:length(predictor_names)){
       if(.Platform$OS.type == "windows"){
-        execGRASS("r.in.gdal",
+        rgrass7::execGRASS("r.in.gdal",
                   flags = c("overwrite","quiet","o"),
                   parameters = list(
                     input = predictor_maps[i],
                     output = predictor_names[i]),ignore.stderr=T)
       } else{
-        execGRASS("r.in.gdal",
+        rgrass7::execGRASS("r.in.gdal",
                   flags = c("overwrite", "quiet"),
                   parameters = list(
                     input = predictor_maps[i],
@@ -154,10 +155,10 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     # flag "-r": only current region
 
     if(inherits(streams, 'Spatial')) {
-      writeVECT(streams, "streams_o",  v.in.ogr_flags = c("o", "overwrite", "quiet", "r"),
+      rgrass7::writeVECT(streams, "streams_o",  v.in.ogr_flags = c("o", "overwrite", "quiet", "r"),
                 ignore.stderr=T)
     } else {
-       execGRASS("v.in.ogr",
+       rgrass7::execGRASS("v.in.ogr",
               flags = c("overwrite", "quiet", "r"),
               parameters = list(
                 input = streams,
@@ -165,7 +166,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     }
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
-      execGRASS("v.clean",
+      rgrass7::execGRASS("v.clean",
                 flags=c("c","overwrite","quiet"),
                 parameters = list(
                   input = "streams_o",
@@ -173,11 +174,11 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
                   output = "streams_oc",
                   tool = "snap",
                   threshold = 10),ignore.stderr=T)
-      execGRASS("g.copy",
+      rgrass7::execGRASS("g.copy",
                 flags = c("overwrite", "quiet"),
                 parameters = list(
                   vector = "streams_oc,streams_o"))
-      execGRASS("g.remove",
+      rgrass7::execGRASS("g.remove",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "vector",
