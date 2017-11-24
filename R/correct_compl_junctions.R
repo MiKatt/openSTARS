@@ -116,7 +116,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
 
   # Create file of point positions 0.8 x cellsize  upstream (inflows) and  
   # 0.1 x cellsizes downstream (outflows) from junction to get the flow direction
-  # close to the juction cellsize as coordinate does not work, because some 
+  # close to the juction; cellsize as coordinate does not work, because some 
   # segements are only one cellsize long; 0.8 lays in the next cell
   # for outflows, use cell in which junction lies
   points <- file.path(temp_dir,"complex_points.txt")
@@ -324,12 +324,18 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   i_cut <- which(dt.junctions[,cat_small] %in% unlist(dt.junctions[,paste0("prev_str0",1:3)]))
   if(length(i_cut) > 0){
     # find where cat_small is previous stream
-    i_prev <- do.call(rbind,lapply(i_cut, function(x) which(dt.junctions[,paste0("prev_str0",1:3)] == dt.junctions[x,cat_small], arr.ind = TRUE)))
-    ii <- i_prev[1]
-    jj <- paste0("prev_str0",1:3)[i_prev[2]]
+    i_prev <- do.call(rbind, lapply(i_cut, function(x) 
+      which(dt.junctions[, paste0("prev_str0", 1:3)] == dt.junctions[x, cat_small], arr.ind = TRUE)))
+    ii <- i_prev[,1]
+    jj <- paste0("prev_str0", 1:3)[i_prev[,2]]
+    jjj <- which(colnames(dt.junctions) %in% jj)
+    # make data frame
+    setDF(dt.junctions)
+    # use matrix for indexing because differnt columns might be changed for
+    # different rows
     # change previous stream to cat_large
-    # use data.table like data.frame here
-    dt.junctions[ii, jj] <- dt.junctions[i_cut,cat_large]
+    dt.junctions[cbind(ii, jjj)]  <- dt.junctions[i_cut, "cat_large"]
+    setDT(dt.junctions)
   }
 
   # change move_stream if it was also cat_small or cut_stream to new stream id
