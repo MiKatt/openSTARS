@@ -342,9 +342,9 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   i_cut <- which(dt.junctions[,cat_small] %in% dt.junctions[,move_stream])
   if(length(i_cut) > 0){
     # find where cat_small is move stream
-    i_mov <- do.call(rbind,lapply(i_cut, function(x) which(dt.junctions[,move_stream] == dt.junctions[x,cat_small])))
+    i_mov <- c(do.call(rbind,lapply(i_cut, function(x) which(dt.junctions[,move_stream] == dt.junctions[x,cat_small]))))
     # change move stream to cat_large
-    dt.junctions[i_mov,move_stream] <- dt.junctions[i_cut,cat_large]
+    dt.junctions[i_mov, "move_stream"] <- dt.junctions[i_cut,  cat_large]
   }
 
   # assign updated cat_ value to 'stream' for cut stream segments
