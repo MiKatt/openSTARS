@@ -12,7 +12,7 @@
 #''rcaArea' = subcatchment area of each segment in square km}
 #'\item{Calculate catchment areas; 'H2OArea' = total catchment area of each
 #'segment in square km} }
-#'All lengths are rounded to 2 and all areas to 4 decimal places, respectively.
+#'All lengths are rounded to 2 and all areas to 6 decimal places, respectively.
 #'
 #'@return Nothing. The function produces the following map: \itemize{
 #'  \item{'edges'} {derived stream segments with computed attributes needed for
@@ -134,7 +134,7 @@ calc_edges <- function() {
   dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
   dt.streams<-merge(dt.streams, areas, by="cat", all = T)  # MiKatt: must be 'cat' not 'stream' because stream_r is based on 'cat'!
   setkey(dt.streams, stream)
-  # set catchment area of short segments that do not have a rac (NA) to zero (mainly resulting form correct_compl_junctions())
+  # set catchment area of short segments that do not have a rca (NA) to zero (mainly resulting form correct_compl_junctions())
   dt.streams[is.na(area), area := 0 ]
 
   # MiKatt: Segments without a next segment (= -1) are outlets of catchments
@@ -147,8 +147,8 @@ calc_edges <- function() {
   }
 
   # MiKatt: area is in m² -> convert to km²
-  dt.streams[, area := round(area / 1000000, 4)]
-  dt.streams[, total_area := round(total_area / 1000000, 4)]
+  dt.streams[, area := round(area / 1000000, 6)]
+  dt.streams[, total_area := round(total_area / 1000000, 6)]
   dt.streams[, rid := seq_len(nrow(dt.streams)) - 1]
   dt.streams[, OBJECTID := stream]
   dt.streams[,  ":=" (cat = NULL, next_str = NULL, prev_str01 = NULL, prev_str02 = NULL)]
