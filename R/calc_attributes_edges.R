@@ -105,12 +105,12 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   if(any(!stat_vect %in% c("percent", "count")))
     stop('statistics to calculate must be one of "count" or "percent".')
   
-  i <- which("count" %in% stat_vect)
+  i <- which(stat_vect == "count")
   if(length(i) > 0){
-    for(j in 1:length(i)){
+    for(j in i){
       a <- execGRASS("v.info", flags = "t",
                      parameters = list(
-                       map = input_vector[i[j]]
+                       map = input_vector[j]
                      ), intern = T)
       a <- do.call(rbind,strsplit(a, "="))
       k <- which(a[,1] == "points")
@@ -234,7 +234,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     
     # This can take long
     # Calculate attributes for total catchments
-    calc_catchment_attributes(dt.streams, stat_rast, attr_name_rast, round_dig)
+    calc_catchment_attributes_rast(dt.streams, stat_rast, attr_name_rast, round_dig)
     
     # Delete unneeded columns
     dt.streams[, c("stream", "next_str", "prev_str01", "prev_str02", "netID", "non_null_cells","cumsum_cells") := NULL]
@@ -388,7 +388,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   }
 }
 
-#' calc_catchment_attributes
+#' calc_catchment_attributes_rast
 #' Aggregate attributes for the total catchment of each stream segment.
 #'
 #' This function aggregates the attributes of each segment for the total
@@ -405,13 +405,13 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
 #'
 #' @return Nothing. The function changes the values of the columns attr_name_rast in dt.
 
-calc_catchment_attributes <- function(dt, stat_rast, attr_name_rast, round_dig){
+calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_dig){
   outlets <- dt[next_str == -1, stream]
   dt[, paste0(attr_name_rast,"_c") := dt[, attr_name_rast, with = FALSE]]
   for(i in outlets){
-    calc_catchment_attributes_rec(dt, id=i, stat_rast, paste0(attr_name_rast,"_c"))
+    calc_catchment_attributes_rast_rec(dt, id=i, stat_rast, paste0(attr_name_rast,"_c"))
   }
-  # for "mean" and "percent", calc_catchment_attributes_rec gives the cmmulative sum of mean value * non_null_cells
+  # for "mean" and "percent", calc_catchment_attributes_rast_rec gives the cmmulative sum of mean value * non_null_cells
   # => divide here by total number of cells
   ind <- c(grep("mean", stat_rast), grep("percent", stat_rast))
   if(length(ind) > 0)
@@ -419,6 +419,54 @@ calc_catchment_attributes <- function(dt, stat_rast, attr_name_rast, round_dig){
 
   newcols <- paste0(rep(attr_name_rast, each = 2), c("", "_c"))
   setcolorder(dt, c(colnames(dt)[!colnames(dt) %in% newcols], newcols))
+}
+
+
+#' calc_catchment_attributes_rast_rec
+#' Aggregate attributes for the total catchment of each stream segment.
+#'
+#' @description Recursive function to calculate the catchment attributes of each stream
+#' segment. It is called by \code{\link{calc_catchment_attributes_rast}} for each
+#' outlet and should not be called by the user.
+#'
+#' @param dt data.table of stream topology and attributes per segment.
+#' @param id integer; 'stream' of outlet segment to start the calculation from.
+#' @param stat name or character vector giving the statistics to be calculated,
+#'   must be one of: min, max, mean, percent.
+#' @param attr_name name or character vector of column names for the attribute(s)
+#'   to be calculated.
+#'
+#' @return One row data.table with the cumulative number of cells of the total
+#'  catchment of each segment and the values for each attribute and changes the
+#'  values in dt.
+#'
+#' @note The values for stats "mean" and "percent" need to be divided by the cumulative
+#'  number of cells of the total catchment in a subsequent step.
+#'
+calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
+  if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
+    dt[stream == id, cumsum_cells := non_null_cells]
+    for(j in 1:length(stat)){
+      if(stat[j] %in% c("mean","percent"))
+        dt[stream == id, attr_name[j] := dt[stream == id, attr_name[j], with = FALSE] * dt[stream == id, non_null_cells]]
+    } # else: do nothing (value = value)
+  }  else {
+    d1 <- calc_catchment_attributes_rast_rec(dt, dt[stream == id, prev_str01], stat, attr_name)
+    d2 <- calc_catchment_attributes_rast_rec(dt, dt[stream == id, prev_str02], stat, attr_name)
+    dt[stream == id, cumsum_cells := d1[,cumsum_cells] + d2[, cumsum_cells] + dt[stream == id, non_null_cells]]
+    for(j in 1:length(stat)){
+      if(stat[j] %in% c("min", "max", "sum")){
+        dt[stream == id, attr_name[j] :=
+             eval(call(stat[j],unlist(c(d1[,attr_name[j], with = FALSE],
+                                        d2[,attr_name[j], with = FALSE],
+                                        dt[stream == id, attr_name[j], with = FALSE])), na.rm = TRUE))]
+      } else{# for percent and mean sum values (relative to cell number)
+        dt[stream == id, attr_name[j] := dt[stream == id, attr_name[j], with = FALSE] * dt[stream == id, non_null_cells] +
+             d1[, attr_name[j], with = FALSE] + d2[, attr_name[j], with = FALSE]]
+      }
+    }
+  }
+  return(dt[stream == id,c("cumsum_cells", attr_name), with = FALSE])
 }
 
 #' calc_catchment_attributes_vect
@@ -443,7 +491,6 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
   outlets <- dt[next_str == -1, stream]
   dt[, paste0(attr_name_vect, "_c") := dt[, attr_name_vect, with = FALSE]]
   for(i in outlets){
-    print(i)
     calc_catchment_attributes_vect_rec(dt, id=i, stat_vect, paste0(attr_name_vect,"_c"))
   }
   ind <- grep("percent", stat_vect)

@@ -4,18 +4,31 @@
 \alias{calc_attributes_edges}
 \title{Calculate attributes of the edges.}
 \usage{
-calc_attributes_edges(input_raster, stat, attr_name, round_dig = 2,
-  clean = TRUE)
+calc_attributes_edges(input_raster = NULL, stat_rast = NULL,
+  attr_name_rast = NULL, input_vector = NULL, stat_vect = NULL,
+  attr_name_vect = NULL, round_dig = 2, clean = FALSE)
 }
 \arguments{
-\item{input_raster}{name or character vector of names of the raster map(s)
+\item{input_raster}{name(s) of names of the raster map(s)
 to calculate attributes from.}
 
-\item{stat}{name or character vector giving the statistics to be calculated,
-must be one of: min, max, mean, percent.}
+\item{stat_rast}{name(s) giving the statistics to be calculated,
+from the raster maps, must be one of: "min", "max", "mean", "sum", "percent".}
 
-\item{attr_name}{name or character vector of column names for the attribute(s)
+\item{attr_name_rast}{name(s) of new column names for the attribute(s)
 to be calculated. Attribute names must not be longer than 8 characters.}
+
+\item{input_vector}{name(s) of names of the vector map(s)
+to calculate attributes from.}
+
+\item{stat_vect}{name(s) giving the statistics to be calculated
+from the vector maps, must be one of: "count" (for point data), "percent"
+(for polygon data).}
+
+\item{attr_name_vect}{name(s) of attribute column(s) to calculate the 
+statistics from. For point data, results columns will have the same name, for
+polygon data, the results column names are determined by the content of 
+this column.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
@@ -24,7 +37,7 @@ of different values or just one value for all attributes.}
 }
 \value{
 Nothing. The function appends new columns to the 'edges' attribute
-  table with column names given in \code{attr_name}. For each attribute, two
+  table with column names given in \code{attr_name_rast}. For each attribute, two
   columns are appended: one giving the attribute for the rca of the edge
   ("attribute_name_e") and one for the attribute of the total catchment of
   the edge ("attribute_name_c").
@@ -38,10 +51,10 @@ First, the subcatchments for all edges are calculated. Then these are
 intersected with the given raster maps and the desired statistics are computed.
 This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
 
-For \code{stat} = "percent" the \code{input_raster} must be coded as 1 and 0
+For \code{stat_rast} = "percent" the \code{input_raster} must be coded as 1 and 0
  (e.g., cells occupied by the land use under consideration and not). If
   the \code{input_raster} consists of percentages per cell (e.g., proportional land
-  use of a certain type per cell) \code{stat} = "mean" gives the overall proportion
+  use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
   of this land use.
 }
 \note{
