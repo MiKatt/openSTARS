@@ -318,7 +318,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         dt.dat[, c("edge_cat", "area") := lapply(.SD, as.numeric), .SDcols =  c("edge_cat", "area")]
         dt.dat <- dt.dat[, .(area = sum(area)), c("edge_cat", cname)] 
         dt.dat <- dcast(dt.dat, paste0("edge_cat  ~ b_", attr_name_vect[j]), value.var = "area")
-        setnames(dt.dat, names(dt.dat)[-1], paste0(names(dt.dat)[-1],"p"))
+        setnames(dt.dat, names(dt.dat)[-1], paste0("p", names(dt.dat)[-1]))
       } else { # if point data
         execGRASS("v.vect.stats", flags = "quiet", 
                   parameters = list(
@@ -337,7 +337,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         setDT(dt.dat)
         dt.dat[, names(dt.dat) := lapply(.SD, as.numeric)]
         dt.dat <- dt.dat[, lapply(.SD, sum), by = edge_cat, .SDcols = attr_name_vect[j]]
-        setnames(dt.dat, attr_name_vect[j], paste0(attr_name_vect[j],"s"))
+        setnames(dt.dat, attr_name_vect[j], paste0("s", attr_name_vect[j]))
       }
       nanames[j] <- ncol(dt.dat) - 1
       anames <- c(anames, names(dt.dat)[-1])
