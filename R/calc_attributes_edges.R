@@ -258,8 +258,6 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
               ))
   }
   
-  
-  ## TO DO: finish vector intersection!
   if(!is.null(input_vector)){
     message("Intersecting vector attributes...")
     
@@ -319,7 +317,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         setnames(dt.dat, "a_edge_cat", "edge_cat")
         dt.dat[, c("edge_cat", "area") := lapply(.SD, as.numeric), .SDcols =  c("edge_cat", "area")]
         dt.dat <- dt.dat[, .(area = sum(area)), c("edge_cat", cname)] 
-        dt.dat <- dcast(dt.dat, edge_cat  ~ b_landuse, value.var = "area")
+        dt.dat <- dcast(dt.dat, paste0("edge_cat  ~ b_", attr_name_vect[j]), value.var = "area")
+        setnames(dt.dat, names(dt.dat)[-1], paste0(names(dt.dat)[-1],"p"))
       } else { # if point data
         execGRASS("v.vect.stats", flags = "quiet", 
                   parameters = list(
@@ -338,12 +337,11 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         setDT(dt.dat)
         dt.dat[, names(dt.dat) := lapply(.SD, as.numeric)]
         dt.dat <- dt.dat[, lapply(.SD, sum), by = edge_cat, .SDcols = attr_name_vect[j]]
+        setnames(dt.dat, attr_name_vect[j], paste0(attr_name_vect[j],"s"))
       }
-      
       nanames[j] <- ncol(dt.dat) - 1
       anames <- c(anames, names(dt.dat)[-1])
-      dt.streams <- 
-        a <- merge(dt.streams, dt.dat, by.x = "cat", by.y = "edge_cat", all.x = TRUE)
+      dt.streams <- merge(dt.streams, dt.dat, by.x = "cat", by.y = "edge_cat", all.x = TRUE)
     }
     for (k in anames){
       set(dt.streams, which(is.na(dt.streams[[k]])),k , 0)
@@ -415,7 +413,7 @@ calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_
   # => divide here by total number of cells
   ind <- c(grep("mean", stat_rast), grep("percent", stat_rast))
   if(length(ind) > 0)
-    dt[, paste0(attr_name_rast[ind], "_c") := round(dt[,paste0(attr_name_rast[ind],"_c"), with = FALSE] / dt[,cumsum_cells], round_dig[ind])]
+    dt[cumsum_cells > 0, paste0(attr_name_rast[ind], "_c") := round(dt[cumsum_cells > 0, paste0(attr_name_rast[ind],"_c"), with = FALSE] / dt[cumsum_cells > 0, cumsum_cells], round_dig[ind])]
 
   newcols <- paste0(rep(attr_name_rast, each = 2), c("", "_c"))
   setcolorder(dt, c(colnames(dt)[!colnames(dt) %in% newcols], newcols))
@@ -495,8 +493,8 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
   }
   ind <- grep("percent", stat_vect)
   if(length(ind) > 0){
-    dt[, paste0(attr_name_vect[ind], "_c") := round(dt[,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[,H2OArea] * 1000000), round_dig[ind])]
-    dt[, attr_name_vect[ind] := round(dt[,attr_name_vect[ind], with = FALSE] / (dt[,rcaArea] * 1000000), round_dig[ind])]
+    dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000), round_dig[ind])]
+    dt[rcaArea > 0, attr_name_vect[ind] := round(dt[rcaArea > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaArea > 0, rcaArea] * 1000000), round_dig[ind])]
   }
   newcols <- paste0(rep(attr_name_vect, each = 2), c("", "_c"))
   setcolorder(dt, c(colnames(dt)[!colnames(dt) %in% newcols], newcols))
