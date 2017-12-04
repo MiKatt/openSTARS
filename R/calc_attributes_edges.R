@@ -495,6 +495,8 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
   if(length(ind) > 0){
     dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000), round_dig[ind])]
     dt[rcaArea > 0, attr_name_vect[ind] := round(dt[rcaArea > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaArea > 0, rcaArea] * 1000000), round_dig[ind])]
+    dt[paste0(attr_name_vect[ind], "_c") > 1, paste0(attr_name_vect[ind], "_c") := 1]
+    dt[attr_name_vect[ind] > 1,attr_name_vect[ind] := 1]
   }
   newcols <- paste0(rep(attr_name_vect, each = 2), c("", "_c"))
   setcolorder(dt, c(colnames(dt)[!colnames(dt) %in% newcols], newcols))

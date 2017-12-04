@@ -18,6 +18,8 @@
 #' @param stat name or character vector giving the statistics to be calculated.
 #'   See details below.
 #' @param round_dig integer; number of digits to round results to.
+#' @param calc_basin_area boolean; shall the catchment area be calculated? (Useful
+#'  if the function has been called before.)
 #'
 #' @return Nothing. The function appends new columns to the \code{sites_map}
 #'   attribute table
@@ -91,15 +93,28 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                                          input_attr_name,
                                          output_attr_name = NULL,
                                          stat,
-                                         round_dig = 2){
+                                         round_dig = 2,
+                                         calc_basin_area = TRUE){
 
   if(is.null(output_attr_name))
     output_attr_name <- input_attr_name
-  output_attr_name <- c("H2OAreaA", output_attr_name)
-
-  input_attr_name <- c("H2OArea", input_attr_name)
-
-  stat <- c("totalArea", stat)
+  if(calc_basin_area == TRUE){
+    output_attr_name <- c("H2OAreaA", output_attr_name)
+    input_attr_name <- c("H2OArea", input_attr_name)
+    stat <- c("totalArea", stat)
+    
+    cnames <- execGRASS("db.columns", 
+                        parameters = list(
+                          table = "sites"), 
+                        intern = T)
+    if("H2OAreaA" %in% cnames){
+      execGRASS("v.db.dropcolumn", flags = "quiet",
+                parameters = list(
+                  map = "sites",
+                  columns = "H2OAreaA"
+                ))
+    }
+  }
 
   if(length(input_attr_name) != length(output_attr_name))
     stop("There must be the same number of input and output attribute names.")
