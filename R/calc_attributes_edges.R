@@ -440,7 +440,7 @@ calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_
 #'
 #' @note The values for stats "mean" and "percent" need to be divided by the cumulative
 #'  number of cells of the total catchment in a subsequent step.
-#'
+
 calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
   if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, cumsum_cells := non_null_cells]
@@ -483,8 +483,7 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
 #'   of different values or just one value for all attributes.
 #'
 #' @return Nothing. The function changes the values of the columns attr_name_vect in dt.
-#' 
-#'     
+     
 calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_dig){
   outlets <- dt[next_str == -1, stream]
   dt[, paste0(attr_name_vect, "_c") := dt[, attr_name_vect, with = FALSE]]
@@ -519,8 +518,7 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
 #' @return One row data.table with the cumulative number of cells of the total
 #'  catchment of each segment and the values for each attribute and changes the
 #'  values in dt.
-#'  
-#'  
+
 calc_catchment_attributes_vect_rec <- function(dt, id, stat_vect, attr_name_vect){
   if(dt[stream == id, prev_str01,] != 0){  # check only one of prev01 and prev02 because they are always both 0
     d1 <- calc_catchment_attributes_vect_rec(dt, dt[stream == id, prev_str01], stat_vect, attr_name_vect)
