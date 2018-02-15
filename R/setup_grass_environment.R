@@ -125,18 +125,33 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
   }
   
   # write bounding box of dem
-  writeVECT(SDF = dem_extent, vname = 'bbox_dem', driver = 'SQLite',
-            v.in.ogr_flags = c("overwrite", "quiet"))
+  # To catch Error if driver is not installed.
+  test <- try(writeVECT(SDF = dem_extent, vname = 'bbox_dem', driver = 'SQLite',
+            v.in.ogr_flags = c("overwrite", "quiet")), silent = T)
+  if(class(test) != "try-error"){
   execGRASS("g.region", flags = c("quiet"),
             parameters = list(
               vector = "bbox_dem",
               nsres = dem_res_y,
               ewres = dem_res_x
               ))
-  # remove temporary dem file
-  execGRASS("g.remove", flags = c("quiet", "f"),
-            parameters = list(
-              type = "vector",
-              name = "bbox_dem"
-            ))
+    # remove temporary dem file
+    execGRASS("g.remove", flags = c("quiet", "f"),
+              parameters = list(
+                type = "vector",
+                name = "bbox_dem"
+              ))
+  } else {
+    execGRASS("r.in.gdal", flags = c("overwrite","quiet","o"),
+                parameters = list(
+                  input = dem,
+                  output = "dem_temp"))
+    # remove temporary dem file
+    execGRASS("g.remove", flags = c("quiet", "f"),
+              parameters = list(
+                type = "raster",
+                name = "dem_temp"
+              ))
+  }
+
 }
