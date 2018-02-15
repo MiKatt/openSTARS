@@ -9,7 +9,7 @@ derive_streams(burn = 5, accum_threshold = 700, condition = TRUE,
 }
 \arguments{
 \item{burn}{numeric; how many meters should the streams be burned into the
-DEM?}
+DEM? Only applicable if a mapped stream network is provided in \code{\link{import_data}}.}
 
 \item{accum_threshold}{integer; accumulation threshold to use (i.e. minimum
 flow accumulation value in cells that will initiate a new stream).}

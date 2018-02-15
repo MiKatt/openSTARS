@@ -8,7 +8,7 @@
 #' \href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
 #'
 #' @param burn numeric; how many meters should the streams be burned into the
-#'   DEM? Only applicable if a mapped stream network is provided in \code{\link{import_data}.
+#'   DEM? Only applicable if a mapped stream network is provided in \code{\link{import_data}}.
 #' @param accum_threshold integer; accumulation threshold to use (i.e. minimum
 #'   flow accumulation value in cells that will initiate a new stream).
 #' @param min_stream_length integer: minimum stream length in number of DEM

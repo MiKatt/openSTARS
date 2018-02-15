@@ -30,6 +30,8 @@ Either \code{sites}, \code{epsg} or \code{proj4} must be provided. Make
 sure that all raster and vector files are in the same projection; it will be
 overwritten without warning. A 'GRASS' session must be initiated before, see
 \code{\link[rgrass7]{initGRASS}}.
+If the SQLite driver is not available on the system, the extent is set by
+reading in the DEM temporarily; this might take a while for large files.
 }
 \examples{
 \donttest{
