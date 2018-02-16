@@ -66,7 +66,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     stop("DEM and sites are needed.")
 
   # Import data -------------------
-  message("Loading DEM into GRASS...\n")
+  message("Loading DEM into GRASS...")
 
   # import raster with correct extent
   # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
@@ -88,7 +88,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
                 output = "dem"),ignore.stderr=T)
   }
   
-  message("Loading sites into GRASS as sites_o ...\n")
+  message("Loading sites into GRASS as sites_o...")
   # sites data
   # flag "-r": only current region
   if(inherits(sites, 'Spatial')) {
@@ -114,7 +114,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     } else{
       pred_sites_names <- paste0(pred_sites_names, "_o")
       message(paste0("Loading preditions sites into GRASS as ",
-                     paste(pred_sites_names, collapse=", ", sep=""), " ...\n"))
+                     paste(pred_sites_names, collapse=", ", sep=""), "..."))
       for(i in 1:length(pred_sites)){
         execGRASS("v.in.ogr",
                   flags = c("o", "overwrite", "quiet"),
@@ -130,7 +130,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_maps)) {
     if(is.null(predictor_names))
       predictor_names <- do.call(rbind,base::strsplit(sapply(predictor_maps,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_names, collapse = ", ", sep=""), " ...\n"))
+    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_names, collapse = ", ", sep=""), "..."))
     for(i in 1:length(predictor_names)){
       if(.Platform$OS.type == "windows"){
         execGRASS("r.in.gdal",
@@ -150,7 +150,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # streams data
   if (!is.null(streams)) {
-    message("Loading streams into GRASS as streams_o  ...\n")
+    message("Loading streams into GRASS as streams_o...")
     # flag "-r": only current region
 
     if(inherits(streams, 'Spatial')) {
