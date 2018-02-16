@@ -128,6 +128,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
   
   # write bounding box of dem
   # To catch Error if driver is not installed.
+  # TODO: with GRASS 7.4 SQLite driver is no longer available!
   test <- try(writeVECT(SDF = dem_extent, vname = 'bbox_dem', driver = 'SQLite',
             v.in.ogr_flags = c("overwrite", "quiet")), silent = T)
   if(class(test) != "try-error"){
@@ -144,7 +145,7 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
                 name = "bbox_dem"
               ))
   } else {
-    execGRASS("r.in.gdal", flags = c("overwrite","quiet","o"),
+    execGRASS("r.in.gdal", flags = c("overwrite","quiet","e"),
                 parameters = list(
                   input = dem,
                   output = "dem_temp"))
