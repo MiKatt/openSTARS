@@ -145,6 +145,11 @@ setup_grass_environment <- function(dem, sites = NULL, epsg = NULL, proj4 = NULL
                 name = "bbox_dem"
               ))
   } else {
+    execGRASS("g.region", flags = c("quiet"),
+              parameters = list(
+                nsres = dem_res_y,
+                ewres = dem_res_x
+              ))
     execGRASS("r.in.gdal", flags = c("overwrite","quiet","e"),
                 parameters = list(
                   input = dem,
