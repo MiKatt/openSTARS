@@ -4,34 +4,20 @@
 \alias{setup_grass_environment}
 \title{Setup 'GRASS' environment.}
 \usage{
-setup_grass_environment(dem, sites = NULL, epsg = NULL, proj4 = NULL)
+setup_grass_environment(dem)
 }
 \arguments{
 \item{dem}{character; path to DEM.}
-
-\item{sites}{character string or object; path to sites vector file (shape) 
-or sp data object.}
-
-\item{epsg}{number; EPSG code for the spatial reference to be used}
-
-\item{proj4}{(optional) proj4 string; character string of projection arguments}
 }
 \value{
-Nothing, the 'GRASS' mapset is set to PERMANENT,
-projection is set to the one of the sites shape, to the proj4 string or to 
-the epsg code provided, the extent of the region is set to the one of bounding
-box of the dem.
+Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
+the extent of the current location is set to the one of the dem.
 }
 \description{
 This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 }
 \note{
-Either \code{sites}, \code{epsg} or \code{proj4} must be provided. Make
-sure that all raster and vector files are in the same projection; it will be
-overwritten without warning. A 'GRASS' session must be initiated before, see
-\code{\link[rgrass7]{initGRASS}}.
-If the SQLite driver is not available on the system, the extent is set by
-reading in the DEM temporarily; this might take a while for large files.
+A 'GRASS' session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 }
 \examples{
 \donttest{
@@ -48,7 +34,7 @@ initGRASS(gisBase = gisbase,
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path, sites = sites_path)
+setup_grass_environment(dem = dem_path)
 gmeta()
 }
 }

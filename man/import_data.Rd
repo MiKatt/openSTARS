@@ -5,10 +5,10 @@
 \title{Import data into 'GRASS.'}
 \usage{
 import_data(dem, band = 1, sites, streams = NULL, snap_streams = FALSE,
-  pred_sites = NULL, predictor_maps = NULL, predictor_names = NULL)
+  pred_sites = NULL, predictor_raster = NULL, predictor_r_names = NULL)
 }
 \arguments{
-\item{dem}{character; path to DEM raster file.}
+\item{dem}{character; path to DEM (digital elevation model) raster file.}
 
 \item{band}{integer (optional); defines which band is used}
 
@@ -16,8 +16,8 @@ import_data(dem, band = 1, sites, streams = NULL, snap_streams = FALSE,
 or sp data object.}
 
 \item{streams}{character string or object (optional); path to network vector 
-file (shape) or sp data object.
- If available it can be burnt into DEM.}
+file (shape) or sp data object. If available this can be burnt into the DEM 
+in \code{\link{derive_streams}}}
 
 \item{snap_streams}{boolean (optional); snap line ends.
 If TRUE line ends of the streams are snapped to the next feature if they are
@@ -26,10 +26,10 @@ If TRUE line ends of the streams are snapped to the next feature if they are
 \item{pred_sites}{character vector (optional); paths to prediction sites 
 vector files}
 
-\item{predictor_maps}{character vector (optional); paths to raster data to 
+\item{predictor_raster}{character vector (optional); paths to raster data to 
 import as predictors.}
 
-\item{predictor_names}{character vector (optional); names for potential predictor
+\item{predictor_r_names}{character vector (optional); names for potential predictor
 variables.}
 }
 \value{
@@ -37,16 +37,22 @@ Nothing, the data is loaded into the 'GRASS' session (mapset PERMANENT).
 The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
 vector(s) using the original file names with an appended '_o' (without extension),
 streams as vector 'streams_o' in the 'GRASS' location. Additionally, predictor 
-map raster(s) can be read in and are stored in 'GRASS' using either the 
+raster map(s) can be read in and are stored in 'GRASS' using either the 
 original file names (without extension) or using the names provides in 
-predictor_names. The latter option may be useful if ArcGIS grid data 
+predictor_r_names. The latter option may be useful if ArcGIS grid data 
 (typically stored as 'grid_name/w001001.adf') are used.
-.
 }
 \description{
 This function loads dem and sites data (both required) into the 'GRASS' session.
 Optionally, prediction sites and streams data can be loaded and the streams 
 may be corrected by snapping to prevent lose ends.
+}
+\details{
+All vector data (sites and streams) is imported into the current
+location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
+Hence, if the projections does not match to the one of the dem (which was used
+to specify the location in \code{\link{setup_grass_environment}}) the maps 
+are imported on the fly.
 }
 \note{
 A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
@@ -65,7 +71,7 @@ initGRASS(gisBase = gisbase,
 
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path, sites = sites_path)
+setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path)
 gmeta()
 dem <- readRAST('dem')
