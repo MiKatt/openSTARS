@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+## WARNING ##
+#setup_grass_envronment might not be working properly. I am woring on it. In the meantime, please use the CRAN release.
 
 
 ## Introduction

@@ -10,12 +10,13 @@
 * Updated calc_attributes_edges() for vector inpunt data; it is now possible to 
   calculate percentage of a certain attribute within a catchment (polygon) or 
   count the number of features in a catchment (point).
-* TODO Change setup_grass_environment: Extent and projection are set to the one of the
+* Change setup_grass_environment: Extent and projection are set to the one of the
   dem (compared to setting the projections according to the sites object, epsg 
-  code or proj4 string). The reason for this change is that rather vector files
-  should not projected than raster files (i.e. sites and streams instead of dem) 
-  and that the extent of the dem should be larger than that of the sites.
-* TODO Change import_data: Now vector files are reprojected to match the projection 
+  code or proj4 string as it was done before). The reason for this change is 
+  that rather vector files should be projected than raster files (i.e. sites and 
+  streams instead of dem) and that the extent of the dem should be larger than 
+  that of the sites.
+* Change import_data: Now vector files are reprojected to match the projection 
   of the dem (i.e. the one of the current location).
 
 # openSTARS 1.0.0

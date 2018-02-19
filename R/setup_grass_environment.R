@@ -3,6 +3,7 @@
 #' This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 #'
 #' @param dem character; path to DEM.  
+#' @param sites (deprecated); not used any more. Only inlcuded to for compatibility with previous version.
 #'
 #' @return Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
 #' the extent of the current location is set to the one of the dem.
@@ -31,24 +32,28 @@
 #' gmeta()
 #' }
 
-setup_grass_environment <- function(dem) {
+setup_grass_environment <- function(dem, sites = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
   message("Setting up GRASS Environment...\n")
   
+  if(!is.null(sites))
+    message("'sites' is no longe a parameter of set_up_grass (see help). 
+            The function will still execute normally. Please update your code.")
+  
   dem_raster <- raster::raster(dem)
-  dem_proj <- raster::projection(dem_raster)
+  #dem_proj <- raster::projection(dem_raster)
   dem_extent <- raster::extent(dem_raster)
-  dem_extent <- as(dem_extent, 'SpatialPolygons')
-  dem_extent <- SpatialPolygonsDataFrame(dem_extent, data.frame(ID = 1))
+  #dem_extent <- as(dem_extent, 'SpatialPolygons')
+  #dem_extent <- SpatialPolygonsDataFrame(dem_extent, data.frame(ID = 1))
   dem_res_x <- raster::xres(dem_raster)
   dem_res_y <- raster::yres(dem_raster)
   if(round(dem_res_x,10) != round(dem_res_y,10))
     warning("North-south and east-west resolution of dem differ. Please check!")
-  dem_west <- dem_extent@bbox["x","min"]
-  dem_east <- dem_extent@bbox["x","max"]
-  dem_south <- dem_extent@bbox["y","min"]
-  dem_north <- dem_extent@bbox["y","max"]
+  dem_west <- dem_extent@xmin
+  dem_east <- dem_extent@xmax
+  dem_south <- dem_extent@ymin
+  dem_north <- dem_extent@ymax
   # otherwise there might be strange cell sizes as extent seems to have priority
   remainder_x <- (dem_north - dem_south) %% dem_res_x
   if(remainder_x != 0)
@@ -61,9 +66,9 @@ setup_grass_environment <- function(dem) {
             parameters = list(
               mapset = "PERMANENT"))
   # g.proj must be executed before g.region, otherwise cell sizes etc. are overwritten
-  execGRASS("g.proj", flags = c("c"),
+  execGRASS("g.proj", flags = c("c", "quiet"),
             parameters = list(
-              proj4 = dem_proj
+              georef = dem
             ))
   execGRASS("g.region", flags = c("verbose"),
             parameters = list(

@@ -4,10 +4,12 @@
 \alias{setup_grass_environment}
 \title{Setup 'GRASS' environment.}
 \usage{
-setup_grass_environment(dem)
+setup_grass_environment(dem, sites = NULL)
 }
 \arguments{
 \item{dem}{character; path to DEM.}
+
+\item{sites}{(deprecated); not used any more. Only inlcuded to for compatibility with previous version.}
 }
 \value{
 Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
