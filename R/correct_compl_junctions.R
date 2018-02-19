@@ -288,7 +288,8 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   }
   # writeVECT produces new cat column;
   # IMPORTANT: Take care not to base calculations on that but to use manually updated cat_ (= new 'stream'))
-  writeVECT(streams,"streams_v",v.in.ogr_flags=c("overwrite","quiet"), ignore.stderr = TRUE)
+  # 20180219: override projection check
+  writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
   rm("streams")
 
   # Recalculate length of line segments

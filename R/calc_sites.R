@@ -203,8 +203,9 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
     sites@data$pid <- sites@data$locID
   }
   
+  # 20180219: override projection check
   writeVECT(sites, vname = sites_map,
-            v.in.ogr_flags = c("overwrite", "quiet"),
+            v.in.ogr_flags = c("overwrite", "quiet", "o"),
             ignore.stderr = TRUE)
   rm(sites)
   

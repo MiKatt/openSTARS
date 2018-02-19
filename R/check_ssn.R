@@ -135,12 +135,12 @@ check_ssn <- function(path, predictions = NULL) {
     message("\tMax rid...FAIL!")
   }
   
-  if (all(edges$upDist > 0)) {
-    message("\tupDist > 0...OK")
-  } else {
-    out <- out & FALSE
-    message("\tupDist > 0...FAIL!")
-  }
+  # if (all(edges$upDist > 0)) {
+  #   message("\tupDist > 0...OK")
+  # } else {
+  #   out <- out & FALSE
+  #   message("\tupDist > 0...FAIL!")
+  # }
   
   if (!any(is.na(edges$netID))) {
     message("\tnetID...OK")
@@ -164,8 +164,9 @@ check_ssn <- function(path, predictions = NULL) {
   # Obs. sites -------------------------------------------------------------------
   message("Checking sites.shp...")
   sites <- readOGR(path, "sites", verbose = FALSE)
-  obl_cols <- c("rid", "pid", "locID", "netID", "upDist", "H2OArea")
-  if (all(obl_cols %in% names(sites@data))) {
+  obl_cols <- c("rid", "pid", "locID", "netID", "upDist")
+  obl_cols2 <- "H2OArea"
+  if (all(obl_cols %in% names(sites@data)) & any(grepl(obl_cols2, names(sites@data)))) {
     message("\tColumns...OK")
   } else {
     out <- out & FALSE

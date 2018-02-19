@@ -107,12 +107,14 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
               map = "edges2",
               columns = "stream,next_str,prev_str01,prev_str02"
             ))
+  # 20180219: ESRI_Shapefile is no longer the default format
   execGRASS("v.out.ogr",
             flags = c("overwrite", "quiet"),
             parameters = list(
               input = "edges2",
               type = "line",
               output = path,
+              format = "ESRI_Shapefile",
               output_layer = "edges"
             ))
   execGRASS("g.remove",
@@ -129,6 +131,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
               input = "sites",
               type = "point",
               output = path,
+              format = "ESRI_Shapefile",
               output_layer = "sites"
             ))
 
@@ -141,6 +144,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
                   input = predictions[i],
                   type = "point",
                   output = path,
+                  format = "ESRI_Shapefile",
                   output_layer = predictions[i]
                 ))
   }
