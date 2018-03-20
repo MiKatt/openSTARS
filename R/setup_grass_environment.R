@@ -3,7 +3,7 @@
 #' This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 #'
 #' @param dem character; path to DEM.  
-#' @param sites (deprecated); not used any more. Only inlcuded to for compatibility with previous version.
+#' @param sites (deprecated); not used any more. Only inlcuded for compatibility with previous version.
 #'
 #' @return Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
 #' the extent of the current location is set to the one of the dem.
@@ -27,7 +27,6 @@
 #'
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
-#' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path)
 #' gmeta()
 #' }

@@ -9,7 +9,7 @@ setup_grass_environment(dem, sites = NULL)
 \arguments{
 \item{dem}{character; path to DEM.}
 
-\item{sites}{(deprecated); not used any more. Only inlcuded to for compatibility with previous version.}
+\item{sites}{(deprecated); not used any more. Only inlcuded for compatibility with previous version.}
 }
 \value{
 Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
@@ -35,7 +35,6 @@ initGRASS(gisBase = gisbase,
 
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
-sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path)
 gmeta()
 }

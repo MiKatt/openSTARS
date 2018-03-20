@@ -1,16 +1,14 @@
 #' Calculate attributes of the edges.
 #'
 #' For each edge (i.e. stream segment) additional attributes (predictor variables)
-#' are derived based on given raster maps.
+#' are derived based on given raster or vector maps.
 #'
-#' @param input_raster name(s) of names of the raster map(s)
-#'   to calculate attributes from.
+#' @param input_raster name(s) of raster map(s) to calculate attributes from.
 #' @param stat_rast name(s) giving the statistics to be calculated,
 #'   from the raster maps, must be one of: "min", "max", "mean", "sum", "percent".
 #' @param attr_name_rast name(s) of new column names for the attribute(s)
 #'   to be calculated. Attribute names must not be longer than 8 characters.
-#' @param input_vector name(s) of names of the vector map(s)
-#'   to calculate attributes from.
+#' @param input_vector name(s) of vector map(s) to calculate attributes from.
 #' @param stat_vect name(s) giving the statistics to be calculated
 #'   from the vector maps, must be one of: "count" (for point data), "percent"
 #'   (for polygon data).
@@ -29,14 +27,29 @@
 #'   the edge ("attribute_name_c").
 #'
 #'@details First, the subcatchments for all edges are calculated. Then these are
-#' intersected with the given raster maps and the desired statistics are computed.
-#' This is needed to compute approximate attribute values for sites \code{\link{calc_attributes_sites_approx}}.
+#' intersected with the given raster and/or vector maps and the desired statistics are computed.
+#' This function must be run before computing approximate attribute values for 
+#' sites \code{\link{calc_attributes_sites_approx}}.
 #'
 #'For \code{stat_rast} = "percent" the \code{input_raster} must be coded as 1 and 0
 #'  (e.g., cells occupied by the land use under consideration and not). If
 #'   the \code{input_raster} consists of percentages per cell (e.g., proportional land
 #'   use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
 #'   of this land use.
+#'
+#' For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
+#' e.g. differnt land use types. The column \code{attr_name_vect} would then 
+#' give the code for the different land uses. Then, the percentage for each land
+#' use type in the catchment of the edge is calculated.
+#' 
+#' For \code{stat_vect} = "count" \code{input_vector} must contain points of
+#' e.g. waste water treatment plants. The column \code{attr_name_vect} gives the 
+#' name of the column to hald the count value, e.g. nWWTP. 
+#' 
+#' Both raster and vector maps to be used must be read in to the GRASS session, 
+#' either in \code{\link{import_data}} or using the GRASS function r.in.rast or
+#' v.in.ogr (see examples).
+#'
 #'
 #' @note \code{\link{setup_grass_environment}}, \code{\link{import_data}},
 #' \code{\link{derive_streams}} and \code{\link{calc_edges}} must be run before.
@@ -76,11 +89,23 @@
 #' # Prepare edges
 #' calc_edges()
 #' 
-#' # Plot data
+#' # Derive slope from the DEM as an example raster map to calculate attributes from
+#' execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
+#' parameters = list(
+#'   elevation = "dem",
+#'     slope = "slope"
+#'     ))
+#' calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo")
+#' 
+#' # Plot data with maximum slope per edge as color ramp (steep slopes in red)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
-#' plot(dem, col = terrain.colors(20))
-#' lines(edges, col = "blue", lwd = 2)
+#' plot(dem, col = gray(seq(0,1,length.out=20))) 
+#' mm <- range(c(edges@data$maxSlo_e), na.rm = T) 
+#' b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
+#' c_ramp <- colorRampPalette(c("blue", "red"))
+#' cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e,breaks = b,right=F))]
+#' plot(edges,col=cols, add = T, lwd=2)
 #' }
 #'
 

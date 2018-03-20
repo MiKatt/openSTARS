@@ -177,7 +177,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     # flag "-r": only current region
     
     if(inherits(streams, 'Spatial')) {
-      writeVECT(streams, "streams_o",  v.in.ogr_flags = c("o", "overwrite", "quiet", "r"),
+      writeVECT(streams, "streams_o",  v.in.ogr_flags = c("overwrite", "quiet", "r"),
                 ignore.stderr=T)
     } else {
       # execGRASS("v.in.ogr",
