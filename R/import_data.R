@@ -37,6 +37,13 @@
 #' are imported on the fly.
 #' 
 #' @note A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
+#' 
+#' If sites, pred_sites and / or streams are sp objects it is important that they 
+#' have a datum defined otherwise the import will not work. Hence, it is e.g. 
+#' better to use proj4string = CRS("+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +datum=potsdam +units=m +no_defs")
+#' instead of proj4string = CRS("+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs"))
+#' when defining sp objects.
+#' 
 #' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com},  Mira Kattwinkel
 #'  \email{mira.kattwinkel@@gmx.net}
 #' @export
@@ -65,6 +72,9 @@
 
 import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FALSE, 
                         pred_sites = NULL, predictor_raster = NULL, predictor_r_names = NULL) {
+  # TODO: 
+  # - predictor vector maps
+  # - predictor sites as sp object
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | is.null(sites))
@@ -98,15 +108,30 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
+  import_flag <- TRUE
   if(inherits(sites, 'Spatial')) {
-    writeVECT(sites, "sites_o",  v.in.ogr_flags = c("overwrite", "quiet", "r"),
-              ignore.stderr=T)
+    if(paste0(execGRASS("g.proj", flags = c("j"),
+                        parameters = list(
+                          georef = dem
+                        ), intern = T), collapse = "") ==
+       paste0(execGRASS("g.proj", flags = c("j"),
+                        parameters = list(
+                          proj4 = paste0(sites@proj4string)
+                        ), intern = T), collapse = "")) {
+      writeVECT(sites, "sites_o",  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # overwrite projection check
+                ignore.stderr=T)
+      import_flag <- FALSE
+    } else {
+      writeOGR(obj = sites, dsn = tempdir(), layer = "sites", driver="ESRI Shapefile", overwrite_layer = T)
+      sites <- file.path(tempdir(), "sites.shp")
+    }
     #} # MiKatt: exclude as long as under development
     # else if(inherits(sites, 'sf')) { 
     #   sites_sp <- as(sites, 'Spatial') # AS:  no method for sf yet imho
     #   writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
     #             ignore.stderr=T)
-  } else {
+  } 
+  if(import_flag) {
     # a <- execGRASS("v.in.ogr", flags = c("j"),
     #           parameters = list(
     #             input = sites,
@@ -176,10 +201,31 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     message("Loading streams into GRASS as streams_o  ...\n")
     # flag "-r": only current region
     
+    import_flag <- TRUE
     if(inherits(streams, 'Spatial')) {
-      writeVECT(streams, "streams_o",  v.in.ogr_flags = c("overwrite", "quiet", "r"),
-                ignore.stderr=T)
-    } else {
+      if(paste0(execGRASS("g.proj", flags = c("j"),
+                          parameters = list(
+                            georef = dem
+                          ), intern = T), collapse = "") ==
+         paste0(execGRASS("g.proj", flags = c("j"),
+                          parameters = list(
+                            proj4 = paste0(streams@proj4string)
+                          ), intern = T), collapse = "")) {
+        writeVECT(streams, "streams_o",  v.in.ogr_flags = c("overwrite", "quiet", "r"),
+                  ignore.stderr=T)
+        import_flag <- FALSE
+      } else {
+        writeOGR(obj = streams, dsn = tempdir(), layer = "streams", driver="ESRI Shapefile", overwrite_layer = T)
+        sites <- file.path(tempdir(), "streams.shp")
+        import_flag <- TRUE
+      }
+    }
+    #} # MiKatt: exclude as long as under development
+    # else if(inherits(sites, 'sf')) { 
+    #   sites_sp <- as(sites, 'Spatial') # AS:  no method for sf yet imho
+    #   writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
+    #             ignore.stderr=T)
+    if(import_flag) {
       # execGRASS("v.in.ogr",
       #           flags = c("overwrite", "quiet", "r"),
       #           parameters = list(

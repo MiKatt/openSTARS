@@ -56,6 +56,12 @@ are imported on the fly.
 }
 \note{
 A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
+
+If sites, pred_sites and / or streams are sp objects it is important that they 
+have a datum defined otherwise the import will not work. Hence, it is e.g. 
+better to use proj4string = CRS("+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +datum=potsdam +units=m +no_defs")
+instead of proj4string = CRS("+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs"))
+when defining sp objects.
 }
 \examples{
 \donttest{
