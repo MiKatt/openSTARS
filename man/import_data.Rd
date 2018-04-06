@@ -13,17 +13,17 @@ import_data(dem, band = 1, sites, streams = NULL, snap_streams = FALSE,
 \item{band}{integer (optional); defines which band is used}
 
 \item{sites}{character string or object; path to sites vector file (shape) 
-or sp data object.}
+or sp or sf data object.}
 
 \item{streams}{character string or object (optional); path to network vector 
-file (shape) or sp data object. If available this can be burnt into the DEM 
+file (shape) or sp or sf data object. If available this can be burnt into the DEM 
 in \code{\link{derive_streams}}}
 
 \item{snap_streams}{boolean (optional); snap line ends.
 If TRUE line ends of the streams are snapped to the next feature if they are
  unconnected with threshold of 10 m using 'GRASS' function v.clean.}
 
-\item{pred_sites}{character vector (optional); paths to prediction sites 
+\item{pred_sites}{character vector (optional); path(s) to prediction sites 
 vector files}
 
 \item{predictor_raster}{character vector (optional); paths to raster data to 

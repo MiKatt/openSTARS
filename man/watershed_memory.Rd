@@ -16,3 +16,4 @@ MB of RAM needed to derive the stream network with \code{mem = F} in
 \description{
 See GRASS function \href{https://grass.osgeo.org/grass73/manuals/r.watershed.html}{r.watershed}.
 }
+\keyword{internal}

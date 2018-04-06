@@ -7,14 +7,14 @@
 #' @param dem character; path to DEM (digital elevation model) raster file.
 #' @param band integer (optional); defines which band is used
 #' @param sites character string or object; path to sites vector file (shape) 
-#' or sp data object.
+#' or sp or sf data object.
 #' @param streams character string or object (optional); path to network vector 
-#' file (shape) or sp data object. If available this can be burnt into the DEM 
+#' file (shape) or sp or sf data object. If available this can be burnt into the DEM 
 #' in \code{\link{derive_streams}}
 #' @param snap_streams boolean (optional); snap line ends.
 #'  If TRUE line ends of the streams are snapped to the next feature if they are
 #'   unconnected with threshold of 10 m using 'GRASS' function v.clean.
-#' @param pred_sites character vector (optional); paths to prediction sites 
+#' @param pred_sites character vector (optional); path(s) to prediction sites 
 #' vector files
 #' @param predictor_raster character vector (optional); paths to raster data to 
 #' import as predictors.
@@ -108,45 +108,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
-  import_flag <- TRUE
-  if(inherits(sites, 'Spatial')) {
-    if(paste0(execGRASS("g.proj", flags = c("j"),
-                        parameters = list(
-                          georef = dem
-                        ), intern = T), collapse = "") ==
-       paste0(execGRASS("g.proj", flags = c("j"),
-                        parameters = list(
-                          proj4 = paste0(sites@proj4string)
-                        ), intern = T), collapse = "")) {
-      writeVECT(sites, "sites_o",  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # overwrite projection check
-                ignore.stderr=T)
-      import_flag <- FALSE
-    } else {
-      writeOGR(obj = sites, dsn = tempdir(), layer = "sites", driver="ESRI Shapefile", overwrite_layer = T)
-      sites <- file.path(tempdir(), "sites.shp")
-    }
-    #} # MiKatt: exclude as long as under development
-    # else if(inherits(sites, 'sf')) { 
-    #   sites_sp <- as(sites, 'Spatial') # AS:  no method for sf yet imho
-    #   writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
-    #             ignore.stderr=T)
-  } 
-  if(import_flag) {
-    # a <- execGRASS("v.in.ogr", flags = c("j"),
-    #           parameters = list(
-    #             input = sites,
-    #             output = "sites_o"), intern = T)
-    # 
-    # execGRASS("v.in.ogr", flags = c("overwrite", "quiet", "r"), #"o", 
-    #           parameters = list(
-    #             input = sites,
-    #             output = "sites_o"),ignore.stderr=T)
-    execGRASS("v.import", flags = c("overwrite", "quiet"),
-              parameters = list(
-                input = sites,
-                output = "sites_o",
-                extent = "region"))
-  }
+  import_vector_data(data = sites, name = "sites")
   
   # prediction sites data
   if (!is.null(pred_sites)) {
@@ -201,43 +163,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     message("Loading streams into GRASS as streams_o  ...\n")
     # flag "-r": only current region
     
-    import_flag <- TRUE
-    if(inherits(streams, 'Spatial')) {
-      if(paste0(execGRASS("g.proj", flags = c("j"),
-                          parameters = list(
-                            georef = dem
-                          ), intern = T), collapse = "") ==
-         paste0(execGRASS("g.proj", flags = c("j"),
-                          parameters = list(
-                            proj4 = paste0(streams@proj4string)
-                          ), intern = T), collapse = "")) {
-        writeVECT(streams, "streams_o",  v.in.ogr_flags = c("overwrite", "quiet", "r"),
-                  ignore.stderr=T)
-        import_flag <- FALSE
-      } else {
-        writeOGR(obj = streams, dsn = tempdir(), layer = "streams", driver="ESRI Shapefile", overwrite_layer = T)
-        sites <- file.path(tempdir(), "streams.shp")
-        import_flag <- TRUE
-      }
-    }
-    #} # MiKatt: exclude as long as under development
-    # else if(inherits(sites, 'sf')) { 
-    #   sites_sp <- as(sites, 'Spatial') # AS:  no method for sf yet imho
-    #   writeVECT(sites_sp, "sites_o", v.in.ogr_flags = c("o", "overwrite", "quiet"),
-    #             ignore.stderr=T)
-    if(import_flag) {
-      # execGRASS("v.in.ogr",
-      #           flags = c("overwrite", "quiet", "r"),
-      #           parameters = list(
-      #             input = streams,
-      #             output = "streams_o"),ignore.stderr=T)
-      execGRASS("v.import",
-                flags = c("overwrite", "quiet"),
-                parameters = list(
-                  input = streams,
-                  output = "streams_o",
-                  extent = "region"))
-    }
+    import_vector_data(data = streams, name = "streams")
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
       execGRASS("v.clean",
@@ -261,5 +187,53 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     }
   } else {
     message("No streams available, skipping.\n")
+  }
+}
+
+
+#' Generic function to import vector data of various formats into the GRASS environment.
+#' 
+#' @param data character string or object; path to data vector file (shape) 
+#' or sp or sf data object.
+#' @param name string giving the base name of the vector data to use for the import#' 
+#' @keywords internal
+#' 
+#' @return Nothing.
+#' 
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+
+import_vector_data <- function(data, name){
+  # flag "-r": only current region
+  import_flag <- TRUE
+  if(inherits(data, 'sf')){
+    data <- sf::as(data, 'Spatial')
+  }
+  if(inherits(data, 'Spatial')) {
+    proj.dem <- execGRASS("g.proj", flags = c("j"),
+                          parameters = list(
+                            georef = dem
+                            ), intern = T)[1]
+    proj.data <- execGRASS("g.proj", flags = c("j"),
+                            parameters = list(
+                              proj4 = proj4string(data)
+                            ), intern = T)[1] # sites_in@proj4string@projargs does not work!
+    if(identical(proj.dem, proj.data)) {
+      writeVECT(data, paste0(name, "_o"),  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
+                ignore.stderr=T)
+      import_flag <- FALSE
+    } else {
+      writeOGR(obj = data, dsn = tempdir(), layer = name, driver="ESRI Shapefile", overwrite_layer = T)
+      data <- file.path(tempdir(), paste0(name, ".shp"))
+    }
+  } 
+  if(import_flag) {
+    execGRASS("v.import", flags = c("overwrite", "quiet"),
+              parameters = list(
+                input = data,
+                output =  paste0(name, "_o"),
+                extent = "region")) # to import into current regien ( = flags("r") in v.in.ogr)
+    if(file.exists(file.path(tempdir(), paste0(name, ".shp")))){
+      invisible(file.remove(file.path(tempdir(), list.files(path = tempdir(), pattern = paste0(name, ".")))))
+    }
   }
 }

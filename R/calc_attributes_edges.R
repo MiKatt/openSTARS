@@ -542,6 +542,7 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
 #'   must be one of: min, max, mean, percent.
 #' @param attr_name_vect name or character vector of column names for the attribute(s)
 #'   to be calculated.
+#' @keywords internal
 #'
 #' @return One row data.table with the cumulative number of cells of the total
 #'  catchment of each segment and the values for each attribute and changes the

@@ -28,3 +28,4 @@ Recursive function to calculate the catchment attributes of each stream
 segment. It is called by \code{\link{calc_catchment_attributes_vect}} for each
 outlet and should not be called by the user.
 }
+\keyword{internal}

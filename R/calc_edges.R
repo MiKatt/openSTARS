@@ -271,9 +271,8 @@ calcCatchmArea_assignNetID <- function(dt, id, net_ID){
 #' 
 #' @param dt data.table containing the attributes of the stream segments
 #' @param str_id integer giving the stream_id ('stream') of the starting edge
-#' 
+#' @keywords internal 
 #' @return vector of cat values of all upstream edges and the calling one.
-#' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' 
 get_cats_edges_in_catchment<-function(dt, str_id){

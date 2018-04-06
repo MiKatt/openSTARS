@@ -22,3 +22,4 @@ This function is used internally and is not intended to be called by the user.
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
+\keyword{internal}

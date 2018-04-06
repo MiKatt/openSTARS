@@ -254,6 +254,8 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
 #' 
 #' @param dem character; path to DEM raster file.
 #' 
+#' @keywords internal
+#' 
 #' @return MB of RAM needed to derive the stream network with \code{mem = F} in 
 #' \code{\link{derive_streams}}.
 #' 
