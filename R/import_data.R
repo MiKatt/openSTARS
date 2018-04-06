@@ -103,12 +103,16 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
               band = band,
               output = "dem"),ignore.stderr=T)
   #}
+  proj_dem <- execGRASS("g.proj", flags = c("j"),
+                        parameters = list(
+                          georef = dem
+                        ), intern = T)[1]
   
   message("Loading sites into GRASS as sites_o ...\n")
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
-  import_vector_data(data = sites, name = "sites")
+  import_vector_data(data = sites, name = "sites", proj_dem = proj_dem)
   
   # prediction sites data
   if (!is.null(pred_sites)) {
@@ -163,7 +167,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     message("Loading streams into GRASS as streams_o  ...\n")
     # flag "-r": only current region
     
-    import_vector_data(data = streams, name = "streams")
+    import_vector_data(data = streams, name = "streams", proj_dem = proj_dem)
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
       execGRASS("v.clean",
@@ -195,29 +199,26 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 
 #' @param data character string or object; path to data vector file (shape) 
 #' or sp or sf data object.
-#' @param name string giving the base name of the vector data to use for the import#' 
+#' @param name string giving the base name of the vector data to use for the import#'
+#' @param proj_dem projection of the dem as project4string 
 #' @keywords internal
 #' 
 #' @return Nothing.
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
-import_vector_data <- function(data, name){
+import_vector_data <- function(data, name, proj_dem){
   # flag "-r": only current region
   import_flag <- TRUE
   if(inherits(data, 'sf')){
     data <- sf::as(data, 'Spatial')
   }
   if(inherits(data, 'Spatial')) {
-    proj.dem <- execGRASS("g.proj", flags = c("j"),
-                          parameters = list(
-                            georef = dem
-                            ), intern = T)[1]
-    proj.data <- execGRASS("g.proj", flags = c("j"),
+    proj_data <- execGRASS("g.proj", flags = c("j"),
                             parameters = list(
                               proj4 = proj4string(data)
                             ), intern = T)[1] # sites_in@proj4string@projargs does not work!
-    if(identical(proj.dem, proj.data)) {
+    if(identical(proj_dem, proj_data)) {
       writeVECT(data, paste0(name, "_o"),  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
                 ignore.stderr=T)
       import_flag <- FALSE
