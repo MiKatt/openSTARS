@@ -4,10 +4,13 @@
 \alias{setup_grass_environment}
 \title{Setup 'GRASS' environment.}
 \usage{
-setup_grass_environment(dem, sites = NULL)
+setup_grass_environment(dem, epsg = NULL, sites = NULL)
 }
 \arguments{
 \item{dem}{character; path to DEM.}
+
+\item{epsg}{integer; EPSG code for the projection to use. If not given (default)
+the infromation is taken from the dem}
 
 \item{sites}{(deprecated); not used any more. Only inlcuded for compatibility with previous version.}
 }

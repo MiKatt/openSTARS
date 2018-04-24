@@ -3,6 +3,8 @@
 #' This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 #'
 #' @param dem character; path to DEM.  
+#' @param epsg integer; EPSG code for the projection to use. If not given (default)
+#' the infromation is taken from the dem
 #' @param sites (deprecated); not used any more. Only inlcuded for compatibility with previous version.
 #'
 #' @return Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
@@ -31,7 +33,7 @@
 #' gmeta()
 #' }
 
-setup_grass_environment <- function(dem, sites = NULL) {
+setup_grass_environment <- function(dem, epsg = NULL, sites = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
   message("Setting up GRASS Environment...\n")
@@ -65,10 +67,17 @@ setup_grass_environment <- function(dem, sites = NULL) {
             parameters = list(
               mapset = "PERMANENT"))
   # g.proj must be executed before g.region, otherwise cell sizes etc. are overwritten
-  execGRASS("g.proj", flags = c("c", "quiet"),
-            parameters = list(
-              georef = dem
-            ))
+  if(!is.null(epsg)){
+    execGRASS("g.proj", flags = c("c", "quiet"),
+              parameters = list(
+                epsg = epsg
+              ))    
+  }else {
+    execGRASS("g.proj", flags = c("c", "quiet"),
+              parameters = list(
+                georef = dem
+              ))
+  }
   execGRASS("g.region", flags = c("verbose"),
             parameters = list(
               nsres = as.character(dem_res_y),
