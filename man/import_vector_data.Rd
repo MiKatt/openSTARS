@@ -10,7 +10,7 @@ import_vector_data(data, name, proj_dem)
 \item{data}{character string or object; path to data vector file (shape) 
 or sp or sf data object.}
 
-\item{name}{string giving the base name of the vector data to use for the import#'}
+\item{name}{string giving the base name of the vector data to use for the import}
 
 \item{proj_dem}{projection of the dem as project4string}
 }

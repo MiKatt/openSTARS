@@ -18,9 +18,6 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-## WARNING ##
-#setup_grass_envronment might not be working properly. I am woring on it. In the meantime, please use the CRAN release.
-
 
 ## Introduction
 `openSTARS` is an open source implementation of the STARS toolbox (Peterson & Ver Hoef, 2014) using R and GRASS GIS.

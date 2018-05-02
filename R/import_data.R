@@ -19,7 +19,11 @@
 #' @param predictor_raster character vector (optional); paths to raster data to 
 #' import as predictors.
 #' @param predictor_r_names character vector (optional); names for potential predictor
-#' variables.
+#' variables in raster format.
+#' @param predictor_vector character vector (optional); paths to vector data, 
+#' sp or sf object names to import as predictors.
+#' @param predictor_v_names character vector (optional); names for potential predictor
+#' variables in vector format.
 #'
 #' @return Nothing, the data is loaded into the 'GRASS' session (mapset PERMANENT).
 #' The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
@@ -28,7 +32,9 @@
 #' raster map(s) can be read in and are stored in 'GRASS' using either the 
 #' original file names (without extension) or using the names provides in 
 #' predictor_r_names. The latter option may be useful if ArcGIS grid data 
-#' (typically stored as 'grid_name/w001001.adf') are used.
+#' (typically stored as 'grid_name/w001001.adf') are used. Likewise, predictor
+#' vector maps can be read in from Esri Shape file (given as the full file path)
+#' or as sf or sp objects.
 #' 
 #' @details All vector data (sites and streams) is imported into the current
 #' location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
@@ -71,10 +77,8 @@
 #' }
 
 import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FALSE, 
-                        pred_sites = NULL, predictor_raster = NULL, predictor_r_names = NULL) {
-  # TODO: 
-  # - predictor vector maps
-  # - predictor sites as sp object
+                        pred_sites = NULL, predictor_raster = NULL, predictor_r_names = NULL,
+                        predictor_vector = NULL, predictor_v_names = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | is.null(sites))
@@ -112,7 +116,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
-  import_vector_data(data = sites, name = "sites", proj_dem = proj_dem)
+  import_vector_data(data = sites, name = "sites_o", proj_dem = proj_dem)
   
   # prediction sites data
   if (!is.null(pred_sites)) {
@@ -124,17 +128,8 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
       message(paste0("Loading preditions sites into GRASS as ",
                      paste(pred_sites_names, collapse=", ", sep=""), " ...\n"))
       for(i in 1:length(pred_sites)){
-        # execGRASS("v.in.ogr",
-        #           flags = c("o", "overwrite", "quiet"),
-        #           parameters = list(
-        #             input = pred_sites[i],
-        #             output = pred_sites_names[i]),ignore.stderr=T)
-        execGRASS("v.import",
-                  flags = c("overwrite", "quiet"),
-                  parameters = list(
-                    input = pred_sites[i],
-                    output = pred_sites_names[i],
-                    extent = "region"))
+        import_vector_data(data = pred_sites[i], name = pred_sites_names[i], proj_dem = proj_dem)
+        
       }
     }
   }
@@ -162,12 +157,22 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     }
   }
   
+  # predictor vector maps
+  if (!is.null(predictor_vector)) {
+    if(is.null(predictor_v_names))
+      predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
+    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_v_names, collapse = ", ", sep=""), " ...\n"))
+    for(i in 1:length(predictor_v_names)){
+      import_vector_data(data = predictor_vector[i], name = predictor_v_names[i], proj_dem = proj_dem)
+    }
+  }
+  
   # streams data
   if (!is.null(streams)) {
     message("Loading streams into GRASS as streams_o  ...\n")
     # flag "-r": only current region
     
-    import_vector_data(data = streams, name = "streams", proj_dem = proj_dem)
+    import_vector_data(data = streams, name = "streams_o", proj_dem = proj_dem)
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
       execGRASS("v.clean",
@@ -199,7 +204,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 
 #' @param data character string or object; path to data vector file (shape) 
 #' or sp or sf data object.
-#' @param name string giving the base name of the vector data to use for the import#'
+#' @param name string giving the base name of the vector data to use for the import
 #' @param proj_dem projection of the dem as project4string 
 #' @keywords internal
 #' 
@@ -219,7 +224,7 @@ import_vector_data <- function(data, name, proj_dem){
                               proj4 = proj4string(data)
                             ), intern = T)[1] # sites_in@proj4string@projargs does not work!
     if(identical(proj_dem, proj_data)) {
-      writeVECT(data, paste0(name, "_o"),  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
+      writeVECT(data, name,  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
                 ignore.stderr=T)
       import_flag <- FALSE
     } else {
@@ -231,7 +236,7 @@ import_vector_data <- function(data, name, proj_dem){
     execGRASS("v.import", flags = c("overwrite", "quiet"),
               parameters = list(
                 input = data,
-                output =  paste0(name, "_o"),
+                output =  name,
                 extent = "region")) # to import into current regien ( = flags("r") in v.in.ogr)
     if(file.exists(file.path(tempdir(), paste0(name, ".shp")))){
       invisible(file.remove(file.path(tempdir(), list.files(path = tempdir(), pattern = paste0(name, ".")))))

@@ -40,11 +40,13 @@
 #' For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
 #' e.g. differnt land use types. The column \code{attr_name_vect} would then 
 #' give the code for the different land uses. Then, the percentage for each land
-#' use type in the catchment of the edge is calculated.
+#' use type in the catchment of the edge is calculated and given in seperate columns
+#' with column names resampling the different categories given in column 
+#' \code{attr_name_vect}
 #' 
 #' For \code{stat_vect} = "count" \code{input_vector} must contain points of
 #' e.g. waste water treatment plants. The column \code{attr_name_vect} gives the 
-#' name of the column to hald the count value, e.g. nWWTP. 
+#' name of the column to hold the count value, e.g. nWWTP. 
 #' 
 #' Both raster and vector maps to be used must be read in to the GRASS session, 
 #' either in \code{\link{import_data}} or using the GRASS function r.in.rast or
@@ -109,9 +111,16 @@
 #' }
 #'
 
+# input_vector = "pointsources"
+# stat_vect = "count"
+# attr_name_vect = "psource"
+# round_dig = 4
+# clean = F
+# input_raster = NULL; stat_rast = NULL; attr_name_rast = NULL
+
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
                                   input_vector = NULL, stat_vect = NULL, attr_name_vect = NULL,
-                                  round_dig = 2, clean = FALSE){
+                                  round_dig = 2, clean = TRUE){
   
   if(length(input_raster) != length(stat_rast) | length(input_raster) != length(attr_name_rast) | length(attr_name_rast) != length(stat_rast))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -169,6 +178,11 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   if(is.null(input_raster) & is.null(input_vector))
     stop("At least one raster or vector file name must be given for intersection.")
   
+  cnames_edges <- execGRASS("db.columns", flags = "quiet",
+                            parameters = list(
+                              table = "edges"
+                            ), intern = T)
+  
   temp_dir <- tempdir()
   
   rast <- execGRASS("g.list",
@@ -179,19 +193,23 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   if (!"streams_r" %in% rast | !"dirs" %in% rast)
     stop("Missing data. Did you run derive_streams()?")
   
+  if (!"rca" %in% rast)
+    stop("Missing data. Did you run calc_edges()?")
+  
   if ("MASK" %in% rast)
     execGRASS("r.mask",flags = c("r", "quiet"))
   
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat_rast) + length(stat_vect))
   
+  # MK 02.05.2018: not necessary becaus this is already done in calc_edges
   ## Calculate reach contributing area (= sub chatchment) for each segment).
-  message("Calculating reach contributing area (RCA)...\n")
-  execGRASS("r.stream.basins",
-            flags = c("overwrite", "quiet"),
-            parameters = list(direction = "dirs",
-                              stream_rast = "streams_r",
-                              basins = "rca"))
+  # message("Calculating reach contributing area (RCA)...\n")
+  # execGRASS("r.stream.basins",
+  #           flags = c("overwrite", "quiet"),
+  #           parameters = list(direction = "dirs",
+  #                             stream_rast = "streams_r",
+  #                             basins = "rca"))
   
   if(!is.null(input_raster)){
     message("Intersecting raster attributes...")
@@ -343,7 +361,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         dt.dat[, c("edge_cat", "area") := lapply(.SD, as.numeric), .SDcols =  c("edge_cat", "area")]
         dt.dat <- dt.dat[, .(area = sum(area)), c("edge_cat", cname)] 
         dt.dat <- dcast(dt.dat, paste0("edge_cat  ~ b_", attr_name_vect[j]), value.var = "area")
-        setnames(dt.dat, names(dt.dat)[-1], paste0("p", names(dt.dat)[-1]))
+        #setnames(dt.dat, names(dt.dat)[-1], paste0("p", names(dt.dat)[-1]))
       } else { # if point data
         execGRASS("v.vect.stats", flags = "quiet", 
                   parameters = list(
@@ -362,7 +380,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         setDT(dt.dat)
         dt.dat[, names(dt.dat) := lapply(.SD, as.numeric)]
         dt.dat <- dt.dat[, lapply(.SD, sum), by = edge_cat, .SDcols = attr_name_vect[j]]
-        setnames(dt.dat, attr_name_vect[j], paste0("s", attr_name_vect[j]))
+        # MK 01.052018: Why did I set the names starting with "s"?
+        #setnames(dt.dat, attr_name_vect[j], paste0("s", attr_name_vect[j]))
       }
       nanames[j] <- ncol(dt.dat) - 1
       anames <- c(anames, names(dt.dat)[-1])
@@ -380,7 +399,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     setnames(dt.streams, anames, paste0(anames, "_e"))
     
     # Join attributes to edges attribute table
-    message("Joining table raster attributes...")
+    message("Joining table vector attributes...")
     utils::write.csv(dt.streams, file.path(temp_dir,"edge_attributes.csv"),row.names = F)
     write.table(t(gsub("numeric","Real",sapply(dt.streams,class))),file.path(temp_dir,"edge_attributes.csvt"),quote=T,sep=",",row.names = F,col.names = F)
     execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
@@ -397,12 +416,27 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
               ))
   }
   
+  cnames_edges2 <- execGRASS("db.columns", flags = "quiet",
+                            parameters = list(
+                              table = "edges"
+                            ), intern = T)
+  cnames_edges2 <- cnames_edges2[-(which(cnames_edges2 %in% cnames_edges))]
+  cnames_edges2 <- unique( gsub("_c|_e$", "", cnames_edges2))
+  message(paste0("New attributes values are stored as ", paste(cnames_edges2, collapse = ", ")))
+  
   if (clean) {
+    # MK 02.05.2018 keep for consecutive runs
+    # execGRASS("g.remove",
+    #           flags = c("quiet", "f"),
+    #           parameters = list(
+    #             type = "raster",
+    #             name = "rca"
+    #           ))
     execGRASS("g.remove",
               flags = c("quiet", "f"),
               parameters = list(
-                type = "raster",
-                name = "rca"
+                type = "vector",
+                name = "temp_inters"
               ))
     execGRASS("db.droptable", flags = c("quiet","f"),
               parameters = list(
