@@ -107,6 +107,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                         attr_name_rast = NULL,
                                         input_vector = NULL,
                                         stat_vect = NULL,
+                                        attr_name_vect = NULL,
                                         round_dig = 2,
                                         calc_basin_area = TRUE,
                                         keep_basins = FALSE){
@@ -125,17 +126,22 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(any(!stat_vect %in% c("percent", "count")))
     stop('statistics to calculate must be one of "count" or "percent".')
   
-  i <- which(stat_vect == "count")
-  if(length(i) > 0){
-    for(j in i){
+  # 1 for area, 2 for points
+  vtype <- rep(1, length(stat_vect))
+  if(!is.null(stat_vect)){
+    for(i in 1:length(stat_vect)){
       a <- execGRASS("v.info", flags = "t",
                      parameters = list(
-                       map = input_vector[j]
+                       map = input_vector[i]
                      ), intern = T)
       a <- do.call(rbind,strsplit(a, "="))
       k <- which(a[,1] == "points")
-      if(as.numeric(a[k,2]) == 0)
-        stop('If statistic to calculate is "count" the respective input vector must be of type point.')
+      if(as.numeric(a[k,2]) != 0){
+        vtype[i] <- 2
+        if(stat_vect[i] != "count"){
+          stop('If an input vector is of type point the statistic to calculate must be "count".')
+        }
+      }
     }
   }
   
@@ -169,11 +175,6 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     rm(d.edges)
   }
 
-  message("Intersecting attributes for ",nrow(d.sites@data)," sites...\n")
-
-  # progress bar
-  pb <- progress_bar$new(total = nrow(d.sites@data))
-  
   locIDs <- unique(d.sites@data$locID)
   if(calc_basin_area){
     dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast)+2)
@@ -182,6 +183,29 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast) + 1)
     colnames(dat) <- c(attr_name_rast, "locID")
   }
+  if(!is.null(input_vector)){
+    attribute_cats <- NULL
+    for(i in 1:length(input_vector)){
+      if(vtype[i] == 1){
+        attribute_cats <- c(attribute_cats, 
+                           unique(execGRASS("db.select", flags = c("c"),
+                                            parameters = list(
+                                              sql = paste0("select ", attr_name_vect[i], " from ",input_vector[i])
+                                            ), intern = T))
+        )
+      } else {
+        attribute_cats <- c(attribute_cats, attr_name_vect[i])
+      }
+    }
+    d1 <- matrix(ncol = length(attribute_cats), nrow = length(locIDs), NA)
+    colnames(d1) <- attribute_cats
+    dat <- cbind(dat, d1)
+  }
+  
+  message("Intersecting attributes for ",nrow(d.sites@data)," sites ...\n")
+  # progress bar
+  pb <- progress_bar$new(total = nrow(d.sites@data))
+  
   for (i in seq_along(locIDs)) {
     #message(i)
     locID <- locIDs[i]
@@ -363,15 +387,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                           columns = "area"
                                         ), intern = T)[-1]))
       for(j in 1:length(input_vector)){
-        # check, if this is a point vector
-        a <- execGRASS("v.info", flags = "t",
-                       parameters = list(
-                         map = input_vector[j]
-                       ), intern = T)
-        a <- do.call(rbind,strsplit(a, "="))
-        k <- which(a[,1] == "points")
         # if this is no point vector
-        if(as.numeric(a[k,2]) == 0){
+        if(vtype[j] == 1){
+          # intersect with catchment
           execGRASS("v.overlay", flags = c("overwrite","quiet"),
                     parameters = list(
                       ainput = input_vector[j],
@@ -392,23 +410,16 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       option = "area",
                       columns = "area"
                     ))
-          # get the areas per value of the attribure
-          a <- execGRASS("v.db.select",flags = "quiet",
+          # get the areas per value of the attribute
+          a <- execGRASS("db.select",flags = "c",
                          parameters = list(
-                           map = "intersect_out",
-                           columns = paste0("a_",attr_name_vect[j],",area"),
-                           group = paste0("a_",attr_name_vect[j])
-                         ), intern = T)[-1]
+                           sql = paste0("select a_", attr_name_vect[j],",sum(area) from intersect_out group by a_", attr_name_vect[j])
+                         ), intern = T)
+          
           a <- do.call(rbind,strsplit(a,split = '\\|'))
           a <- data.frame(a,  stringsAsFactors = F)
-          a <- apply(a,2,as.numeric)
-          if(class(a) == "matrix"){
-            a <- round(tapply(a[,2],a[,1], sum),2)
-          } else {
-            nam <- a[1]
-            a <- a[2]
-            names(a) <- nam
-          }
+          a[,2] <- as.numeric(a[,2]) / carea
+          dat[i, a[,1]] <- a[,2]
         } else { # if this is a point vector
           
         }

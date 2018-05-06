@@ -6,7 +6,7 @@
 \usage{
 calc_attributes_edges(input_raster = NULL, stat_rast = NULL,
   attr_name_rast = NULL, input_vector = NULL, stat_vect = NULL,
-  attr_name_vect = NULL, round_dig = 2, clean = FALSE)
+  attr_name_vect = NULL, round_dig = 2, clean = TRUE)
 }
 \arguments{
 \item{input_raster}{name(s) of raster map(s) to calculate attributes from.}
@@ -59,11 +59,13 @@ For \code{stat_rast} = "percent" the \code{input_raster} must be coded as 1 and 
 For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
 e.g. differnt land use types. The column \code{attr_name_vect} would then 
 give the code for the different land uses. Then, the percentage for each land
-use type in the catchment of the edge is calculated.
+use type in the catchment of the edge is calculated and given in seperate columns
+with column names resampling the different categories given in column 
+\code{attr_name_vect}
 
 For \code{stat_vect} = "count" \code{input_vector} must contain points of
 e.g. waste water treatment plants. The column \code{attr_name_vect} gives the 
-name of the column to hald the count value, e.g. nWWTP. 
+name of the column to hold the count value, e.g. nWWTP. 
 
 Both raster and vector maps to be used must be read in to the GRASS session, 
 either in \code{\link{import_data}} or using the GRASS function r.in.rast or

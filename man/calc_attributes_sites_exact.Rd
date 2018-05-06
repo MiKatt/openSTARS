@@ -5,8 +5,9 @@
 \title{Calculate attributes of the sites.}
 \usage{
 calc_attributes_sites_exact(sites_map = "sites", input_raster = NULL,
-  stat = NULL, attr_name = NULL, round_dig = 2, calc_basin_area = TRUE,
-  keep_basins = FALSE)
+  stat_rast = NULL, attr_name_rast = NULL, input_vector = NULL,
+  stat_vect = NULL, attr_name_vect = NULL, round_dig = 2,
+  calc_basin_area = TRUE, keep_basins = FALSE)
 }
 \arguments{
 \item{sites_map}{character; name of the sites (observation or prediction) 
@@ -15,12 +16,12 @@ attributes shall be calculated for. "sites" (default) refers to the observation 
 \item{input_raster}{character vector (optional); name of additional raster
 maps to calculate attributes from.}
 
-\item{stat}{character vector (optional); statistics to be calculated, one of:
+\item{stat_rast}{character vector (optional); statistics to be calculated, one of:
 min, max, mean, stddev, variance, sum, median or percentile_X (where X
 gives the desired percentile e.g. 25 for the first). Must be provided if 
 \code{input_raster} are given.}
 
-\item{attr_name}{character vector (optional); column name for the attributes
+\item{attr_name_rast}{character vector (optional); column name for the attributes
 to be calculated. Attribute names must not be longer than 10 characters.
 Must be provided if \code{input_raster} are given.}
 
@@ -36,7 +37,7 @@ if the function has been called before with \code{keep_basins = TRUE}.)}
 Nothing. The function appends new columns to the \code{sites_map} attribute table
 \itemize{
  \item{'H2OArea':} {Total watershed area of the watershed upstream of each site.}
- \item{attr_name:} {Additional optional attributes calculated based on input_raster maps.}
+ \item{attr_name_rast:} {Additional optional attributes calculated based on input_raster maps.}
 }
 Please note that for sampling points that lie in the same dem raster cell 
  along a stream identical values are calculated, because identical watersheds
@@ -88,12 +89,12 @@ parameters = list(
   elevation = "dem",
   slope = "slope"
   ))
-calc_attributes_edges(input_raster = "slope", stat = "max", attr_name = "maxSlo")
+calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo")
 
 # Prepare sites
 calc_sites()
-calc_attributes_sites_approx(input_attr_name = "maxSlo", stat = "max")
-calc_attributes_sites_exact(input_raster = "slope", attr_name = "maxSloE", stat = "max")
+calc_attributes_sites_approx(input_attr_name = "maxSlo", stat_rast = "max")
+calc_attributes_sites_exact(input_raster = "slope", attr_name_rast = "maxSloE", stat_rast = "max")
 
 # Plot data
 dem <- readRAST('dem', ignore.stderr = TRUE)
