@@ -111,6 +111,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                         round_dig = 2,
                                         calc_basin_area = TRUE,
                                         keep_basins = FALSE){
+  
+  # To suppress warings " file <filename> already exists and will be overwritten"
+  GV <- Sys.getenv("GRASS_VERBOSE")
+  Sys.setenv("GRASS_VERBOSE"=0)
 
   if(length(input_raster) != length(stat_rast) | length(input_raster) != length(attr_name_rast) | length(attr_name_rast) != length(stat_rast))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -145,7 +149,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     }
   }
   
-  if(is.null(stat_rast) & !calc_basin_area)
+  if(is.null(stat_rast) & is.null(stat_vect) & !calc_basin_area)
     stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
   
   temp_dir <- tempdir()
@@ -177,10 +181,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
   locIDs <- unique(d.sites@data$locID)
   if(calc_basin_area){
-    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast)+2)
+    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast)+2, data = 0)
     colnames(dat) <- c("H2OArea", attr_name_rast, "locID")
   } else {
-    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast) + 1)
+    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast) + 1, data = 0)
     colnames(dat) <- c(attr_name_rast, "locID")
   }
   if(!is.null(input_vector)){
@@ -196,8 +200,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       } else {
         attribute_cats <- c(attribute_cats, attr_name_vect[i])
       }
+      if(length(round_dig) < length(attribute_cats) + length(input_raster) + calc_basin_area)
+        round_dig <- c(round_dig, rep(round_dig[1], length(attribute_cats)))
     }
-    d1 <- matrix(ncol = length(attribute_cats), nrow = length(locIDs), NA)
+    d1 <- matrix(ncol = length(attribute_cats), nrow = length(locIDs), data = 0)
     colnames(d1) <- attribute_cats
     dat <- cbind(dat, d1)
   }
@@ -299,12 +305,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     
     # raster data
     # calculate unviriate statistics per watershed
-    # set mask to the current basin
-    execGRASS("r.mask",
-              flags = c("overwrite", "quiet"),
-              parameters = list(
-                raster = paste0(sites_map, "_catchm_",locID)))
     if(length(stat_rast) > 0){
+      # set mask to the current basin
+      execGRASS("r.mask",
+                flags = c("overwrite", "quiet"),
+                parameters = list(
+                  raster = paste0(sites_map, "_catchm_",locID)))
       for(j in 1:length(stat_rast)){
         if(stat_rast[j] == "median"){
           st <- execGRASS("r.univar",
@@ -351,11 +357,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         } else
           dat[i,attr_name_rast[j]] <- 0
       }
+      # Remove the mask!
+      execGRASS("r.mask",
+                flags = c("r", "quiet"))
     }
-    # Remove the mask!
-    execGRASS("r.mask",
-              flags = c("r", "quiet"))
-
     
     ###################################################
     # vector data
@@ -386,6 +391,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                           map = vname,
                                           columns = "area"
                                         ), intern = T)[-1]))
+      j.count <- 1 + calc_basin_area * length(input_raster)
       for(j in 1:length(input_vector)){
         # if this is no point vector
         if(vtype[j] == 1){
@@ -418,12 +424,19 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           
           a <- do.call(rbind,strsplit(a,split = '\\|'))
           a <- data.frame(a,  stringsAsFactors = F)
-          a[,2] <- as.numeric(a[,2]) / carea
+          a[,2] <- round(as.numeric(a[,2]) / carea, round_dig[j.count])
           dat[i, a[,1]] <- a[,2]
         } else { # if this is a point vector
+          dat[i, attr_name_vect[j]] <- as.numeric(unlist(strsplit(
+            execGRASS("v.vect.stats", flags = c("p", "quiet"),
+                    parameters = list(
+                      points = input_vector[j],
+                      areas = vname,
+                      separator = ","
+                    ), intern = T)[2], split = ","))[2])
           
         }
-        
+        j.count <- j.count + 1
       }
     }
     ###################################################
@@ -436,6 +449,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 parameters = list(
                   type = "raster",
                   name = paste0(sites_map, "_catchm_",locID)
+                ))
+      execGRASS("g.remove",
+                flags = c("quiet", "f"),
+                parameters = list(
+                  type = "vector",
+                  name = paste0(sites_map, "_catchm_",locID, "_v")
                 ))
     }
     pb$tick()
@@ -461,4 +480,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
             parameters = list(
               table = "sites_attributes_exact"
             ))
+  
+  # reset original environment variable
+  Sys.setenv("GRASS_VERBOSE"=GV)
 }
