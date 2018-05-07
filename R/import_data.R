@@ -107,10 +107,11 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
               band = band,
               output = "dem"),ignore.stderr=T)
   #}
-  proj_dem <- execGRASS("g.proj", flags = c("j"),
+  # TODO: check if this works on Windows
+  proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
                         parameters = list(
                           georef = dem
-                        ), intern = T)[1]
+                        ), intern = T)#[1]
   
   message("Loading sites into GRASS as sites_o ...\n")
   # sites data
@@ -233,6 +234,7 @@ import_vector_data <- function(data, name, proj_dem){
     }
   } 
   if(import_flag) {
+    # gives error on Linux if projection is not identical but it works!
     execGRASS("v.import", flags = c("overwrite", "quiet"),
               parameters = list(
                 input = data,

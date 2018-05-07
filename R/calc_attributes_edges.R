@@ -422,6 +422,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                             ), intern = T)
   cnames_edges2 <- cnames_edges2[-(which(cnames_edges2 %in% cnames_edges))]
   cnames_edges2 <- unique( gsub("_c|_e$", "", cnames_edges2))
+  cnames_edges2 <- cnames_edges2[- which(cnames_edges2 == "cat_")]
   message(paste0("New attributes values are stored as ", paste(cnames_edges2, collapse = ", ")))
   
   if (clean) {

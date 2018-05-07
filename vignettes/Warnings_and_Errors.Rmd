@@ -60,6 +60,21 @@ and place them into the library folder ('.../openSTARS/extdata/nc/').
 might not work), open the attributes table, sort the 'value' column and start 
 editing. Replace all empty cells with an arbitrary integer value. Save and close.
 
+## Error message in import_data()
+**_Problem_** Error message in R console when importing data: 
+
+```{r import, error = TRUE, eval = TRUE}
+pred_path <- system.file("extdata", "nc", "landuse.shp", package = "openSTARS")
+import_data(dem = dem_path, sites = sites_path, predictor_vector = pred_path)
+```
+
+Usually, the import works correctly, nevertheless. Please check, if all files are in the mapset:
+```{r check import, error = TRUE, eval = TRUE}
+execGRASS("g.list", parameters = list(
+  type = "raster,vector"
+))
+```
+
 ## Special settings for MAC OS
 GRASS 7 does not run on Mac with system integrity check (<http://grassmac.wikidot.com>) and it needs to be disbaled. Additionally, GRASS addons (r.hydrodem etc.) need to be installed system-wide (see below how to install them using GRASS GUI).
 
