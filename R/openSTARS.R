@@ -15,9 +15,9 @@
 #' \donttest{
 #' # Initiate GRASS session
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+#'   gisbase = "c:/Program Files/GRASS GIS 7.4.0"
 #'   } else {
-#'   gisbase = "/usr/lib/grass72/"
+#'   gisbase = "/usr/lib/grass74/"
 #'   }
 #' initGRASS(gisBase = gisbase,
 #'     home = tempdir(),
@@ -44,13 +44,23 @@
 #' 
 #' # Prepare edges
 #' calc_edges()
-#' calc_attribures_edges()
+#' calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo",
+#'   input_vector = c("landuse", "psources"), stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "psource"))
 #'
 #' # Prepare site
 #' calc_sites()
-#' # Calculate H2OArea
-#' calc_attributes_sites_exact()
-#'
+#' 
+#' # Usually, only one of the following methods is needed. The exact one takes
+#' # much longer to run
+#' # approximate potential predictor variables for each site based on edge values
+#' calc_attributes_sites_approx(input_attr_name = c("maxSlo", "agri", "forest", "grass", "urban"), 
+#'   output_attr_name = c("maxSloA", "agriA", "forestA", "grassA", "urbanA"),
+#'   stat = c("max", rep("percent", 4)))
+#' 
+#' # exact potential predictor variables for each site based on catchments
+#' calc_attributes_sites_exact(input_raster = "slope", attr_name_rast = "maxSloEx", stat_rast = "max",
+#'   input_vector = "landuse", attr_name_vect = "landuse", stat_vect = "percent")
+#' 
 #' # Plot data
 #' dem <- readRAST("dem", ignore.stderr = TRUE)
 #' sites <- readVECT("sites", ignore.stderr = TRUE)

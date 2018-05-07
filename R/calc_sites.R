@@ -60,9 +60,9 @@
 #' \donttest{
 #' # Initiate GRASS session
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+#'   gisbase = "c:/Program Files/GRASS GIS 7.4.0"
 #'   } else {
-#'   gisbase = "/usr/lib/grass72/"
+#'   gisbase = "/usr/lib/grass74/"
 #'   }
 #' initGRASS(gisBase = gisbase,
 #'     home = tempdir(),
@@ -77,29 +77,31 @@
 #'
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
-#'
-#' # Check and correct complex junctions (there are no complex juctions in this 
+#' 
+#' # Check and correct complex junctions (there are no complex juctions in this
 #' # example date set)
 #' cj <- check_compl_junctions()
 #' if(cj){
 #'   correct_compl_junctions()
 #' }
-#' 
+#'
 #' # Prepare edges
 #' calc_edges()
 #'
 #' # Prepare site
 #' calc_sites()
-#'
 #' # Plot data
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)
-#' plot(dem, col = terrain.colors(20))
+#' sites_o <- readVECT('sites_o', ignore.stderr = TRUE)
+#' plot(dem, col = terrain.colors(20),axes = TRUE)
 #' lines(edges, col = 'blue')
 #' points(sites, pch = 4)
-#'  }
-#' 
+#' points(sites_o, pch = 1)
+#' legend("topright", pch = c(1, 4), legend = c("original", "corrected"))
+#'}
+
 
 calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
   vect <- execGRASS("g.list",

@@ -58,22 +58,34 @@
 #' \donttest{
 #' # Initiate GRASS session
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+#'   gisbase = "c:/Program Files/GRASS GIS 7.4.0"
 #'   } else {
-#'   gisbase = "/usr/lib/grass72/"
+#'   gisbase = "/usr/lib/grass74/"
 #'   }
 #' initGRASS(gisBase = gisbase,
 #'     home = tempdir(),
 #'     override = TRUE)
 #'
-# Load files into GRASS
+#' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+#' preds_path <- c(system.file("extdata", "nc", "landuse.shp", package = "openSTARS"),
+#'                 system.file("extdata", "nc", "pointsources.shp", package = "openSTARS"))
 #' setup_grass_environment(dem = dem_path)
-#' import_data(dem = dem_path, sites = sites_path)
-#' gmeta()
-#' dem <- readRAST('dem')
-#' plot(dem)
+#' import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path)
+#' 
+#' # Plot data
+#' dem <- readRAST("dem", ignore.stderr = TRUE)
+#' sites_orig <-  readVECT("sites_o", ignore.stderr = TRUE)
+#' ps <- readVECT("psources", ignore.stderr = TRUE)
+#' lu <- readVECT("landuse", ignore.stderr = TRUE)
+#' plot(dem, col = terrain.colors(20))
+#' plot(dem, col = grey.colors(20))
+#' col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
+#' plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
+#' legend("top", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), title = "landuse", ncol = 4)
+#' points(sites_orig, pch = 4)
+#' points(ps, bg = "red", pch = 21, col = "grey", cex = 1.3)
 #' }
 
 import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FALSE, 

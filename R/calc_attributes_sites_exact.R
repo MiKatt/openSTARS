@@ -204,7 +204,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     dat <- cbind(dat, d1)
   }
   
-  message("Intersecting attributes for ",nrow(d.sites@data)," sites ...\n")
+  cnames_sites <- execGRASS("db.columns", flags = "quiet",
+                             parameters = list(
+                               table = "sites"
+                             ), intern = T)
+  
+  message("Intersecting attributes for ",nrow(d.sites@data)," sites ...")
   # progress bar
   pb <- progress::progress_bar$new(total = nrow(d.sites@data))
   
@@ -457,7 +462,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   }
 
   # Join attributes to sites attribute table
-  message("Joining tables...")
+  message("Joining new attributes to attribute table ...")
   utils::write.csv(dat, file.path(temp_dir,"sites_attributes_exact.csv"),row.names = F)
   write.table(t(gsub("numeric","Real",apply(dat,2,class))),file.path(temp_dir,"sites_attributes_exact.csvt"),quote=T,sep=",",row.names = F,col.names = F)
   execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
@@ -476,4 +481,15 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
             parameters = list(
               table = "sites_attributes_exact"
             ))
+  invisible(file.remove(file.path(temp_dir,"sites_attributes_exact.csv")))
+  invisible(file.remove(file.path(temp_dir,"sites_attributes_exact.csvt")))
+  
+  cnames_sites2 <- execGRASS("db.columns", flags = "quiet",
+                             parameters = list(
+                               table = "sites"
+                             ), intern = T)
+  cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
+  cnames_sites2 <- unique( gsub("_c|_e$", "", cnames_sites2))
+  cnames_sites2 <- cnames_sites2[- which(cnames_sites2 == "cat_")]
+  message(paste0("\nNew attributes values are stored as ", paste(cnames_sites2, collapse = ", ")))
 }
