@@ -112,10 +112,6 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                         calc_basin_area = TRUE,
                                         keep_basins = FALSE){
   
-  # To suppress warings " file <filename> already exists and will be overwritten"
-  GV <- Sys.getenv("GRASS_VERBOSE")
-  Sys.setenv("GRASS_VERBOSE"=0)
-
   if(length(input_raster) != length(stat_rast) | length(input_raster) != length(attr_name_rast) | length(attr_name_rast) != length(stat_rast))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
                 length(stat_rast), ") and attribute names (", length(attr_name_rast),")."))
@@ -167,13 +163,13 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if ("MASK" %in% rast)
     execGRASS("r.mask",flags = c("r", "quiet"))
 
-  d.sites <- readVECT(sites_map, ignore.stderr = FALSE)
+  d.sites <- readVECT(sites_map, ignore.stderr = TRUE)
   
   if(!all(paste0(sites_map,"_catchm_",d.sites@data$locID) %in% rast)){
     calc_basin_area <- TRUE
   }
   if(any(d.sites@data$ratio == 0) & calc_basin_area){
-    d.edges <- readVECT("edges", ignore.stderr = FALSE)
+    d.edges <- readVECT("edges", ignore.stderr = TRUE)
     dt.edges <- setDT(d.edges@data)
     dt.edges[, colnames(dt.edges)[-which(colnames(dt.edges) %in% c("cat", "stream","prev_str01","prev_str02","rid","H2OArea"))] := NULL]
     rm(d.edges)
@@ -210,7 +206,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   
   message("Intersecting attributes for ",nrow(d.sites@data)," sites ...\n")
   # progress bar
-  pb <- progress_bar$new(total = nrow(d.sites@data))
+  pb <- progress::progress_bar$new(total = nrow(d.sites@data))
   
   for (i in seq_along(locIDs)) {
     #message(i)
@@ -403,7 +399,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       operator = "and",
                       output = "intersect_out",
                       olayer = "1,0,0"
-                    ))
+                    ), ignore.stderr = T, intern = T)
           # calculate area of all features
           execGRASS("v.db.addcolumn",
                     parameters = list(
@@ -480,7 +476,4 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
             parameters = list(
               table = "sites_attributes_exact"
             ))
-  
-  # reset original environment variable
-  Sys.setenv("GRASS_VERBOSE"=GV)
 }

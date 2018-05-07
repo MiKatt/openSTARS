@@ -18,7 +18,7 @@
 #'   this column.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
-#' @param clean logical; should intermediate files be deleted
+#' #@param clean logical; should intermediate files be deleted
 
 #' @return Nothing. The function appends new columns to the 'edges' attribute
 #'   table with column names given in \code{attr_name_rast}. For each attribute, two
@@ -120,7 +120,7 @@
 
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
                                   input_vector = NULL, stat_vect = NULL, attr_name_vect = NULL,
-                                  round_dig = 2, clean = TRUE){
+                                  round_dig = 2){ #, clean = TRUE
   
   if(length(input_raster) != length(stat_rast) | length(input_raster) != length(attr_name_rast) | length(attr_name_rast) != length(stat_rast))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -311,7 +311,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 output = "rca_v",
                 type = "area",
                 column = "edge_cat"
-              ))
+              ), ignore.stderr = T, intern = T)
     
     dt.streams <- do.call(rbind,strsplit(
       execGRASS("db.select",
@@ -327,15 +327,17 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     nanames <- vector(length = length(stat_vect))
     
     for(j in 1:length(stat_vect)){
-      if(vtype[j] == 1){ # if vector data
+      if(vtype[j] == 1){ # if polygon data
         
-        execGRASS("v.overlay", flags = c("overwrite", "quiet"),
+       execGRASS("v.overlay", flags = c("overwrite", "quiet"),
                   parameters = list(
                     ainput = "rca_v",
+                    atype = "area",
                     binput = input_vector[j],
+                    btype = "area",
                     operator = "and",
                     output = "temp_inters"
-                  ))
+                  ), ignore.stderr = T, intern = T)
         execGRASS("v.db.addcolumn", flags = "quiet",
                   parameters = list(
                     map =  "temp_inters",
@@ -406,7 +408,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
               parameters = list(
                 input = file.path(temp_dir,"edge_attributes.csv"),
                 output = "edge_attributes"
-              ),ignore.stderr = T)
+              ),ignore.stderr = T, intern = T)
     execGRASS("v.db.join", flags = "quiet",
               parameters = list(
                 map = "edges",
@@ -425,7 +427,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   cnames_edges2 <- cnames_edges2[- which(cnames_edges2 == "cat_")]
   message(paste0("New attributes values are stored as ", paste(cnames_edges2, collapse = ", ")))
   
-  if (clean) {
+ # if (clean) {
     # MK 02.05.2018 keep for consecutive runs
     # execGRASS("g.remove",
     #           flags = c("quiet", "f"),
@@ -443,7 +445,9 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
               parameters = list(
                 table = "edge_attributes"
               ))
-  }
+    invisible(file.remove(file.path(temp_dir,"edge_attributes.csv")))
+    invisible(file.remove(file.path(temp_dir,"edge_attributes.csvt")))
+  #}
 }
 
 #' calc_catchment_attributes_rast

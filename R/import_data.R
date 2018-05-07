@@ -235,11 +235,13 @@ import_vector_data <- function(data, name, proj_dem){
   } 
   if(import_flag) {
     # gives error on Linux if projection is not identical but it works!
+    # 'intern' and 'ignore.stderr' to suppress error messages
     execGRASS("v.import", flags = c("overwrite", "quiet"),
               parameters = list(
                 input = data,
                 output =  name,
-                extent = "region")) # to import into current regien ( = flags("r") in v.in.ogr)
+                extent = "region"),  # to import into current regien ( = flags("r") in v.in.ogr)
+              intern = T, ignore.stderr = T)
     if(file.exists(file.path(tempdir(), paste0(name, ".shp")))){
       invisible(file.remove(file.path(tempdir(), list.files(path = tempdir(), pattern = paste0(name, ".")))))
     }

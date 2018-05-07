@@ -26,8 +26,10 @@
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-#' setup_grass_environment(dem = dem_path, sites = sites_path)
-#' import_data(dem = dem_path, sites = sites_path)
+#' preds_path <- c(system.file("extdata", "nc", "landuse.shp", package = "openSTARS"),
+#'                 system.file("extdata", "nc", "pointsources.shp", package = "openSTARS"))
+#' setup_grass_environment(dem = dem_path)
+#' import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path)
 #' gmeta()
 #'
 #' # Derive streams from DEM
@@ -42,6 +44,7 @@
 #' 
 #' # Prepare edges
 #' calc_edges()
+#' calc_attribures_edges()
 #'
 #' # Prepare site
 #' calc_sites()
