@@ -45,7 +45,8 @@
 #' # Prepare edges
 #' calc_edges()
 #' calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo",
-#'   input_vector = c("landuse", "psources"), stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "psource"))
+#'   input_vector = c("landuse", "psources"), stat_vect = c("percent", "count"), 
+#'   attr_name_vect = c("landuse", "psource"))
 #'
 #' # Prepare site
 #' calc_sites()
