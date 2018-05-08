@@ -15,11 +15,16 @@
 #'\code{nsites}; the number of sites actually derived might therefore be a bit
 #'smaller than \code{nsites}.
 #'
-#'Steps include: \itemize{ \item{Place points on edges with given distance form
-#'each other} \item{Assign unique identifiers (needed by the 'SSN' package) 'pid'
-#'and 'locID'.} \item{Get 'rid' and 'netID' of the stream segment the site
-#'intersects with (from map 'edges').} \item{Calculate upstream distance for
-#'each point ('upDist').} \item{Calculate distance ratio ('distRatio') between
+#'Steps include: 
+#'\itemize{ 
+#'\item{Place points on edges with given distance from each other} 
+#'\item{Assign unique identifiers (needed by the 'SSN' package) 'pid'
+#'and 'locID'.} 
+#'\item{Get 'rid' and 'netID' of the stream segment the site
+#'intersects with (from map 'edges').} 
+#'\item{Calculate upstream distance for
+#'each point ('upDist').} 
+#'\item{Calculate distance ratio ('distRatio') between
 #'position of the site on the edge (= distance traveled from lower end of the
 #'edge to the site) and the total length of the edge.} }
 #'

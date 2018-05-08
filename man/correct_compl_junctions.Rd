@@ -24,11 +24,11 @@ Nothing. The function changes features in \itemize{
 \description{
 At complex junctions (i.e. more than two inflows to an outflow), the outflow
 is broken into two segments at 1/4 of the DEM's cellsize downstream of the
-start using
-\href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit}(tool =
+start using the GRASS function
+\href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
 break). Then, the stream with the smallest angle to the outflow is moved to
 this new junction using
-\href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit}(tool =
+\href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
 vertexmove). So far, this function works only for junctions with three
 inflows, not more.
 }
@@ -40,9 +40,9 @@ inflows, not more.
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
   } else {
-  gisbase = "/usr/lib/grass72/"
+  gisbase = "/usr/lib/grass74/"
   }
 initGRASS(gisBase = gisbase,
     home = tempdir(),

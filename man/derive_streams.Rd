@@ -12,22 +12,25 @@ derive_streams(burn = 5, accum_threshold = 700, condition = TRUE,
 DEM? Only applicable if a mapped stream network is provided in \code{\link{import_data}}.}
 
 \item{accum_threshold}{integer; accumulation threshold to use (i.e. minimum
-flow accumulation value in cells that will initiate a new stream).}
+flow accumulation value in cells that will initiate a new stream). See 
+details below.}
 
 \item{condition}{logical; should the DEM be conditioned using
-\href{https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html}{r.hydrodem}?#'}
+\href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem}'}
 
 \item{min_stream_length}{integer: minimum stream length in number of DEM
-raster cells; shorter first order stream segments are deleted; default: 0}
+raster cells; shorter first order stream segments are deleted; default: 0. 
+See details below.}
 
 \item{dem_name}{character vector, optional; default: 'dem'; useful if
 conditioned and / or burnt in DEM raster from previous runs shall be used.}
 
 \item{clean}{logical; should intermediate raster layer of imported streams
-('streams_or') be removed from 'GRASS' session?}
+('streams_or') be removed from the GRASS session?}
 
-\item{mem}{logical; should -m flag in GRASS r.watershed be used (as indicated in its help)
-see also \code{\link{watershed_memory}}-function}
+\item{mem}{logical; should -m flag in the GRASS function 
+\href{https://grass.osgeo.org/grass74/manuals/r.watershed.html}{r.watershed} 
+ be used (for data preparation)?}
 }
 \value{
 Nothing. The function produces the following maps:
@@ -41,21 +44,20 @@ Nothing. The function produces the following maps:
 } The original GRASS map 'dem' is not modified if \code{condition} is TRUE and / or \code{burn} > 0.
 }
 \description{
-Streams are derived from a digital elevation model (DEM) using
-\href{https://grass.osgeo.org/grass70/manuals/r.stream.extract.html}{r.stream.extract}.
+Streams are derived from a digital elevation model (DEM) using the GRASS function
+\href{https://grass.osgeo.org/grass74/manuals/r.stream.extract.html}{r.stream.extract}.
 If a stream network is available (see \code{\link{import_data}}) and burn > 0
-it will be first burnt into the digital elevation model (DEM). Stream
-topology is derived using
-\href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order}.
+it will be first burnt into DEM. Stream topology is derived using the GRASS function
+\href{https://grass.osgeo.org/grass74/manuals/addons/r.stream.order.html}{r.stream.order}.
 }
 \details{
 For details on \code{accum_threshold} and \code{min_stream_length}
 see the parameters 'threshold' and 'stream_length' at
-\href{https://grass.osgeo.org/grass73/manuals/r.stream.extract}{r.stream.extract}.
+\href{https://grass.osgeo.org/grass74/manuals/r.stream.extract}{r.stream.extract}.
 It might be useful to not burn in the whole available stream network but only 
 parts of it (e.g., larger streams with higher Strahler stream order only). 
-For this, the stream network needs to be pre-processed before loading it with 
-\code{import_data}.
+For this, the stream network needs to be pre-processed (parts could be deleted)
+before loading it with \code{import_data}.
 }
 \note{
 \code{\link{setup_grass_environment}} and \code{\link{import_data}}
@@ -65,9 +67,9 @@ For this, the stream network needs to be pre-processed before loading it with
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
   } else {
-  gisbase = "/usr/lib/grass72/"
+  gisbase = "/usr/lib/grass74/"
   }
 initGRASS(gisBase = gisbase,
     home = tempdir(),

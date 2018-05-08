@@ -6,7 +6,7 @@
 \usage{
 calc_attributes_edges(input_raster = NULL, stat_rast = NULL,
   attr_name_rast = NULL, input_vector = NULL, stat_vect = NULL,
-  attr_name_vect = NULL, round_dig = 2, clean = TRUE)
+  attr_name_vect = NULL, round_dig = 2)
 }
 \arguments{
 \item{input_raster}{name(s) of raster map(s) to calculate attributes from.}
@@ -29,9 +29,8 @@ polygon data, the results column names are determined by the content of
 this column.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
-of different values or just one value for all attributes.}
-
-\item{clean}{logical; should intermediate files be deleted}
+  of different values or just one value for all attributes.
+#@param clean logical; should intermediate files be deleted}
 }
 \value{
 Nothing. The function appends new columns to the 'edges' attribute
@@ -41,8 +40,8 @@ Nothing. The function appends new columns to the 'edges' attribute
   the edge ("attribute_name_c").
 }
 \description{
-For each edge (i.e. stream segment) additional attributes (predictor variables)
-are derived based on given raster or vector maps.
+For each edge (i.e. stream segment) additional attributes (potential predictor 
+variables) are derived based on given raster or vector maps.
 }
 \details{
 First, the subcatchments for all edges are calculated. Then these are
@@ -54,7 +53,7 @@ For \code{stat_rast} = "percent" the \code{input_raster} must be coded as 1 and 
  (e.g., cells occupied by the land use under consideration and not). If
   the \code{input_raster} consists of percentages per cell (e.g., proportional land
   use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
-  of this land use.
+  of this land use in the catchment.
 
 For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
 e.g. differnt land use types. The column \code{attr_name_vect} would then 
@@ -79,9 +78,9 @@ v.in.ogr (see examples).
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
   } else {
-  gisbase = "/usr/lib/grass72/"
+  gisbase = "/usr/lib/grass74/"
   }
 initGRASS(gisBase = gisbase,
     home = tempdir(),
@@ -90,8 +89,10 @@ initGRASS(gisBase = gisbase,
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+pred_path <- system.file("extdata", "nc", "landuse.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path)
-import_data(dem = dem_path, sites = sites_path)
+import_data(dem = dem_path, sites = sites_path, 
+  predictor_vector = pred_path, predictor_v_names = "landuse")
 gmeta()
 
 # Derive streams from DEM
@@ -113,17 +114,37 @@ parameters = list(
   elevation = "dem",
     slope = "slope"
     ))
-calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo")
+    
+# import additional vector data
+fp <-  system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
+execGRASS("v.import", flags = c("overwrite", "quiet"),
+parameters = list(
+  input = fp,
+  output =  "psources",
+  extent = "region"),  # to import into current regien
+  intern = T, ignore.stderr = T)
+  
+calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo",
+                     input_vector = c("landuse", "pcource"), 
+                     stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "npsource"))
 
 # Plot data with maximum slope per edge as color ramp (steep slopes in red)
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
+head(edges@data)
+lu <- readVECT("landuse", ignore.stderr = TRUE)
 plot(dem, col = gray(seq(0,1,length.out=20))) 
-mm <- range(c(edges@data$maxSlo_e), na.rm = T) 
+col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
+plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
+legend("topleft", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
+  title = "landuse", ncol = 4)
+mm <- range(c(edges$agri_c), na.rm = T) 
 b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
 c_ramp <- colorRampPalette(c("blue", "red"))
-cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e,breaks = b,right=F))]
+cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right=F))]
 plot(edges,col=cols, add = T, lwd=2)
+legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
+  legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 }
 
 }

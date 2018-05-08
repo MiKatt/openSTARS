@@ -10,10 +10,13 @@ check_compl_junctions()
 TRUE if there are complex junctions.
 }
 \description{
+It is checked, if there are more than two inflows to an outflow.
+}
+\details{
 It is checked, if there are columns named 'prev_str03', 'prev_str04' and
-'prev_str05' in the attribute table of streams_v derived with
-\href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html}{r.stream.order},
-hence, if there are more than two inflows to a junction.
+'prev_str05' in the attribute table of streams_v derived with \code{derive_streams}
+(i.e. based on the GRASS function 
+\href{https://grass.osgeo.org/grass74/manuals/addons/r.stream.order.html}{r.stream.order}).
 }
 \note{
 \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
@@ -23,9 +26,9 @@ hence, if there are more than two inflows to a junction.
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
   } else {
-  gisbase = "/usr/lib/grass72/"
+  gisbase = "/usr/lib/grass74/"
   }
 initGRASS(gisBase = gisbase,
     home = tempdir(),
@@ -34,7 +37,7 @@ initGRASS(gisBase = gisbase,
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path, sites = sites_path)
+setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path)
 gmeta()
 

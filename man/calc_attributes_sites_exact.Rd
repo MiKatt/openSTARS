@@ -25,11 +25,23 @@ gives the desired percentile e.g. 25 for the first). Must be provided if
 to be calculated. Attribute names must not be longer than 10 characters.
 Must be provided if \code{input_raster} are given.}
 
+\item{input_vector}{character string vector (optional); name of additional vector
+maps to calculate attributes from.}
+
+\item{stat_vect}{character string vector (optional); statistics to be calculated, 
+one of: percentage or count. Must be provided if \code{input_vector} is given.}
+
+\item{attr_name_vect}{character string vector (optional); column name(s) in 
+the vector file provided to calculate the attributes from (if \code{input_vector}
+is a polygon map and stat_vect is 'percent') or giving the new name attributes
+to calculate (if \code{input_vector} is a point map and stat_vect is 'count'.
+Must be provided if \code{input_vector} is given.}
+
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
 of different values or just one value for all attributes.}
 
 \item{calc_basin_area}{boolean; shall the catchment area be calculated? (Useful
-if the function has been called before with \code{keep_basins = TRUE}.)}
+to set to FALSE if the function has been called before with \code{keep_basins = TRUE}.)}
 
 \item{keep_basins}{boolean; shall raster maps of all the watersheds be kept?}
 }
@@ -39,18 +51,18 @@ Nothing. The function appends new columns to the \code{sites_map} attribute tabl
  \item{'H2OArea':} {Total watershed area of the watershed upstream of each site.}
  \item{attr_name_rast:} {Additional optional attributes calculated based on input_raster maps.}
 }
-Please note that for sampling points that lie in the same dem raster cell 
- along a stream identical values are calculated, because identical watersheds
+Please note that for sampling points that lie in the same DEM raster cell 
+ along a stream identical values are calculated because identical watersheds
  are derived.
 }
 \description{
 For each site (observation or prediction) the total catchment area is
 calculated ('H2OArea'). Additionally, other attributes (predictor variables)
-can be derived based on given raster maps. This function calculates
+can be derived based on given raster or vector maps. This function calculates
 exact values for catchments derived with
-\href{https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html}{r.stream.basins}
+\href{https://grass.osgeo.org/grass74/manuals/addons/r.stream.basins.html}{r.stream.basins}
 and can take considerable time if there are many sites.
-Catchment raster maps can optionally be stored as "sitename_catchm_X" (X = locID).
+Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = locID).
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}},
@@ -100,17 +112,17 @@ calc_attributes_sites_exact(input_raster = "slope", attr_name_rast = "maxSloE", 
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
-plot(dem, col = terrain.colors(20))
-mm <- range(c(edges$maxSlo_e, sites$maxSlo, sites$maxSloE))
+plot(dem, col = gray(seq(0,1,length.out=20)))
+mm <- range(c(edges$maxSlo_e, sites$maxSloA, sites$maxSloEx))
 b <- seq(from = mm[1], to = mm[2] + diff(mm) * 0.01, length.out = 10)
-c_ramp <- colorRampPalette(c("blue", "red"))
+c_ramp <- colorRampPalette(c("white", "blue", "orange", "red"))
 cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e, breaks = b, right = FALSE))]
-lines(edges,col = cols, lwd = 2)
-cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSlo,breaks = b,right = FALSE))]
-points(sites, pch = 19, col = cols)
-cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right = FALSE))]
-points(sites, pch = 21, bg = cols, cex = 0.7)
-# Some points in the centre of the map indicate a difference in max slope between
+plot(edges,col = cols, lwd = 2, add = T)
+cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloA,breaks = b,right = FALSE))]
+plot(sites, pch = 19, col = cols, cex = 2, add = T)
+cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloEx,breaks = b,right = FALSE))]
+plot(sites, pch = 21, bg = cols, cex = 1.1, add = T)
+# Some points in the centre left of the map indicate a difference in max slope between
 # approximate and exact calculation (different colors for inner and outer points)
 }
 }

@@ -2,11 +2,11 @@
 #'
 #' At complex junctions (i.e. more than two inflows to an outflow), the outflow
 #' is broken into two segments at 1/4 of the DEM's cellsize downstream of the
-#' start using
-#' \href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit}(tool =
+#' start using the GRASS function
+#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
 #' break). Then, the stream with the smallest angle to the outflow is moved to
 #' this new junction using
-#' \href{https://grass.osgeo.org/grass73/manuals/v.edit.html}{v.edit}(tool =
+#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
 #' vertexmove). So far, this function works only for junctions with three
 #' inflows, not more.
 #'

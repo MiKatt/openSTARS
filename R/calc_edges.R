@@ -10,12 +10,12 @@
 #' upstream node of the stream segment to the outlet of the network}
 #'\item{Calculate reach contributing areas (RCA ) per segment,
 #''rcaArea' = subcatchment area of each segment in square km}
-#'\item{Calculate catchment areas; 'H2OArea' = total catchment area of each
+#'\item{Calculate catchment areas, 'H2OArea' = total catchment area of each
 #'segment in square km} }
 #'All lengths are rounded to 2 and all areas to 6 decimal places, respectively.
 #'
 #'@return Nothing. The function produces the following map: \itemize{
-#'  \item{'edges'} {derived stream segments with computed attributes needed for
+#'  \item{'edges':} {derived stream segments with computed attributes needed for
 #'  'SSN' (vector)} }
 #'
 #'@note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and

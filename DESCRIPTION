@@ -24,6 +24,7 @@ Imports:
     methods,
     progress,
     rgdal,
+    sf,
     sp,
     raster,
     SSN

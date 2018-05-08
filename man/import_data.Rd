@@ -13,53 +13,57 @@ import_data(dem, band = 1, sites, streams = NULL, snap_streams = FALSE,
 
 \item{band}{integer (optional); defines which band is used}
 
-\item{sites}{character string or object; path to sites vector file (shape) 
+\item{sites}{character string or object; path to sites vector file (ESRI shape) 
 or sp or sf data object.}
 
 \item{streams}{character string or object (optional); path to network vector 
-file (shape) or sp or sf data object. If available this can be burnt into the DEM 
+file (ESRI shape) or sp or sf data object. If available this can be burnt into the DEM 
 in \code{\link{derive_streams}}}
 
 \item{snap_streams}{boolean (optional); snap line ends.
 If TRUE line ends of the streams are snapped to the next feature if they are
  unconnected with threshold of 10 m using 'GRASS' function v.clean.}
 
-\item{pred_sites}{character vector (optional); path(s) to prediction sites 
-vector files}
+\item{pred_sites}{character string vector or object(s) (optional); path(s) to prediction sites 
+vector files (ESRI shape) or sp or sf data object.}
 
 \item{predictor_raster}{character vector (optional); paths to raster data to 
 import as predictors.}
 
-\item{predictor_r_names}{character vector (optional); names for potential predictor
-variables in raster format.}
+\item{predictor_r_names}{character string vector (optional); names for potential predictor
+variables in raster format; if not provided \code{perdictor_raster} is used.}
 
-\item{predictor_vector}{character vector (optional); paths to vector data, 
-sp or sf object names to import as predictors.}
+\item{predictor_vector}{character string vector of objec(s) (optional); path(s)
+to vector data (ESRI shape) or sp or sf object names to import as predictors.}
 
 \item{predictor_v_names}{character vector (optional); names for potential predictor
-variables in vector format.}
+variables in vector format ; if not provided \code{perdictor_vector} is used.}
 }
 \value{
 Nothing, the data is loaded into the 'GRASS' session (mapset PERMANENT).
 The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
-vector(s) using the original file names with an appended '_o' (without extension),
+as vector using the original file names with an appended '_o' (without extension),
 streams as vector 'streams_o' in the 'GRASS' location. Additionally, predictor 
 raster map(s) can be read in and are stored in 'GRASS' using either the 
 original file names (without extension) or using the names provides in 
-predictor_r_names. The latter option may be useful if ArcGIS grid data 
+\code{predictor_r_names}. The latter option may be useful if ArcGIS grid data 
 (typically stored as 'grid_name/w001001.adf') are used. Likewise, predictor
 vector maps can be read in from Esri Shape file (given as the full file path)
-or as sf or sp objects.
+or as sf or sp objects. Potential predictor data can also be read in later, e.g.
+using GRASS commands \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import} 
+or \href{https://grass.osgeo.org/grass74/manuals/r.in.gdal.html}{r.in.gdal}
+(see examples below).
 }
 \description{
-This function loads dem and sites data (both required) into the 'GRASS' session.
+This function loadsDEM (digital elevation model) and sites data (both required) into the 'GRASS' session.
 Optionally, prediction sites and streams data can be loaded and the streams 
-may be corrected by snapping to prevent lose ends.
+may be corrected by snapping to prevent lose ends. Likewise, protential predictor 
+maps (raster or vector format) can be loaded.
 }
 \details{
-All vector data (sites and streams) is imported into the current
-location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
-Hence, if the projections does not match to the one of the dem (which was used
+All vector data (sites, streams and potential predictors) is imported 
+into the current location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
+Hence, if the projections does not match to the one of the DEM (which was used
 to specify the location in \code{\link{setup_grass_environment}}) the maps 
 are imported on the fly.
 }
@@ -76,21 +80,43 @@ when defining sp objects.
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
   } else {
-  gisbase = "/usr/lib/grass72/"
+  gisbase = "/usr/lib/grass74/"
   }
 initGRASS(gisBase = gisbase,
     home = tempdir(),
     override = TRUE)
 
+# Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+preds_path <- system.file("extdata", "nc", "landuse.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path)
-import_data(dem = dem_path, sites = sites_path)
-gmeta()
-dem <- readRAST('dem')
-plot(dem)
+import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path)
+
+# Plot data
+dem <- readRAST("dem", ignore.stderr = TRUE)
+sites_orig <-  readVECT("sites_o", ignore.stderr = TRUE)
+lu <- readVECT("landuse", ignore.stderr = TRUE)
+plot(dem, col = terrain.colors(20))
+plot(dem, col = grey.colors(20))
+col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
+plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
+legend("top", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), title = "landuse", ncol = 4)
+points(sites_orig, pch = 4)
+
+# import additional vector data
+fp <-  system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
+execGRASS("v.import", flags = c("overwrite", "quiet"),
+parameters = list(
+  input = fp,
+  output =  "psources",
+  extent = "region"),  # to import into current regien
+  intern = T, ignore.stderr = T)
+  
+ps <- readVECT("psources")
+points(ps, bg = "red", pch = 21, col = "grey", cex = 1.5)
 }
 }
 \author{
