@@ -41,7 +41,7 @@ gmeta()
 derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 
 # Check and correct complex junctions (there are no complex juctions in this 
-# example date set)
+# example date set if the accum_threshold is high)
 cj <- check_compl_junctions()
 if(cj){
   correct_compl_junctions()

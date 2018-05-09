@@ -1,7 +1,7 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "August 9, 2017"
+date: "May 9, 2018"
 output: html_document
 ---
 

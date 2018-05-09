@@ -1,9 +1,13 @@
+---
+output:
+  html_document:
+    keep_md: yes
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 openSTARS
 =============
-
 
 
 
@@ -43,12 +47,12 @@ First, a GRASS session must be initiated:
 
 ```r
 library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass72/",
+initGRASS(gisBase = "/usr/lib/grass74/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpQq5CYy 
-#> location    file2d877f1b2fdb 
-#> mapset      file2d876d285359 
+#> gisdbase    /tmp/RtmpJ17uXr 
+#> location    file5d2536a4f3a0 
+#> mapset      file5d2515b1ac6e 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -64,13 +68,26 @@ Alternatively, the path to a specific GRASS database directory and a Location na
 
 ```r
 library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass72/",
+initGRASS(gisBase = "/usr/lib/grass74/",
           home = tempdir(),
           gisDbase = "./GRASSDB",
           location = "test_openSTARS",
           remove_GISRC = T,
           override = TRUE)
 ```
+
+On Windows, this might look like this:
+
+```r
+library(openSTARS)
+initGRASS(gisBase = "c:/Program Files/GRASS FUS 7.4.0",
+          home = tempdir(),
+          gisDbase = "./GRASSDB",
+          location = "test_openSTARS",
+          remove_GISRC = T,
+          override = TRUE)
+```
+
 
 ### Setup GRASS and load data into GRASS
 The path to the digital elevation model (DEM) and the observation sites must be
@@ -87,24 +104,41 @@ For more information on the concept of GRASS Locations, Mapsets etc. see the [GR
 
 ```r
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
-sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 
-setup_grass_environment(dem = dem_path, sites = sites_path)
-#> Setting up GRASS Environment...
+setup_grass_environment(dem = dem_path)
+#> Setting up GRASS Environment ...
 
 gmeta()
+#> gisdbase    /tmp/RtmpJ17uXr 
+#> location    file5d2536a4f3a0 
+#> mapset      PERMANENT 
+#> rows        450 
+#> columns     500 
+#> north       228500 
+#> south       215000 
+#> west        630000 
+#> east        645000 
+#> nsres       30 
+#> ewres       30 
+#> projection  +proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334
+#> +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +no_defs +a=6378137
+#> +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1
 ```
 
-Then, use `import_data` to import all data into GRASS (DEM, observations sites and optionally stream network)
+Then, use `import_data` to import all data into GRASS (DEM, observations sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`).
 
 ```r
-import_data(dem = dem_path, sites = sites_path)
-#> Loading DEM into GRASS...
+sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+preds_path <- c(system.file("extdata", "nc", "landuse.shp", package = "openSTARS"),
+                 system.file("extdata", "nc", "pointsources.shp", package = "openSTARS"))
+import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path, predictor_v_names = c("landuse", "psources"))
+#> Loading DEM into GRASS ...
 #> Loading sites into GRASS as sites_o ...
+#> Loading predictior varibales into GRASS as landuse, psources ...
 #> No streams available, skipping.
 ```
 
-The DEM is loaded into the GRASS database as raster map named `dem`, the sites as vector map named `sites_o` and the (optional) stream network as vector map named `streams_o`. Additionally, prediction sites can be loaded if they have been allready created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`, see below). Likewise, raster maps of potential predictor variables can be loaded to be able to later intersect them with the catchments of the sites.
+The DEM is loaded into the GRASS database as a raster map named `dem`, the sites as a vector map named `sites_o` and the (optional) stream network as a vector map named `streams_o`. Predictor sites are stored under their base file name, potential predictors either using their base file names or the ones provided in 'predictor_r_names' and 'predictor_v_names', respectively.
 
 Here's how the data looks like:
 
@@ -112,9 +146,12 @@ Here's how the data looks like:
 ```r
 dem <- readRAST("dem", ignore.stderr = TRUE)
 sites <- readVECT("sites_o", ignore.stderr = TRUE)
+psources <- readVECT("psources", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value)]
 points(sites, pch = 16, col = cols)
+points(psources, pch = 19, col = 1, cex = 1.7)
+legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.015, pch = c(16, 16, 19), ncol = 1, col = c(range(cols),1), legend = c(paste("value at sites:", c(range(sites$value))), "point sources"))
 ```
 
 ![](README_files/figure-html/plot_data1-1.png)<!-- -->
@@ -124,11 +161,11 @@ Next, the streams should be derived from the DEM.
 
 ```r
 derive_streams()
-#> Conditioning DEM...
-#> Deriving streams from DEM...
-#> Calculating stream topology...
+#> Conditioning DEM ...
+#> Deriving streams from DEM ...
+#> Calculating stream topology ...
 ```
-An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to the existing one. Additionally, other specifications on how the streams shall be created can be provided (see `?derive_streams` and the GRASS function  [r.stream.extract](https://grass.osgeo.org/grass72/manuals/r.stream.extract.html) for details).
+An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to the existing ones. Additionally, other specifications on how the streams shall be created can be provided (see `?derive_streams` and the GRASS function  [r.stream.extract](https://grass.osgeo.org/grass72/manuals/r.stream.extract.html) for details).
 
 
 ```r
@@ -145,16 +182,29 @@ cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value
 points(sites, pch = 16, col = cols)
 ```
 
-![](README_files/figure-html/plot_data2-1.png)<!-- -->
-
 ### Check and correct the network
-Next, the stream network should be checked if there are stream segments with more than two inflows. This must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be no complex junctions.
+Next, the stream network should be checked if there are stream segments with more than two inflows. This must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be complex junctions only if accum_threshold is small.
 
 
 ```r
+derive_streams(burn = 0, accum_threshold = 100)
 cp <- check_compl_junctions()
 if (cp)
   correct_compl_junctions()
+```
+
+
+```r
+dem <- readRAST('dem', ignore.stderr = TRUE)
+streams <- readVECT('streams_v', ignore.stderr = TRUE)
+streams_orig <- readVECT('streams_v_o', ignore.stderr = TRUE)
+# zoom to a relevant part of the dem
+plot(dem, col = terrain.colors(20), axes = TRUE,
+  xlim = c(640050,640200), ylim = c(219700,219850))
+lines(streams_orig, col = 'red', lwd = 4)
+lines(streams, col = 'blue', lty = 2, lwd = 2)
+legend("topright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2),
+  legend = c("original", "corrected"))
 ```
 
 An example of a complex junction and the correction would look like this:
@@ -164,7 +214,7 @@ An example of a complex junction and the correction would look like this:
 *Left* Original network with complex junction (i.e. three inflows to one outflow). 
 *Right* Corrected network. Arrows indicate flow direction.
 
-The end node of the inflowing segment with the smalles angle to the outflowing 
+The end node of the inflowing segment with the smallest angle to the outflowing 
 segment is moved 0.25 times the cell size of the DEM downstream. The outflowing
 segment is split into tow parts at this new junction. All features are corrected
 accordingly (cat, length, prev_str01, prev_str02, next_str etc.). Currently, this 
@@ -185,16 +235,6 @@ calc_edges()
 ```r
 edges <- readVECT("edges", ignore.stderr = TRUE)
 head(edges@data, n = 4)
-#>   cat stream prev_str01 prev_str02 next_str flow_accu netID rid OBJECTID
-#> 1   1      1          0          0       30  903.7007    15   0        1
-#> 2   2      2          0          0       15 1893.0472    15   1        2
-#> 3   3      3          0          0       51 6130.5509    14   2        3
-#> 4   4      4          0          0       -1 3123.5889     1   3        4
-#>    Length sourceDist   upDist H2OArea rcaArea
-#> 1 1268.53    1268.53 19128.73  1.0674  1.0674
-#> 2 1006.69    1006.69 21908.81  1.3473  1.3473
-#> 3 4298.01    4298.01 13038.00  5.5233  5.5233
-#> 4 2657.06    2657.06  2657.06  2.8305  2.8305
 ```
 
 `edges` now holds the derived network plus attributes needed for the .ssn object
@@ -215,22 +255,12 @@ Often, survey sites do not lay exactly on the stream network (due to GPS impreci
 
 ```r
 calc_sites()
-sites <- readVECT("sites", ignore.stderr = TRUE)
 ```
 
 
 ```r
+sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 4)
-#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
-#> 1   1    1     1        5  79.90783 631046.1 226074.1     1   1    15   4
-#> 2   2    2     2        5  76.09862 631495.3 225849.5     2   2    15   4
-#> 3   3    3     1        5 112.90480 631787.3 225580.0     3   3    15   4
-#> 4   4    4     1        5  61.15861 632011.9 225175.7     4   4    15   4
-#>     upDist distalong     ratio
-#> 1 22490.34  289.7056 0.8457322
-#> 2 21983.36  796.6905 0.5757636
-#> 3 21613.95 1166.1017 0.3790527
-#> 4 21166.96 1613.0866 0.1410340
 ```
 
 * point identifier (pid)
@@ -245,9 +275,6 @@ Additional fields hold information on the snapping: distance of the original sit
 
 ```r
 dem <- readRAST("dem", ignore.stderr = TRUE)
-#> Creating BIL support files...
-#> Exporting raster as floating values (bytes=4)
-#>    0%   3%   6%   9%  12%  15%  18%  21%  24%  27%  30%  33%  36%  39%  42%  45%  48%  51%  54%  57%  60%  63%  66%  69%  72%  75%  78%  81%  84%  87%  90%  93%  96%  99% 100%
 sites <- readVECT("sites", ignore.stderr = TRUE)
 sites_orig <- readVECT("sites_o", ignore.stderr = TRUE)
 edges <- readVECT("edges", ignore.stderr = TRUE)
@@ -257,8 +284,6 @@ points(sites_orig, pch = 20, col = "black")
 points(sites, pch = 21, cex=0.75, bg = "grey")
 legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("snapped sites", "original sites"))
 ```
-
-![](README_files/figure-html/plot_data3-1.png)<!-- -->
 
 ### Prepare prediction sites
 Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to certain networks (`netIDs`).
@@ -282,9 +307,6 @@ calc_prediction_sites(predictions = "preds", nsites = 100, netIDs = 15 )
 
 ```r
 dem <- readRAST("dem", ignore.stderr = TRUE)
-#> Creating BIL support files...
-#> Exporting raster as floating values (bytes=4)
-#>    0%   3%   6%   9%  12%  15%  18%  21%  24%  27%  30%  33%  36%  39%  42%  45%  48%  51%  54%  57%  60%  63%  66%  69%  72%  75%  78%  81%  84%  87%  90%  93%  96%  99% 100%
 sites <- readVECT("sites", ignore.stderr = TRUE)
 pred_sites <- readVECT("preds", ignore.stderr = TRUE)
 edges <- readVECT("edges", ignore.stderr = TRUE)
@@ -293,29 +315,14 @@ lines(edges, col = "blue")
 points(sites, pch = 21, cex=0.75, bg = "grey")
 points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
 legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("(snapped) observation sites","prediction sites"))
-```
-
-![](README_files/figure-html/plot_data4-1.png)<!-- -->
-
-```r
 head(pred_sites@data, n = 4)
-#>   cat cat_edge         dist pid rid distalong     ratio locID netID
-#> 1   1        1 0.000000e+00   1   0       676 0.4670997     1    15
-#> 2   2        1 2.910383e-11   2   0        17 0.9865987     2    15
-#> 3   3        2 0.000000e+00   3   1       820 0.1854493     3    15
-#> 4   4        2 0.000000e+00   4   1       161 0.8400699     4    15
-#>     upDist
-#> 1 18452.73
-#> 2 19111.73
-#> 3 21088.81
-#> 4 21747.81
 ```
 
-### Calculate attributes from raster maps
+### Calculate attributes from raster and vector maps
 Attributes (i.e. predictor variables for the .ssn object) can be calculated for observation and prediction sites. There are two ways to calculates attributes: 
 
 1. approximately as described in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J. Stat. Softw., 56 (2).
-1. exactly by intersecting the catchment of each point with raster maps;
+2. exactly by intersecting the catchment of each point with raster maps;
 
 For the approximate calculation, first attributes must be intersected with the sub-catchments of the stream segments and then they are calculated for each site based on the distance ratio of the point. Note that the sub-catchment area 'H2OArea' for each stream segment is calculated automatically in calc_edges.
 
@@ -328,8 +335,8 @@ execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
             slope = "slope"
           ))
 # calculate average slope per sub-catchment of each stream segment
-calc_attributes_edges(input_raster = "slope", stat = "mean",
-                      attr_name = "avSlo", round_dig = 4, clean = T)
+calc_attributes_edges(input_raster = "slope", stat_rast = "mean",
+                      attr_name_rast = "avSlo", round_dig = 4)
 # calculate approx. catchment area and average slope per catchment of each site
 calc_attributes_sites_approx(sites_map = "sites",
                              input_attr_name = "avSlo",
@@ -337,16 +344,6 @@ calc_attributes_sites_approx(sites_map = "sites",
                              stat = "mean")
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 4)
-#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
-#> 1   1    1     1        5  79.90783 631046.1 226074.1     1   1    15   4
-#> 2   2    2     2        5  76.09862 631495.3 225849.5     2   2    15   4
-#> 3   3    3     1        5 112.90480 631787.3 225580.0     3   3    15   4
-#> 4   4    4     1        5  61.15861 632011.9 225175.7     4   4    15   4
-#>     upDist distalong     ratio H2OAreaA avSloA
-#> 1 22490.34  289.7056 0.8457322     0.38 3.2165
-#> 2 21983.36  796.6905 0.5757636     1.04 3.2165
-#> 3 21613.95 1166.1017 0.3790527     1.53 3.2165
-#> 4 21166.96 1613.0866 0.1410340     2.11 3.2165
 ```
 
 The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points) because for each point the total catchment is first delineated based on the DEM and then intersected with the raster map(s) provided. Note that if no raster map is provided the total catchment area for each point is calculated.
@@ -357,29 +354,11 @@ The exact calculation of attribute values for the total catchment of each point 
 # calculate exact catchment area and average slope per catchment of each site
 calc_attributes_sites_exact(sites_map = "sites", 
                             input_raster = "slope",
-                            stat = "mean",
-                            attr_name = "avSloE", 
+                            stat_rast = "mean",
+                            attr_name_rast = "avSloE", 
                             round_dig = 4)
-#> Exporting 87 features...
-#>    5%  11%  17%  24%  31%  37%  43%  49%  55%  62%  68%  74%  80%  86%  93% 100%
-#> v.out.ogr complete. 87 features (Point type) written to <sites> (SQLite
-#> format).
-#> OGR data source with driver: SQLite 
-#> Source: "/tmp/RtmpQq5CYy/file2d877f1b2fdb/PERMANENT/.tmp/mira-mint/970.0", layer: "sites"
-#> with 87 features
-#> It has 16 fields
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 4)
-#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
-#> 1   1    1     1        5  79.90783 631046.1 226074.1     1   1    15   4
-#> 2   2    2     2        5  76.09862 631495.3 225849.5     2   2    15   4
-#> 3   3    3     1        5 112.90480 631787.3 225580.0     3   3    15   4
-#> 4   4    4     1        5  61.15861 632011.9 225175.7     4   4    15   4
-#>     upDist distalong     ratio H2OAreaA avSloA H2OArea avSloE
-#> 1 22490.34  289.7056 0.8457322     0.38 3.2165  1.0476 2.8314
-#> 2 21983.36  796.6905 0.5757636     1.04 3.2165  1.6569 3.0192
-#> 3 21613.95 1166.1017 0.3790527     1.53 3.2165  1.8675 3.0915
-#> 4 21166.96 1613.0866 0.1410340     2.11 3.2165  2.4192 3.1704
 ```
 
 In both alternatives, the catchment area for each site is calculated automatically ('H2OAreaA' for `calc_attributes_sites_appox` and 'H2OArea' for `calc_attributes_sites_exact`).
@@ -392,11 +371,6 @@ All files needed (edges, sites and optionally prediction sites) are written to t
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 export_ssn(ssn_dir)
 list.files(ssn_dir)
-#>  [1] "edges.dbf"   "edges.prj"   "edges.shp"   "edges.shx"   "netID10.dat"
-#>  [6] "netID11.dat" "netID12.dat" "netID13.dat" "netID14.dat" "netID15.dat"
-#> [11] "netID16.dat" "netID1.dat"  "netID2.dat"  "netID3.dat"  "netID4.dat" 
-#> [16] "netID5.dat"  "netID6.dat"  "netID7.dat"  "netID8.dat"  "netID9.dat" 
-#> [21] "sites.dbf"   "sites.prj"   "sites.shp"   "sites.shx"
 ```
 
 
@@ -407,11 +381,6 @@ library(SSN)
 # import
 ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 plot(ssn_obj, 'value')
-```
-
-![](README_files/figure-html/ssn_test-1.png)<!-- -->
-
-```r
 
 # Create Distance Matrix
 createDistMat(ssn_obj, o.write = TRUE)
@@ -419,70 +388,17 @@ dmats <- getStreamDistMat(ssn_obj)
 
 ssn_obj.Torg <- Torgegram(ssn_obj, "value", nlag = 20, maxlag = 15000)
 plot(ssn_obj.Torg)
-```
-
-![](README_files/figure-html/ssn_test-2.png)<!-- -->
-
-```r
 
 names(ssn_obj@data)
-#>  [1] "cat"        "flow_accu"  "netID"      "rid"        "OBJECTID"  
-#>  [6] "Length"     "sourceDist" "upDist"     "H2OArea"    "rcaArea"   
-#> [11] "cat_"       "avSlo_e"    "avSlo_c"
 names(ssn_obj)
-#> $Obs
-#>  [1] "cat"       "cat_"      "value"     "cat_edge"  "dist"     
-#>  [6] "xm"        "ym"        "locID"     "pid"       "netID"    
-#> [11] "rid"       "upDist"    "distalong" "ratio"     "H2OAreaA" 
-#> [16] "avSloA"    "H2OArea"   "avSloE"
 ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
 
 # non-spatial model
 ssn_obj.glmssn0 <- glmssn(value ~ upDist, ssn.object = ssn_obj,
                             CorModels = NULL)
 summary(ssn_obj.glmssn0)
-#> 
-#> Call:
-#> glmssn(formula = value ~ upDist, ssn.object = ssn_obj, CorModels = NULL)
-#> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#>      NA -2.4181 -0.2146  2.6689      NA 
-#> 
-#> Coefficients:
-#>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  6.657e+00  6.868e-01   9.693  < 2e-16 ***
-#> upDist      -1.953e-04  5.797e-05  -3.368  0.00115 ** 
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Covariance Parameters:
-#>  Covariance.Model Parameter Estimate
-#>            Nugget   parsill     8.51
-#> 
-#> Residual standard error: 2.916576
-#> Generalized R-squared: 0.1215401
 # same as
 summary(lm(value ~ upDist, getSSNdata.frame(ssn_obj)))
-#> 
-#> Call:
-#> lm(formula = value ~ upDist, data = getSSNdata.frame(ssn_obj))
-#> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -4.9703 -2.4181 -0.2146  2.6689  5.0855 
-#> 
-#> Coefficients:
-#>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  6.657e+00  6.868e-01   9.693 3.02e-15 ***
-#> upDist      -1.953e-04  5.797e-05  -3.368  0.00115 ** 
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Residual standard error: 2.917 on 82 degrees of freedom
-#>   (3 observations deleted due to missingness)
-#> Multiple R-squared:  0.1215,	Adjusted R-squared:  0.1108 
-#> F-statistic: 11.35 on 1 and 82 DF,  p-value: 0.001154
 
 
 # # # spatial model
@@ -490,38 +406,7 @@ ssn_obj.glmssn1 <- glmssn(value ~ upDist , ssn.object = ssn_obj,
                             CorModels = c("Exponential.taildown", "Exponential.tailup"),
                           addfunccol = "computed.afv")
 summary(ssn_obj.glmssn1)
-#> 
-#> Call:
-#> glmssn(formula = value ~ upDist, ssn.object = ssn_obj, CorModels = c("Exponential.taildown", 
-#>     "Exponential.tailup"), addfunccol = "computed.afv")
-#> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#>      NA -2.1142 -0.1435  2.8441      NA 
-#> 
-#> Coefficients:
-#>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  6.142e+00  1.204e+00   5.100   <2e-16 ***
-#> upDist      -1.644e-04  9.473e-05  -1.735   0.0864 .  
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Covariance Parameters:
-#>      Covariance.Model Parameter     Estimate
-#>    Exponential.tailup   parsill     7.586491
-#>    Exponential.tailup     range 98564.621409
-#>  Exponential.taildown   parsill     0.000496
-#>  Exponential.taildown     range 57168.642227
-#>                Nugget   parsill     2.430493
-#> 
-#> Residual standard error: 3.16504
-#> Generalized R-squared: 0.03542456
 varcomp(ssn_obj.glmssn1)
-#>                VarComp   Proportion
-#> 1    Covariates (R-sq) 3.542456e-02
-#> 2   Exponential.tailup 7.304974e-01
-#> 3 Exponential.taildown 4.776411e-05
-#> 4               Nugget 2.340303e-01
 ```
 
 

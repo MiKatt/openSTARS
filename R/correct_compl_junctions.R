@@ -240,7 +240,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
               vector = "streams_v,streams_v_o"), ignore.stderr = TRUE)
 
   message("Original stream topology file moved to streams_v_o.\n")
-  message("Breaking lines and moving vertices...\n")
+  message("Breaking lines and moving vertices ...")
 
   # Break features at cut coordinates
   for(i in 1:nrow(dt.junctions)){
@@ -363,7 +363,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   tabs <- tabs[-which(tabs == "dt.junctions")]
   remove(list = tabs)
 
-  message("Updating topology...\n")
+  message("Updating topology ...")
 
   for(i in 1:nrow(dt.junctions)){
     # set "next_str" of cat_small and move_stream to cat_large

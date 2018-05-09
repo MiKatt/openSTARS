@@ -6,7 +6,7 @@ Description: An open source implementation of the 'STARS' toolbox
     It prepares the *.ssn object needed for the 'SSN' package.
     A Digital Elevation Model (DEM) is used to derive stream networks 
     (in contrast to 'STARS' that can clean an existing stream network).
-Version: 1.0.0.999
+Version: 1.1.0
 Authors@R: c(person("Mira", "Kattwinkel", role = c("aut","cre"),
               email = "mira.kattwinkel@gmx.net"),
 	    person("Eduard", "Szöcs", role = c("aut"),

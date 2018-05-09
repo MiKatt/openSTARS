@@ -111,7 +111,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     stop("DEM and sites are needed.")
   
   # Import data -------------------
-  message("Loading DEM into GRASS ...")
+  message("Loading DEM into GRASS as dem ...")
   
   # import raster
   # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
@@ -173,7 +173,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_raster)) {
     if(is.null(predictor_r_names))
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_r_names, collapse = ", ", sep=""), " ..."))
+    message(paste0("Loading predictor varibales into GRASS as ",paste(predictor_r_names, collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_r_names)){
       if(.Platform$OS.type == "windows"){
         execGRASS("r.in.gdal",
