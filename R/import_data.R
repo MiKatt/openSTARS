@@ -134,10 +134,17 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
               output = "dem"),ignore.stderr=T)
   #}
   # TODO: check if this works on Windows
+  # on windows [1] seems to be needed
+  #> proj_dem
+  #[1] "+proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +no_defs +a=6378137 +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1"
+  #[2] "Versuche mit OGR zu öffnen..."                                                                                                                                                         
+  #[3] "Versuche mit GDAL zu öffnen..."                                                                                                                                                        
+  #[4] "...erfolgreich beendet."    
+  # ignore.strerr = T works!
   proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
                         parameters = list(
                           georef = dem
-                        ), intern = T)#[1]
+                        ), intern = T, ignore.stderr = T)#[1]
   
   message("Loading sites into GRASS as sites_o ...\n")
   # sites data
