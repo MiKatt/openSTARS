@@ -13,7 +13,7 @@ Authors@R: c(person("Mira", "Kattwinkel", role = c("aut","cre"),
              email = "eduardszoecs@gmail.com"))
 URL: https://github.com/MiKatt/openSTARS
 Depends:
-    R (>= 3.3.1),
+    R (>= 3.3),
     data.table,
     rgrass7
 License: MIT + file LICENSE

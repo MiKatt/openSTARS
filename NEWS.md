@@ -1,4 +1,4 @@
-# openSTARS 1.0.0.999
+# openSTARS 1.1.0
 
 * Fixed error when loading (import_data) example shapes: no empty cell allowed
   in attribute table (used to work when checking).
@@ -10,7 +10,7 @@
 * Updated calc_attributes_edges() for vector input data; it is now possible to 
   calculate percentage of a certain attribute within a catchment (polygons) or 
   count the number of features in a catchment (points).
-* Change setup_grass_environment: Extent and projection are set to the one of the
+* Changed setup_grass_environment: Extent and projection are set to the one of the
   DEM (compared to setting the projections according to the sites object, epsg 
   code or proj4 string as it was done before). The reason for this change is 
   that rather vector files should be projected than raster files (i.e. sites and 
