@@ -107,7 +107,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
 
 
   if (condition) {
-    message("Conditioning DEM...\n")
+    message("Conditioning DEM ...")
     # MiKatt: Make 'mod' and 'size' user defined (optionally)?
     execGRASS("r.hydrodem",
               flags = c("overwrite"),
@@ -119,7 +119,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
     dem_name_out <- "dem_cond"
   }
   if ("streams_o" %in% vect & burn > 0) {
-    message("Burning streams into DEM...\n")
+    message("Burning streams into DEM ...")
     # rasterize streams, set value to 1
     execGRASS("v.to.rast",
               flags = c("overwrite", "quiet"),
@@ -200,7 +200,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
   # MiKatt: BUT -> produces many very small segments, often close to intersections
   # MiKatt: -> seems to be independent of the convercence value
   # MiKatt: -> r.thin does not help much
-  message("Deriving streams from DEM...\n")
+  message("Deriving streams from DEM ...")
   # MiKatt: Known Windows issue ([GRASS-dev] [GRASS GIS] #2919): "Missing value for parameter <d8cut>"; default value infinity is not used even if accumulation map is given.
   # MiKatt: Solution: set d8cut to total number of cells in g.region.
     ncell <- execGRASS("g.region",flags="p",intern=T)
@@ -216,7 +216,7 @@ derive_streams <- function(burn = 5, accum_threshold = 700, condition = TRUE,
                               direction = "dirs"))
 
     # calculate stream topology ----------
-    message("Calculating stream topology...\n")
+    message("Calculating stream topology ...")
     # MiKatt: Is accumulation needed here? r.stream.order: "This map is an option only if Horton's or Hack's ordering is performed."
     # MiKatt: Yes, does not work without.
     execGRASS("r.stream.order",

@@ -234,7 +234,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   #                             basins = "rca"))
   
   if(!is.null(input_raster)){
-    message("Intersecting raster attributes...")
+    message("Intersecting raster attributes ...")
     rca_cell_count <- execGRASS("r.univar",
                                 flags = c("overwrite", "quiet","t"),
                                 parameters = list(
@@ -306,7 +306,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     setnames(dt.streams, attr_name_rast, paste0(attr_name_rast, "_e"))
     
     # Join attributes to edges attribute table
-    message("Joining table raster attributes...")
+    message("Joining table raster attributes ...")
     utils::write.csv(dt.streams, file.path(temp_dir,"edge_attributes.csv"),row.names = F)
     write.table(t(gsub("numeric","Real",sapply(dt.streams,class))),file.path(temp_dir,"edge_attributes.csvt"),quote=T,sep=",",row.names = F,col.names = F)
     execGRASS("db.in.ogr", flags = c("overwrite","quiet"),
@@ -324,7 +324,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   }
   
   if(!is.null(input_vector)){
-    message("Intersecting vector attributes...")
+    message("Intersecting vector attributes ...")
     
     # convert raster rca to vector
     execGRASS("r.to.vect", flags = c("overwrite", "quiet"),
@@ -423,7 +423,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     setnames(dt.streams, anames, paste0(anames, "_e"))
     
     # Join attributes to edges attribute table
-    message("Joining table vector attributes...")
+    message("Joining table vector attributes ...")
     utils::write.csv(dt.streams, file.path(temp_dir,"edge_attributes.csv"),row.names = F)
     write.table(t(gsub("numeric","Real",sapply(dt.streams,class))),file.path(temp_dir,"edge_attributes.csvt"),quote=T,sep=",",row.names = F,col.names = F)
     execGRASS("db.in.ogr", flags = c("overwrite","quiet"),

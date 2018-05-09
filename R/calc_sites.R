@@ -157,9 +157,9 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
             parameters = list(
               vector = paste0(paste0(sites_map,"_o"), ",",sites_map)))
   
-  message(paste0("Preparing sites '", sites_map, "' ...\n"))
+  message(paste0("Preparing sites '", sites_map, "' ..."))
   # Snap sites to streams --------
-  message("Snapping sites to streams...\n")
+  message("Snapping sites to streams ...")
   # add 4 columns holding: stream, distance and coordinates of nearest streams
   execGRASS("v.db.addcolumn",
             parameters = list(
@@ -195,7 +195,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   #         otherwise assign seperatelly
   # MiKatt: Also keep user defined site IDs / site names
   # Here && in if clause to first check is.null
-  message("Setting pid and locID...\n")
+  message("Setting pid and locID ...")
   if(!is.null(locid_c) && locid_c %in% colnames(sites@data) ){
     sites@data$locID <- as.numeric(as.factor(sites@data[,locid_c]))
   } else {  
@@ -214,7 +214,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   rm(sites)
   
   # Set netID and rid from network ---------
-  message("Assigning netID and rid...\n")
+  message("Assigning netID and rid ...")
   
   # MiKatt: This seems to be faster
   execGRASS("v.db.addcolumn",
@@ -232,7 +232,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   
   # Calculate upDist ---------
   # MiKatt: Distance of every raster cell from the outlet
-  message("Calculating upDist...\n")
+  message("Calculating upDist ...")
   ## MiKatt was not exact enough, results in identical upDist if two points lay
   ##        in the same raster cell
   # execGRASS("r.stream.distance",

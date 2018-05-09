@@ -36,7 +36,7 @@
 setup_grass_environment <- function(dem, epsg = NULL, sites = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
     stop("GRASS not initialised. Please run initGRASS().")
-  message("Setting up GRASS Environment...\n")
+  message("Setting up GRASS Environment ...\n")
   
   if(!is.null(sites))
     message("'sites' is no longe a parameter of set_up_grass (see help). 

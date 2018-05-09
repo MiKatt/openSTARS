@@ -120,7 +120,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   if(is.null(dist))
     dist <- ceiling(sum(dt.streams[,Length]) / nsites)
 
-  message("Calculating point positions...\n")
+  message("Calculating point positions ...")
   outlets <- dt.streams[next_str == -1, stream]
   for(i in outlets){
     calc_offset(dt.streams, id=i, offs = 0, dist)
@@ -147,7 +147,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
             ))
 
   # MiKatt: No line break in long strings on Windows!
-  message("Creating attribute table...\n")
+  message("Creating attribute table ...")
   execGRASS("v.db.addtable", flags = c("quiet"),
             parameters = list(
               map = predictions,
@@ -171,7 +171,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
               column = "out_dist,upDist"
             ))
   
-  message("Setting cat_edge...\n")
+  message("Setting cat_edge ...")
   # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
   execGRASS("v.distance",
             flags = c("overwrite", "quiet"),
@@ -181,7 +181,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
                               upload = "cat,dist",
                               column = "cat_edge,dist"))
 
-  message("Setting pid and locID...\n")
+  message("Setting pid and locID ...")
   execGRASS("v.db.update",
             parameters = list(map = predictions,
                               column = "pid",
@@ -192,7 +192,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
                               value = "pid"))
 
   # Set netID and rid from network ---------
-  message("Assigning netID and rid...\n")
+  message("Assigning netID and rid ...")
 
   sql_str<- paste0("UPDATE ", predictions, " SET rid=(SELECT rid FROM edges WHERE ",
                    predictions,".cat_edge=edges.cat)")
@@ -208,7 +208,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
             ))
 
   # Calculate upDist ---------
-  message("Calculating upDist...\n")
+  message("Calculating upDist ...")
   ## MiKatt was not exact enough, results in identical upDist if two points lay
   ##        in the same raster cell
   
@@ -246,7 +246,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
               sql=sql_str
             ))
   # Calculate distRatio = distance from lower end of edge to site / length edge
-  message("Calculating distance ratio...\n")
+  message("Calculating distance ratio ...")
   
   sql_str <- paste0('UPDATE ', predictions, ' SET ratio=1-',
                     'distalong/',

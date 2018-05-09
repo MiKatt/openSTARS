@@ -498,7 +498,5 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                table = "sites"
                              ), intern = T)
   cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
-  cnames_sites2 <- unique( gsub("_c|_e$", "", cnames_sites2))
-  cnames_sites2 <- cnames_sites2[- which(cnames_sites2 == "cat_")]
   message(paste0("\nNew attributes values are stored as ", paste(cnames_sites2, collapse = ", ")))
 }

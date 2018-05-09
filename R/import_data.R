@@ -111,7 +111,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     stop("DEM and sites are needed.")
   
   # Import data -------------------
-  message("Loading DEM into GRASS...\n")
+  message("Loading DEM into GRASS ...")
   
   # import raster
   # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
@@ -137,8 +137,8 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # on windows [1] seems to be needed
   #> proj_dem
   #[1] "+proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +no_defs +a=6378137 +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1"
-  #[2] "Versuche mit OGR zu öffnen..."                                                                                                                                                         
-  #[3] "Versuche mit GDAL zu öffnen..."                                                                                                                                                        
+  #[2] "Versuche mit OGR zu ?ffnen..."                                                                                                                                                         
+  #[3] "Versuche mit GDAL zu ?ffnen..."                                                                                                                                                        
   #[4] "...erfolgreich beendet."    
   # ignore.strerr = T works!
   proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
@@ -146,7 +146,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
                           georef = dem
                         ), intern = T, ignore.stderr = T)#[1]
   
-  message("Loading sites into GRASS as sites_o ...\n")
+  message("Loading sites into GRASS as sites_o ...")
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
@@ -160,7 +160,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     } else{
       pred_sites_names <- paste0(pred_sites_names, "_o")
       message(paste0("Loading preditions sites into GRASS as ",
-                     paste(pred_sites_names, collapse=", ", sep=""), " ...\n"))
+                     paste(pred_sites_names, collapse=", ", sep=""), " ..."))
       for(i in 1:length(pred_sites)){
         import_vector_data(data = pred_sites[i], name = pred_sites_names[i], proj_dem = proj_dem)
         
@@ -173,7 +173,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_raster)) {
     if(is.null(predictor_r_names))
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_r_names, collapse = ", ", sep=""), " ...\n"))
+    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_r_names, collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_r_names)){
       if(.Platform$OS.type == "windows"){
         execGRASS("r.in.gdal",
@@ -195,7 +195,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_vector)) {
     if(is.null(predictor_v_names))
       predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_v_names, collapse = ", ", sep=""), " ...\n"))
+    message(paste0("Loading predictior varibales into GRASS as ",paste(predictor_v_names, collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_v_names)){
       import_vector_data(data = predictor_vector[i], name = predictor_v_names[i], proj_dem = proj_dem)
     }
@@ -203,7 +203,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # streams data
   if (!is.null(streams)) {
-    message("Loading streams into GRASS as streams_o  ...\n")
+    message("Loading streams into GRASS as streams_o  ...")
     # flag "-r": only current region
     
     import_vector_data(data = streams, name = "streams_o", proj_dem = proj_dem)

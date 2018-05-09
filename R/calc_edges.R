@@ -95,7 +95,7 @@ calc_edges <- function() {
               cats = nocat), ignore.stderr = T)
 
   # calculate basins for streams segments --------
-  message("Calculating reach contributing area (RCA)...\n")
+  message("Calculating reach contributing area (RCA) ...")
   # MiKatt: Could this be done in one step in r.watershed when accumulation map is computed in derive_streams.R?
   # MiKatt: Check if that would be faster: results in approx. two time more basins due to tiny stream snipplets from r.watershed --> keep it as it is.
   execGRASS("r.stream.basins",
@@ -104,7 +104,7 @@ calc_edges <- function() {
                               stream_rast = "streams_r",
                               basins = "rca"))
 
-  message("Calculating upstream catchment areas... \n")
+  message("Calculating upstream catchment areas ...")
   # Calculate reach contributing area for each stream segment (=edges.drain_area) --------
   #! Works, but slow
   #! This is used to calculate PI via SSN
