@@ -103,7 +103,8 @@ plot(dem, col = terrain.colors(20))
 plot(dem, col = grey.colors(20))
 col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
 plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
-legend("top", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), title = "landuse", ncol = 4)
+legend("top", col = col, pch = 15, 
+  legend = as.factor(sort(unique(lu$landuse))), title = "landuse", ncol = 4)
 points(sites_orig, pch = 4)
 
 # import additional vector data
