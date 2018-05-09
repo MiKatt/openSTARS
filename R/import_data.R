@@ -250,7 +250,7 @@ import_vector_data <- function(data, name, proj_dem){
   # flag "-r": only current region
   import_flag <- TRUE
   if(inherits(data, 'sf')){
-    data <- sf::as(data, 'Spatial')
+    data <- as(data, 'Spatial')
   }
   if(inherits(data, 'Spatial')) {
     proj_data <- execGRASS("g.proj", flags = c("j"),
