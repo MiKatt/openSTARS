@@ -4,8 +4,8 @@
 #'
 #' @param dem character; path to DEM.  
 #' @param epsg integer; EPSG code for the projection to use. If not given (default)
-#' the infromation is taken from the dem
-#' @param sites (deprecated); not used any more. Only inlcuded for compatibility with previous version.
+#' the information is taken from the dem
+#' @param sites (deprecated); not used any more. Only included for compatibility with previous version.
 #'
 #' @return Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
 #' the extent of the current location is set to the one of the dem.

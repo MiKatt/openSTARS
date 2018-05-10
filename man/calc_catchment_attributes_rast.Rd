@@ -10,7 +10,7 @@ calc_catchment_attributes_rast(dt, stat_rast, attr_name_rast, round_dig)
 \arguments{
 \item{dt}{data.table of stream topology and attributes per segment.}
 
-\item{stat_rast}{name or character vector giving the stastistics to be calculated,
+\item{stat_rast}{name or character vector giving the statistics to be calculated,
 must be one of: min, max, mean, percent, sum.}
 
 \item{attr_name_rast}{name or character vector of column names for the attribute(s)

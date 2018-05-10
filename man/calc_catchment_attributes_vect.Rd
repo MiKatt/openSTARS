@@ -10,7 +10,7 @@ calc_catchment_attributes_vect(dt, stat_vect, attr_name_vect, round_dig)
 \arguments{
 \item{dt}{data.table of stream topology and attributes per segment.}
 
-\item{stat_vect}{name or character vector giving the stastistics to be calculated,
+\item{stat_vect}{name or character vector giving the statistics to be calculated,
 must be one of: percent, sum.}
 
 \item{attr_name_vect}{name or character vector of column names for the attribute(s)

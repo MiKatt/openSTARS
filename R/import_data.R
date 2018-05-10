@@ -1,8 +1,8 @@
 #' Import data into 'GRASS.'
 #'
-#' This function loadsDEM (digital elevation model) and sites data (both required) into the 'GRASS' session.
+#' This function loads a DEM (digital elevation model) and sites data (both required) into the 'GRASS' session.
 #' Optionally, prediction sites and streams data can be loaded and the streams 
-#' may be corrected by snapping to prevent lose ends. Likewise, protential predictor 
+#' may be corrected by snapping to prevent lose ends. Likewise, potential predictor 
 #' maps (raster or vector format) can be loaded.
 #'
 #' @param dem character; path to DEM (digital elevation model) raster file.
@@ -21,7 +21,7 @@
 #' import as predictors.
 #' @param predictor_r_names character string vector (optional); names for potential predictor
 #' variables in raster format; if not provided \code{perdictor_raster} is used.
-#' @param predictor_vector character string vector of objec(s) (optional); path(s)
+#' @param predictor_vector character string vector of object(s) (optional); path(s)
 #'  to vector data (ESRI shape) or sp or sf object names to import as predictors.
 #' @param predictor_v_names character vector (optional); names for potential predictor
 #' variables in vector format ; if not provided \code{perdictor_vector} is used.

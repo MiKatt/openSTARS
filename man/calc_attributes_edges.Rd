@@ -56,7 +56,7 @@ For \code{stat_rast} = "percent" the \code{input_raster} must be coded as 1 and 
   of this land use in the catchment.
 
 For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
-e.g. differnt land use types. The column \code{attr_name_vect} would then 
+e.g. different land use types. The column \code{attr_name_vect} would then 
 give the code for the different land uses. Then, the percentage for each land
 use type in the catchment of the edge is calculated and given in seperate columns
 with column names resampling the different categories given in column 

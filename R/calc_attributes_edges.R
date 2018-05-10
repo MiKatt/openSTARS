@@ -38,7 +38,7 @@
 #'   of this land use in the catchment.
 #'
 #' For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
-#' e.g. differnt land use types. The column \code{attr_name_vect} would then 
+#' e.g. different land use types. The column \code{attr_name_vect} would then 
 #' give the code for the different land uses. Then, the percentage for each land
 #' use type in the catchment of the edge is calculated and given in seperate columns
 #' with column names resampling the different categories given in column 
@@ -480,7 +480,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
 #' and should not be called by the user.
 #'
 #' @param dt data.table of stream topology and attributes per segment.
-#' @param stat_rast name or character vector giving the stastistics to be calculated,
+#' @param stat_rast name or character vector giving the statistics to be calculated,
 #'   must be one of: min, max, mean, percent, sum.
 #' @param attr_name_rast name or character vector of column names for the attribute(s)
 #'   to be calculated.
@@ -561,7 +561,7 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
 #' and should not be called by the user.
 #'
 #' @param dt data.table of stream topology and attributes per segment.
-#' @param stat_vect name or character vector giving the stastistics to be calculated,
+#' @param stat_vect name or character vector giving the statistics to be calculated,
 #'   must be one of: percent, sum.
 #' @param attr_name_vect name or character vector of column names for the attribute(s)
 #'   to be calculated.

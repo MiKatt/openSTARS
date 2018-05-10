@@ -6,7 +6,7 @@
 #' exact values for catchments derived with
 #' \href{https://grass.osgeo.org/grass74/manuals/addons/r.stream.basins.html}{r.stream.basins}
 #' and can take considerable time if there are many sites.
-#' Catchment raster maps can optionally be stored as "sitesname_catchm_X" (X = locID).
+#' Catchment raster maps can optionally be stored as "sitename_catchm_X" (X = locID).
 
 #' @import progress
 #'

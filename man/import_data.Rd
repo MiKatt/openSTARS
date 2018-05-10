@@ -33,7 +33,7 @@ import as predictors.}
 \item{predictor_r_names}{character string vector (optional); names for potential predictor
 variables in raster format; if not provided \code{perdictor_raster} is used.}
 
-\item{predictor_vector}{character string vector of objec(s) (optional); path(s)
+\item{predictor_vector}{character string vector of object(s) (optional); path(s)
 to vector data (ESRI shape) or sp or sf object names to import as predictors.}
 
 \item{predictor_v_names}{character vector (optional); names for potential predictor
@@ -55,9 +55,9 @@ or \href{https://grass.osgeo.org/grass74/manuals/r.in.gdal.html}{r.in.gdal}
 (see examples below).
 }
 \description{
-This function loadsDEM (digital elevation model) and sites data (both required) into the 'GRASS' session.
+This function loads a DEM (digital elevation model) and sites data (both required) into the 'GRASS' session.
 Optionally, prediction sites and streams data can be loaded and the streams 
-may be corrected by snapping to prevent lose ends. Likewise, protential predictor 
+may be corrected by snapping to prevent lose ends. Likewise, potential predictor 
 maps (raster or vector format) can be loaded.
 }
 \details{
