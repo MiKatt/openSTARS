@@ -40,7 +40,7 @@ devtools::install_github("MiKatt/openSTARS")
 library("openSTARS")
 ```
 
-## Basic usage
+## Step by step usage
 
 ### Initiate an ephemeral GRASS session
 First, a GRASS session must be initiated:
@@ -50,18 +50,6 @@ library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass74/",
           home = tempdir(),
           override = TRUE)
-#> gisdbase    /tmp/RtmpJ17uXr 
-#> location    file5d2536a4f3a0 
-#> mapset      file5d2515b1ac6e 
-#> rows        1 
-#> columns     1 
-#> north       1 
-#> south       0 
-#> west        0 
-#> east        1 
-#> nsres       1 
-#> ewres       1 
-#> projection  NA
 ```
 
 Alternatively, the path to a specific GRASS database directory and a Location name can be provided.
@@ -80,12 +68,26 @@ On Windows, this might look like this:
 
 ```r
 library(openSTARS)
-initGRASS(gisBase = "c:/Program Files/GRASS FUS 7.4.0",
+initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.2.0", #"c:/Program Files/GRASS FUS 7.4.0",
           home = tempdir(),
           gisDbase = "./GRASSDB",
           location = "test_openSTARS",
           remove_GISRC = T,
           override = TRUE)
+#> gisdbase    ./GRASSDB 
+#> location    test_openSTARS 
+#> mapset      file27b4427319a3 
+#> rows        450 
+#> columns     500 
+#> north       228500 
+#> south       215000 
+#> west        630000 
+#> east        645000 
+#> nsres       30 
+#> ewres       30 
+#> projection  +proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334
+#> +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +no_defs +a=6378137
+#> +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1
 ```
 
 
@@ -99,7 +101,7 @@ First, `setup_grass_environment` prepares the GRASS environment by setting
  * the projection to that one of the observation sites or to an epsg code provided
  * the region to the extent of the DEM.
  
-For more information on the concept of GRASS Locations, Mapsets etc. see the [GRASS GIS Quickstart](https://grass.osgeo.org/grass73/manuals/helptext.html).
+For more information on the concept of GRASS Locations, Mapsets etc. see the [GRASS GIS Quickstart](https://grass.osgeo.org/grass74/manuals/helptext.html).
 
 
 ```r
@@ -109,8 +111,8 @@ setup_grass_environment(dem = dem_path)
 #> Setting up GRASS Environment ...
 
 gmeta()
-#> gisdbase    /tmp/RtmpJ17uXr 
-#> location    file5d2536a4f3a0 
+#> gisdbase    ./GRASSDB 
+#> location    test_openSTARS 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -125,14 +127,15 @@ gmeta()
 #> +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1
 ```
 
-Then, use `import_data` to import all data into GRASS (DEM, observations sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`).
+Then, use `import_data` to import all data into GRASS (DEM, observation sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`).
+
 
 ```r
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 preds_path <- c(system.file("extdata", "nc", "landuse.shp", package = "openSTARS"),
                  system.file("extdata", "nc", "pointsources.shp", package = "openSTARS"))
 import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path, predictor_v_names = c("landuse", "psources"))
-#> Loading DEM into GRASS ...
+#> Loading DEM into GRASS as dem ...
 #> Loading sites into GRASS as sites_o ...
 #> Loading predictior varibales into GRASS as landuse, psources ...
 #> No streams available, skipping.
@@ -140,24 +143,27 @@ import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path, p
 
 The DEM is loaded into the GRASS database as a raster map named `dem`, the sites as a vector map named `sites_o` and the (optional) stream network as a vector map named `streams_o`. Predictor sites are stored under their base file name, potential predictors either using their base file names or the ones provided in 'predictor_r_names' and 'predictor_v_names', respectively.
 
-Here's how the data looks like:
+The data looks like this:
 
 
 ```r
 dem <- readRAST("dem", ignore.stderr = TRUE)
 sites <- readVECT("sites_o", ignore.stderr = TRUE)
 psources <- readVECT("psources", ignore.stderr = TRUE)
-plot(dem, col = terrain.colors(20))
+lu <- readVECT("landuse", ignore.stderr = TRUE)
+plot(dem, col = gray(seq(0,1,length.out=20)))
+col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
+plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
+legend(x = par("usr")[2]*1.000, y = par("usr")[4]*1.000, col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
+  title = "landuse", ncol = 4)
 cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value)]
 points(sites, pch = 16, col = cols)
 points(psources, pch = 19, col = 1, cex = 1.7)
 legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.015, pch = c(16, 16, 19), ncol = 1, col = c(range(cols),1), legend = c(paste("value at sites:", c(range(sites$value))), "point sources"))
 ```
 
-![](README_files/figure-html/plot_data1-1.png)<!-- -->
-
 ### Derive streams from DEM
-Next, the streams should be derived from the DEM.
+Next, the streams must be derived from the DEM.
 
 ```r
 derive_streams()
@@ -165,7 +171,7 @@ derive_streams()
 #> Deriving streams from DEM ...
 #> Calculating stream topology ...
 ```
-An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to the existing ones. Additionally, other specifications on how the streams shall be created can be provided (see `?derive_streams` and the GRASS function  [r.stream.extract](https://grass.osgeo.org/grass72/manuals/r.stream.extract.html) for details).
+An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to mapped ones. It is not possible to use a given stream network directly but it has to be derived from the DEM because otherwise it lacks topological information needed in the consecutive steps. Additional specifications on how the streams shall be created can be provided (see `?derive_streams` and the GRASS function [r.stream.extract](https://grass.osgeo.org/grass74/manuals/r.stream.extract.html) for details).
 
 
 ```r
@@ -183,7 +189,7 @@ points(sites, pch = 16, col = cols)
 ```
 
 ### Check and correct the network
-Next, the stream network should be checked if there are stream segments with more than two inflows. This must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be complex junctions only if accum_threshold is small.
+Next, the stream network should be checked if there are stream segments with more than two inflows. These must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be complex junctions only if accum_threshold is small.
 
 
 ```r
@@ -221,7 +227,7 @@ accordingly (cat, length, prev_str01, prev_str02, next_str etc.). Currently, thi
 only works for three inflows to the same outflow but not more.
 
 Other topological errors as mentioned for the ArcGIS toolbox STARS do not occur
-if the stream network is derived from a DEM
+if the stream network is derived from a DEM.
 
 ### Prepare edges
 Now, information needed for the .ssn object can be derived for the streams and stored in a new vector map `edges`.
@@ -253,6 +259,7 @@ The additional fields hold information about the network: 'next_str' is the 'str
 Often, survey sites do not lay exactly on the stream network (due to GPS imprecision, stream representation as lines, derivation of streams from a DEM, etc.). To assign an exact position of the sites on the network they are moved to the closest stream segment (snapped) using the GRASS function
 [v.distance](https://grass.osgeo.org/grass72/manuals/v.distance.html). Additionally, attributes needed for .ssn object are assigned: 
 
+
 ```r
 calc_sites()
 ```
@@ -270,7 +277,7 @@ head(sites@data, n = 4)
 * upstream distance (upDist), i.e. the distance to the network outlet calculated using [r.stream.distance](https://grass.osgeo.org/grass70/manuals/addons/r.stream.distance.html).
 * distance ratio, i.e. the ratio of the distance from the outflow of the edge to the point along the edge and the total length of the edge segment (distRatio).
 
-Additional fields hold information on the snapping: distance of the original site to the closest edge (dist), i.e. how far the point was moved, and the new x and y coordinates (xm, ym). The filed 'cat_edge' gives the 'cat' of the stream segment the point lies on. It is used to identify the edge the point lies on to extract the 'rid'.
+Additional fields hold information on the snapping: distance of the original site to the closest edge ('dist'), i.e. how far the point was moved, and the new x and y coordinates ('xm', 'ym'). The filed 'cat_edge' gives the 'cat' of the stream segment the point lies on. It is used to identify the edge the point lies on to extract the 'rid'.
 
 
 ```r
@@ -286,7 +293,7 @@ legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey",
 ```
 
 ### Prepare prediction sites
-Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to certain networks (`netIDs`).
+Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to certain networks (`netIDs`). The sites will be assigned regularly on the stream network. If prediction sites with specifec coordinates are needed, they should be created manually.
 
 Similar as for the observation sites, attributes needed for .ssn object are assigned: 
 
@@ -324,7 +331,7 @@ Attributes (i.e. predictor variables for the .ssn object) can be calculated for 
 1. approximately as described in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J. Stat. Softw., 56 (2).
 2. exactly by intersecting the catchment of each point with raster maps;
 
-For the approximate calculation, first attributes must be intersected with the sub-catchments of the stream segments and then they are calculated for each site based on the distance ratio of the point. Note that the sub-catchment area 'H2OArea' for each stream segment is calculated automatically in calc_edges.
+For the approximate calculation, first attributes must be intersected with the sub-catchments of the stream segments and then they are assigned to each site based on the distance ratio of the point. Note that the sub-catchment area 'H2OArea' for each stream segment is calculated automatically in calc_edges.
 
 
 ```r
@@ -334,19 +341,36 @@ execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
             elevation = "dem",
             slope = "slope"
           ))
-# calculate average slope per sub-catchment of each stream segment
+# calculate average slope per sub-catchment of each stream segment using raster and imported vector data
 calc_attributes_edges(input_raster = "slope", stat_rast = "mean",
-                      attr_name_rast = "avSlo", round_dig = 4)
-# calculate approx. catchment area and average slope per catchment of each site
-calc_attributes_sites_approx(sites_map = "sites",
-                             input_attr_name = "avSlo",
-                             output_attr_name = "avSloA",
-                             stat = "mean")
+                      attr_name_rast = "avSlo", input_vector = "landuse", 
+                      stat_vect = "percent", attr_name_vect = "landuse", 
+                      round_dig = 4)
+#calculate approx. catchment area and average slope per catchment of each site
+calc_attributes_sites_approx(sites_map = "sites", 
+                             input_attr_name = c("avSlo","agri","forest","grass","urban"),
+                             output_attr_name = c("avSloA","agriA","forestA","grassA","urbanA"),
+                             stat = c("mean", rep("percemt", 4)))
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 4)
+#>   cat cat_ value cat_edge     dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5 79.90783 631046.1 226074.1     1   1    15   4
+#> 2   2    2     1        5 61.15861 632011.9 225175.7     2   2    15   4
+#> 3   3    3     1        2 72.04108 631203.4 224771.5     3   3    15   1
+#> 4   4    4     1        2 31.22663 631787.3 224883.8     4   4    15   1
+#>     upDist  distalong     ratio H2OAreaA avSloA agriA forestA grassA
+#> 1 22490.34  289.70563 0.8457322     0.38 3.2165  0.12       0      0
+#> 2 21166.96 1613.08658 0.1410340     2.11 3.2165  0.66       0      0
+#> 3 21827.61   81.19927 0.9193403     0.11 2.6833  0.07       0      0
+#> 4 21104.67  804.14221 0.2012018     1.08 2.6833  0.71       0      0
+#>   urbanA
+#> 1      0
+#> 2      0
+#> 3      0
+#> 4      0
 ```
 
-The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points) because for each point the total catchment is first delineated based on the DEM and then intersected with the raster map(s) provided. Note that if no raster map is provided the total catchment area for each point is calculated.
+The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points): For each point, first the total catchment is delineated based on the DEM and then intersected with the map(s) provided. 
 
 
 
@@ -356,9 +380,27 @@ calc_attributes_sites_exact(sites_map = "sites",
                             input_raster = "slope",
                             stat_rast = "mean",
                             attr_name_rast = "avSloE", 
+                            input_vector = "landuse",
+                            stat_vect = "percent",
+                            attr_name_vect = "landuse",
                             round_dig = 4)
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 4)
+#>   cat cat_ value cat_edge     dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5 79.90783 631046.1 226074.1     1   1    15   4
+#> 2   2    2     1        5 61.15861 632011.9 225175.7     2   2    15   4
+#> 3   3    3     1        2 72.04108 631203.4 224771.5     3   3    15   1
+#> 4   4    4     1        2 31.22663 631787.3 224883.8     4   4    15   1
+#>     upDist  distalong     ratio H2OAreaA avSloA agriA forestA grassA
+#> 1 22490.34  289.70563 0.8457322     0.38 3.2165  0.12       0      0
+#> 2 21166.96 1613.08658 0.1410340     2.11 3.2165  0.66       0      0
+#> 3 21827.61   81.19927 0.9193403     0.11 2.6833  0.07       0      0
+#> 4 21104.67  804.14221 0.2012018     1.08 2.6833  0.71       0      0
+#>   urbanA H2OArea avSloE   agri grass forest urban
+#> 1      0  1.0476 2.8314 0.4528     0      0     0
+#> 2      0  2.4192 3.1704 0.7624     0      0     0
+#> 3      0  0.6696 2.3850 0.7755     0      0     0
+#> 4      0  1.2780 2.5754 0.8824     0      0     0
 ```
 
 In both alternatives, the catchment area for each site is calculated automatically ('H2OAreaA' for `calc_attributes_sites_appox` and 'H2OArea' for `calc_attributes_sites_exact`).
