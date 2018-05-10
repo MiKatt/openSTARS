@@ -58,36 +58,31 @@ Alternatively, the path to a specific GRASS database directory and a Location na
 library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass74/",
           home = tempdir(),
-          gisDbase = "./GRASSDB",
+          gisDbase = file.path(tempdir(),"GRASSDB"),
           location = "test_openSTARS",
-          remove_GISRC = T,
-          override = TRUE)
+          remove_GISRC = T)
 ```
 
 On Windows, this might look like this:
 
 ```r
 library(openSTARS)
-initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.2.0", #"c:/Program Files/GRASS FUS 7.4.0",
+initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.2.0", 
           home = tempdir(),
-          gisDbase = "./GRASSDB",
           location = "test_openSTARS",
-          remove_GISRC = T,
-          override = TRUE)
-#> gisdbase    ./GRASSDB 
+          remove_GISRC = T)
+#> gisdbase    C:/Users/Mira_2/AppData/Local/Temp/Rtmp02QURr 
 #> location    test_openSTARS 
-#> mapset      file27b4427319a3 
-#> rows        450 
-#> columns     500 
-#> north       228500 
-#> south       215000 
-#> west        630000 
-#> east        645000 
-#> nsres       30 
-#> ewres       30 
-#> projection  +proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334
-#> +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +no_defs +a=6378137
-#> +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1
+#> mapset      file245034806a3 
+#> rows        1 
+#> columns     1 
+#> north       1 
+#> south       0 
+#> west        0 
+#> east        1 
+#> nsres       1 
+#> ewres       1 
+#> projection  NA
 ```
 
 
@@ -111,7 +106,7 @@ setup_grass_environment(dem = dem_path)
 #> Setting up GRASS Environment ...
 
 gmeta()
-#> gisdbase    ./GRASSDB 
+#> gisdbase    C:/Users/Mira_2/AppData/Local/Temp/Rtmp02QURr 
 #> location    test_openSTARS 
 #> mapset      PERMANENT 
 #> rows        450 
@@ -154,13 +149,15 @@ lu <- readVECT("landuse", ignore.stderr = TRUE)
 plot(dem, col = gray(seq(0,1,length.out=20)))
 col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
 plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
-legend(x = par("usr")[2]*1.000, y = par("usr")[4]*1.000, col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
-  title = "landuse", ncol = 4)
+legend(x = par("usr")[1]*1.001, y = par("usr")[4]*0.999, col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
+       title = "landuse", ncol = 4)
 cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value)]
 points(sites, pch = 16, col = cols)
 points(psources, pch = 19, col = 1, cex = 1.7)
-legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.015, pch = c(16, 16, 19), ncol = 1, col = c(range(cols),1), legend = c(paste("value at sites:", c(range(sites$value))), "point sources"))
+legend(x = par("usr")[2]*0.991, y = par("usr")[4]*0.999, pch = c(16, 16, 19), ncol = 1, col = c(range(cols),1), legend = c(paste("value at sites:", c(range(sites$value))), "point sources"))
 ```
+
+![](README_files/figure-html/plot_data1-1.png)<!-- -->
 
 ### Derive streams from DEM
 Next, the streams must be derived from the DEM.
@@ -187,6 +184,8 @@ lines(streams, col = "blue")
 cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value)]
 points(sites, pch = 16, col = cols)
 ```
+
+![](README_files/figure-html/plot_data2-1.png)<!-- -->
 
 ### Check and correct the network
 Next, the stream network should be checked if there are stream segments with more than two inflows. These must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be complex junctions only if accum_threshold is small.
@@ -241,6 +240,16 @@ calc_edges()
 ```r
 edges <- readVECT("edges", ignore.stderr = TRUE)
 head(edges@data, n = 4)
+#>   cat stream prev_str01 prev_str02 next_str flow_accu netID rid OBJECTID
+#> 1   1      1          0          0       30  903.7007    15   0        1
+#> 2   2      2          0          0       15 1893.0472    15   1        2
+#> 3   3      3          0          0       51 6130.5509    14   2        3
+#> 4   4      4          0          0       -1 3123.5889     1   3        4
+#>    Length sourceDist   upDist H2OArea rcaArea
+#> 1 1268.53    1268.53 19128.73  1.0674  1.0674
+#> 2 1006.69    1006.69 21908.81  1.3473  1.3473
+#> 3 4298.01    4298.01 13038.00  5.5233  5.5233
+#> 4 2657.06    2657.06  2657.06  2.8305  2.8305
 ```
 
 `edges` now holds the derived network plus attributes needed for the .ssn object
@@ -268,6 +277,16 @@ calc_sites()
 ```r
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 4)
+#>   cat cat_ value cat_edge     dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5 79.90783 631046.1 226074.1     1   1    15   4
+#> 2   2    2     1        5 61.15861 632011.9 225175.7     2   2    15   4
+#> 3   3    3     1        2 72.04108 631203.4 224771.5     3   3    15   1
+#> 4   4    4     1        2 31.22663 631787.3 224883.8     4   4    15   1
+#>     upDist  distalong     ratio
+#> 1 22490.34  289.70563 0.8457322
+#> 2 21166.96 1613.08658 0.1410340
+#> 3 21827.61   81.19927 0.9193403
+#> 4 21104.67  804.14221 0.2012018
 ```
 
 * point identifier (pid)
@@ -291,6 +310,8 @@ points(sites_orig, pch = 20, col = "black")
 points(sites, pch = 21, cex=0.75, bg = "grey")
 legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("snapped sites", "original sites"))
 ```
+
+![](README_files/figure-html/plot_data3-1.png)<!-- -->
 
 ### Prepare prediction sites
 Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to certain networks (`netIDs`). The sites will be assigned regularly on the stream network. If prediction sites with specifec coordinates are needed, they should be created manually.
@@ -322,7 +343,24 @@ lines(edges, col = "blue")
 points(sites, pch = 21, cex=0.75, bg = "grey")
 points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
 legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("(snapped) observation sites","prediction sites"))
-head(pred_sites@data, n = 4)
+```
+
+![](README_files/figure-html/plot_data4-1.png)<!-- -->
+
+```r
+head(pred_sites@data, n = 5)
+#>   cat cat_edge         dist pid rid distalong      ratio locID netID
+#> 1   1        1 0.000000e+00   1   0       676 0.46709971     1    15
+#> 2   2        1 2.910383e-11   2   0        17 0.98659866     2    15
+#> 3   3        2 0.000000e+00   3   1       820 0.18544934     3    15
+#> 4   4        2 0.000000e+00   4   1       161 0.84006993     4    15
+#> 5   5        5 2.910383e-11   5   4      1692 0.09901275     5    15
+#>     upDist
+#> 1 18452.73
+#> 2 19111.73
+#> 3 21088.81
+#> 4 21747.81
+#> 5 21088.05
 ```
 
 ### Calculate attributes from raster and vector maps
@@ -352,25 +390,28 @@ calc_attributes_sites_approx(sites_map = "sites",
                              output_attr_name = c("avSloA","agriA","forestA","grassA","urbanA"),
                              stat = c("mean", rep("percemt", 4)))
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data, n = 4)
-#>   cat cat_ value cat_edge     dist       xm       ym locID pid netID rid
-#> 1   1    1     1        5 79.90783 631046.1 226074.1     1   1    15   4
-#> 2   2    2     1        5 61.15861 632011.9 225175.7     2   2    15   4
-#> 3   3    3     1        2 72.04108 631203.4 224771.5     3   3    15   1
-#> 4   4    4     1        2 31.22663 631787.3 224883.8     4   4    15   1
+head(sites@data, n = 5)
+#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5 79.907826 631046.1 226074.1     1   1    15   4
+#> 2   2    2     1        5 61.158605 632011.9 225175.7     2   2    15   4
+#> 3   3    3     1        2 72.041077 631203.4 224771.5     3   3    15   1
+#> 4   4    4     1        2 31.226630 631787.3 224883.8     4   4    15   1
+#> 5   5    5     1       15  5.027821 632259.0 224793.9     5   5    15  14
 #>     upDist  distalong     ratio H2OAreaA avSloA agriA forestA grassA
 #> 1 22490.34  289.70563 0.8457322     0.38 3.2165  0.12       0      0
 #> 2 21166.96 1613.08658 0.1410340     2.11 3.2165  0.66       0      0
 #> 3 21827.61   81.19927 0.9193403     0.11 2.6833  0.07       0      0
 #> 4 21104.67  804.14221 0.2012018     1.08 2.6833  0.71       0      0
+#> 5 20531.07  371.03629 0.6322076     3.93 3.0612  2.02       0      0
 #>   urbanA
 #> 1      0
 #> 2      0
 #> 3      0
 #> 4      0
+#> 5      0
 ```
 
-The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points): For each point, first the total catchment is delineated based on the DEM and then intersected with the map(s) provided. 
+The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points): For each point, first the total catchment is delineated based on the DEM and then intersected with the map(s) provided. It must be decided on a case by case basis if the approximate calculation is good enough.
 
 
 
@@ -385,24 +426,26 @@ calc_attributes_sites_exact(sites_map = "sites",
                             attr_name_vect = "landuse",
                             round_dig = 4)
 sites <- readVECT("sites", ignore.stderr = TRUE)
-head(sites@data, n = 4)
-#>   cat cat_ value cat_edge     dist       xm       ym locID pid netID rid
-#> 1   1    1     1        5 79.90783 631046.1 226074.1     1   1    15   4
-#> 2   2    2     1        5 61.15861 632011.9 225175.7     2   2    15   4
-#> 3   3    3     1        2 72.04108 631203.4 224771.5     3   3    15   1
-#> 4   4    4     1        2 31.22663 631787.3 224883.8     4   4    15   1
+head(sites@data, n = 5)
+#>   cat cat_ value cat_edge      dist       xm       ym locID pid netID rid
+#> 1   1    1     1        5 79.907826 631046.1 226074.1     1   1    15   4
+#> 2   2    2     1        5 61.158605 632011.9 225175.7     2   2    15   4
+#> 3   3    3     1        2 72.041077 631203.4 224771.5     3   3    15   1
+#> 4   4    4     1        2 31.226630 631787.3 224883.8     4   4    15   1
+#> 5   5    5     1       15  5.027821 632259.0 224793.9     5   5    15  14
 #>     upDist  distalong     ratio H2OAreaA avSloA agriA forestA grassA
 #> 1 22490.34  289.70563 0.8457322     0.38 3.2165  0.12       0      0
 #> 2 21166.96 1613.08658 0.1410340     2.11 3.2165  0.66       0      0
 #> 3 21827.61   81.19927 0.9193403     0.11 2.6833  0.07       0      0
 #> 4 21104.67  804.14221 0.2012018     1.08 2.6833  0.71       0      0
+#> 5 20531.07  371.03629 0.6322076     3.93 3.0612  2.02       0      0
 #>   urbanA H2OArea avSloE   agri grass forest urban
 #> 1      0  1.0476 2.8314 0.4528     0      0     0
 #> 2      0  2.4192 3.1704 0.7624     0      0     0
 #> 3      0  0.6696 2.3850 0.7755     0      0     0
 #> 4      0  1.2780 2.5754 0.8824     0      0     0
+#> 5      0  4.0257 3.0371 0.8199     0      0     0
 ```
-
 In both alternatives, the catchment area for each site is calculated automatically ('H2OAreaA' for `calc_attributes_sites_appox` and 'H2OArea' for `calc_attributes_sites_exact`).
 
 ### Write all files to an ssn folder
@@ -413,6 +456,11 @@ All files needed (edges, sites and optionally prediction sites) are written to t
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 export_ssn(ssn_dir)
 list.files(ssn_dir)
+#>  [1] "edges.dbf"   "edges.prj"   "edges.shp"   "edges.shx"   "netID1.dat" 
+#>  [6] "netID10.dat" "netID11.dat" "netID12.dat" "netID13.dat" "netID14.dat"
+#> [11] "netID15.dat" "netID16.dat" "netID2.dat"  "netID3.dat"  "netID4.dat" 
+#> [16] "netID5.dat"  "netID6.dat"  "netID7.dat"  "netID8.dat"  "netID9.dat" 
+#> [21] "sites.dbf"   "sites.prj"   "sites.shp"   "sites.shx"
 ```
 
 
@@ -423,6 +471,11 @@ library(SSN)
 # import
 ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 plot(ssn_obj, 'value')
+```
+
+![](README_files/figure-html/ssn_test-1.png)<!-- -->
+
+```r
 
 # Create Distance Matrix
 createDistMat(ssn_obj, o.write = TRUE)
@@ -430,17 +483,73 @@ dmats <- getStreamDistMat(ssn_obj)
 
 ssn_obj.Torg <- Torgegram(ssn_obj, "value", nlag = 20, maxlag = 15000)
 plot(ssn_obj.Torg)
+```
+
+![](README_files/figure-html/ssn_test-2.png)<!-- -->
+
+```r
 
 names(ssn_obj@data)
+#>  [1] "cat"        "flow_accu"  "netID"      "rid"        "OBJECTID"  
+#>  [6] "Length"     "sourceDist" "upDist"     "H2OArea"    "rcaArea"   
+#> [11] "cat_"       "avSlo_e"    "avSlo_c"    "agri_e"     "agri_c"    
+#> [16] "forest_e"   "forest_c"   "grass_e"    "grass_c"    "urban_e"   
+#> [21] "urban_c"
 names(ssn_obj)
+#> $Obs
+#>  [1] "cat"       "cat_"      "value"     "cat_edge"  "dist"     
+#>  [6] "xm"        "ym"        "locID"     "pid"       "netID"    
+#> [11] "rid"       "upDist"    "distalong" "ratio"     "H2OAreaA" 
+#> [16] "avSloA"    "agriA"     "forestA"   "grassA"    "urbanA"   
+#> [21] "H2OArea"   "avSloE"    "agri"      "grass"     "forest"   
+#> [26] "urban"
 ssn_obj <- additive.function(ssn_obj, "H2OArea", "computed.afv")
 
 # non-spatial model
 ssn_obj.glmssn0 <- glmssn(value ~ upDist, ssn.object = ssn_obj,
                             CorModels = NULL)
 summary(ssn_obj.glmssn0)
+#> 
+#> Call:
+#> glmssn(formula = value ~ upDist, ssn.object = ssn_obj, CorModels = NULL)
+#> 
+#> Residuals:
+#>    Min     1Q Median     3Q    Max 
+#> -4.785 -2.446 -0.059  2.355  5.198 
+#> 
+#> Coefficients:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  6.455e+00  7.932e-01   8.138  < 2e-16 ***
+#> upDist      -1.906e-04  7.033e-05  -2.710  0.00884 ** 
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Covariance Parameters:
+#>  Covariance.Model Parameter Estimate
+#>            Nugget   parsill     8.61
+#> 
+#> Residual standard error: 2.934602
+#> Generalized R-squared: 0.112384
 # same as
 summary(lm(value ~ upDist, getSSNdata.frame(ssn_obj)))
+#> 
+#> Call:
+#> lm(formula = value ~ upDist, data = getSSNdata.frame(ssn_obj))
+#> 
+#> Residuals:
+#>    Min     1Q Median     3Q    Max 
+#> -4.785 -2.446 -0.059  2.355  5.198 
+#> 
+#> Coefficients:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  6.455e+00  7.932e-01   8.138 3.59e-11 ***
+#> upDist      -1.906e-04  7.033e-05  -2.710  0.00884 ** 
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 2.935 on 58 degrees of freedom
+#> Multiple R-squared:  0.1124,	Adjusted R-squared:  0.09708 
+#> F-statistic: 7.344 on 1 and 58 DF,  p-value: 0.008836
 
 
 # # # spatial model
@@ -448,7 +557,38 @@ ssn_obj.glmssn1 <- glmssn(value ~ upDist , ssn.object = ssn_obj,
                             CorModels = c("Exponential.taildown", "Exponential.tailup"),
                           addfunccol = "computed.afv")
 summary(ssn_obj.glmssn1)
+#> 
+#> Call:
+#> glmssn(formula = value ~ upDist, ssn.object = ssn_obj, CorModels = c("Exponential.taildown", 
+#>     "Exponential.tailup"), addfunccol = "computed.afv")
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -4.3222 -2.0729  0.1705  2.8023  5.5241 
+#> 
+#> Coefficients:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  5.9206730  1.2692905   4.665    2e-05 ***
+#> upDist      -0.0001702  0.0001008  -1.688   0.0968 .  
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Covariance Parameters:
+#>      Covariance.Model Parameter      Estimate
+#>    Exponential.tailup   parsill     8.0030404
+#>    Exponential.tailup     range 98686.5778789
+#>  Exponential.taildown   parsill     0.0000240
+#>  Exponential.taildown     range 87589.6922263
+#>                Nugget   parsill     2.4651680
+#> 
+#> Residual standard error: 3.235465
+#> Generalized R-squared: 0.04682144
 varcomp(ssn_obj.glmssn1)
+#>                VarComp   Proportion
+#> 1    Covariates (R-sq) 4.682144e-02
+#> 2   Exponential.tailup 7.287120e-01
+#> 3 Exponential.taildown 2.185922e-06
+#> 4               Nugget 2.244644e-01
 ```
 
 
