@@ -205,8 +205,6 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                               table = "edges"
                             ), intern = T)
   
-  temp_dir <- tempdir()
-  
   rast <- execGRASS("g.list",
                     parameters = list(
                       type = "rast"
@@ -220,9 +218,41 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   
   if ("MASK" %in% rast)
     execGRASS("r.mask",flags = c("r", "quiet"))
+
+  if(!all(input_raster %in% rast)){
+    if(length(input_raster)>1){
+      i <- which(input_raster %in% rast)
+      mes <- input_raster[-i]
+    } else {
+      mes <- input_raster
+    }
+    stop(paste0("Missing input raster data ", paste0("'",mes,"'", collapse = ", "), 
+               ". Please give valid raster names. \nAvailable raster are ",  
+               paste0("'",rast,"'", collapse = ", ")))
+  }
+  
+  vect <- execGRASS("g.list",
+                    parameters = list(
+                      type = "vector"
+                    ),
+                    intern = TRUE)
+  
+  if(!all(input_vector %in% vect)){
+    if(length(input_vector)>1){
+      i <- which(input_vector %in% vect)
+      mes <- input_vector[-i]
+    } else {
+      mes <- input_vector
+    }
+    stop(paste0("Missing input vector data ", paste0("'",mes,"'", collapse = ", "), 
+                     ". Please give valid vector file names. \nAvailable vector files are ",  
+                     paste0("'",vect,"'", collapse = ", ")))
+  }
   
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat_rast) + length(stat_vect))
+  
+  temp_dir <- tempdir()
   
   # MK 02.05.2018: not necessary becaus this is already done in calc_edges
   ## Calculate reach contributing area (= sub chatchment) for each segment).

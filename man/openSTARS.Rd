@@ -42,10 +42,17 @@ if(cj){
   correct_compl_junctions()
 }
 
+# calculate slope as potential predictor 
+execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
+parameters = list(
+  elevation = "dem",
+    slope = "slope"
+    ))
+    
 # Prepare edges
 calc_edges()
 calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo",
-  input_vector = c("landuse", "psources"), stat_vect = c("percent", "count"), 
+  input_vector = c("landuse", "pointsources"), stat_vect = c("percent", "count"), 
   attr_name_vect = c("landuse", "psource"))
 
 # Prepare site

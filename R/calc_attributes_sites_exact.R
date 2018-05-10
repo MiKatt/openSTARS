@@ -106,7 +106,7 @@
 #' plot(sites, pch = 19, col = cols, cex = 2, add = TRUE)
 #' cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right = FALSE))]
 #' plot(sites, pch = 21, bg = cols, cex = 1.1, add = TRUE)
-#' # Some points in the centre left of the map indicate a difference in max slope between
+#' # Some points in the lower centre of the map indicate a difference in max slope between
 #' # approximate and exact calculation (different colors for inner and outer points)
 #' }
 
@@ -156,7 +156,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   
   if(is.null(stat_rast) & is.null(stat_vect) & !calc_basin_area)
     stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
-  
+
   temp_dir <- tempdir()
 
   if(length(round_dig) == 1)
@@ -171,7 +171,37 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                     intern = TRUE)
   if ("MASK" %in% rast)
     execGRASS("r.mask",flags = c("r", "quiet"))
+  
+  if(!all(input_raster %in% rast)){
+    if(length(input_raster)>1){
+      i <- which(input_raster %in% rast)
+      mes <- input_raster[-i]
+    } else {
+      mes <- input_raster
+    }
+    stop(paste0("Missing input raster data ", paste0("'",mes,"'", collapse = ", "), 
+                ". Please give valid raster names. \nAvailable raster are ",  
+                paste0("'",rast,"'", collapse = ", ")))
+  }
 
+  vect <- execGRASS("g.list",
+                    parameters = list(
+                      type = "vector"
+                    ),
+                    intern = TRUE)
+  
+  if(!all(input_vector %in% vect)){
+    if(length(input_vector)>1){
+      i <- which(input_vector %in% vect)
+      mes <- input_vector[-i]
+    } else {
+      mes <- input_vector
+    }
+    stop(paste0("Missing input vector data ", paste0("'",mes,"'", collapse = ", "), 
+                ". Please give valid vector file names. \nAvailable vector files are ",  
+                paste0("'",vect,"'", collapse = ", ")))
+  }
+  
   d.sites <- readVECT(sites_map, ignore.stderr = TRUE)
   
   if(!all(paste0(sites_map,"_catchm_",d.sites@data$locID) %in% rast)){
