@@ -110,8 +110,8 @@
 #'   intern = T, ignore.stderr = T)
 #'   
 #' calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo",
-#'                      input_vector = c("landuse", "pcource"), 
-#'                      stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "npsource"))
+#'                      input_vector = c("landuse", "psources"), 
+#'                      stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "npsources"))
 #' 
 #' # Plot data with maximum slope per edge as color ramp (steep slopes in red)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
