@@ -117,11 +117,11 @@ mm <- range(c(edges$maxSlo_e, sites$maxSloA, sites$maxSloEx))
 b <- seq(from = mm[1], to = mm[2] + diff(mm) * 0.01, length.out = 10)
 c_ramp <- colorRampPalette(c("white", "blue", "orange", "red"))
 cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e, breaks = b, right = FALSE))]
-plot(edges,col = cols, lwd = 2, add = T)
+plot(edges,col = cols, lwd = 2, add = TRUE)
 cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloA,breaks = b,right = FALSE))]
-plot(sites, pch = 19, col = cols, cex = 2, add = T)
+plot(sites, pch = 19, col = cols, cex = 2, add = TRUE)
 cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloEx,breaks = b,right = FALSE))]
-plot(sites, pch = 21, bg = cols, cex = 1.1, add = T)
+plot(sites, pch = 21, bg = cols, cex = 1.1, add = TRUE)
 # Some points in the centre left of the map indicate a difference in max slope between
 # approximate and exact calculation (different colors for inner and outer points)
 }

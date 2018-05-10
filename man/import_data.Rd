@@ -102,7 +102,7 @@ lu <- readVECT("landuse", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 plot(dem, col = grey.colors(20))
 col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
-plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
+plot(lu, add = TRUE, col = col[as.numeric(as.factor(lu$landuse))])
 legend("top", col = col, pch = 15, 
   legend = as.factor(sort(unique(lu$landuse))), title = "landuse", ncol = 4)
 points(sites_orig, pch = 4)
@@ -114,7 +114,7 @@ parameters = list(
   input = fp,
   output =  "psources",
   extent = "region"),  # to import into current regien
-  intern = T, ignore.stderr = T)
+  intern = TRUE, ignore.stderr = TRUE)
   
 ps <- readVECT("psources")
 points(ps, bg = "red", pch = 21, col = "grey", cex = 1.5)

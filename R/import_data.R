@@ -84,7 +84,7 @@
 #' plot(dem, col = terrain.colors(20))
 #' plot(dem, col = grey.colors(20))
 #' col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
-#' plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
+#' plot(lu, add = TRUE, col = col[as.numeric(as.factor(lu$landuse))])
 #' legend("top", col = col, pch = 15, 
 #'   legend = as.factor(sort(unique(lu$landuse))), title = "landuse", ncol = 4)
 #' points(sites_orig, pch = 4)
@@ -96,7 +96,7 @@
 #'   input = fp,
 #'   output =  "psources",
 #'   extent = "region"),  # to import into current regien
-#'   intern = T, ignore.stderr = T)
+#'   intern = TRUE, ignore.stderr = TRUE)
 #'   
 #' ps <- readVECT("psources")
 #' points(ps, bg = "red", pch = 21, col = "grey", cex = 1.5)
@@ -144,7 +144,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
                         parameters = list(
                           georef = dem
-                        ), intern = T, ignore.stderr = T)#[1]
+                        ), intern = TRUE, ignore.stderr = TRUE)#[1]
   
   message("Loading sites into GRASS as sites_o ...")
   # sites data
@@ -256,13 +256,13 @@ import_vector_data <- function(data, name, proj_dem){
     proj_data <- execGRASS("g.proj", flags = c("j"),
                             parameters = list(
                               proj4 = proj4string(data)
-                            ), intern = T)[1] # sites_in@proj4string@projargs does not work!
+                            ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
     if(identical(proj_dem, proj_data)) {
       writeVECT(data, name,  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
-                ignore.stderr=T)
+                ignore.stderr=TRUE)
       import_flag <- FALSE
     } else {
-      rgdal::writeOGR(obj = data, dsn = tempdir(), layer = name, driver="ESRI Shapefile", overwrite_layer = T)
+      rgdal::writeOGR(obj = data, dsn = tempdir(), layer = name, driver="ESRI Shapefile", overwrite_layer = TRUE)
       data <- file.path(tempdir(), paste0(name, ".shp"))
     }
   } 
@@ -274,7 +274,7 @@ import_vector_data <- function(data, name, proj_dem){
                 input = data,
                 output =  name,
                 extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
-              intern = T, ignore.stderr = T)
+              intern = TRUE, ignore.stderr = TRUE)
     if(file.exists(file.path(tempdir(), paste0(name, ".shp")))){
       invisible(file.remove(file.path(tempdir(), list.files(path = tempdir(), pattern = paste0(name, ".")))))
     }

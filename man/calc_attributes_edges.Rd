@@ -135,10 +135,10 @@ head(edges@data)
 lu <- readVECT("landuse", ignore.stderr = TRUE)
 plot(dem, col = gray(seq(0,1,length.out=20))) 
 col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
-plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
+plot(lu, add = TRUE, col = col[as.numeric(as.factor(lu$landuse))])
 legend("topleft", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
   title = "landuse", ncol = 4)
-mm <- range(c(edges$agri_c), na.rm = T) 
+mm <- range(c(edges$agri_c), na.rm = TRUE) 
 b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
 c_ramp <- colorRampPalette(c("blue", "red"))
 cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right=F))]
