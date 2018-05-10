@@ -122,11 +122,11 @@ parameters = list(
   input = fp,
   output =  "psources",
   extent = "region"),  # to import into current regien
-  intern = T, ignore.stderr = T)
+  intern = TRUE, ignore.stderr = TRUE)
   
 calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo",
                      input_vector = c("landuse", "psources"), 
-                     stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "npsources"))
+                     stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "nps"))
 
 # Plot data with maximum slope per edge as color ramp (steep slopes in red)
 dem <- readRAST('dem', ignore.stderr = TRUE)
