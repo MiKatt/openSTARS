@@ -21,8 +21,8 @@ For more information on STARS and SSN, see [their web page](http://www.fs.fed.us
 Peterson, E. E., & Ver Hoef, J. M. (2014). STARS: An ArcGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J Stat Softw, 56(2), 1–17.
 
 ## Installation and loading
-A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with installed add-ons [r.stream.basins](https://grass.osgeo.org/grass70/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass70/manuals/addons/r.stream.distance.html), [r.stream.order](https://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html) and 
-[r.hydrodem](https://grass.osgeo.org/grass70/manuals/addons/r.hydrodem.html) is needed.
+A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with installed add-ons [r.stream.basins](https://grass.osgeo.org/grass74/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass74/manuals/addons/r.stream.distance.html), [r.stream.order](https://grass.osgeo.org/grass74/manuals/addons/r.stream.order.html) and 
+[r.hydrodem](https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html) is needed.
 These add-ons can be installed from within GRASS using the console and g.extension or in the GUI under 'Settings'/'Addons extensions'/'Install extensions from add-ons' under 'raster'.
 
 Installation from CRAN repository:
@@ -67,13 +67,13 @@ On Windows, this might look like this:
 
 ```r
 library(openSTARS)
-initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.2.0", 
+initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.4.0", 
           home = tempdir(),
           location = "test_openSTARS",
           remove_GISRC = T)
-#> gisdbase    C:/Users/Mira_2/AppData/Local/Temp/Rtmp02QURr 
+#> gisdbase    C:/Users/Mira_2/AppData/Local/Temp/RtmpQhlYuA 
 #> location    test_openSTARS 
-#> mapset      file245034806a3 
+#> mapset      file34386a953400 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -106,7 +106,7 @@ setup_grass_environment(dem = dem_path)
 #> Setting up GRASS Environment ...
 
 gmeta()
-#> gisdbase    C:/Users/Mira_2/AppData/Local/Temp/Rtmp02QURr 
+#> gisdbase    C:/Users/Mira_2/AppData/Local/Temp/RtmpQhlYuA 
 #> location    test_openSTARS 
 #> mapset      PERMANENT 
 #> rows        450 
@@ -188,8 +188,9 @@ points(sites, pch = 16, col = cols)
 ![](README_files/figure-html/plot_data2-1.png)<!-- -->
 
 ### Check and correct the network
-Next, the stream network should be checked if there are stream segments with more than two inflows. These must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be complex junctions only if accum_threshold is small.
+Next, the stream network should be checked if there are stream segments with more than two inflows. These must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be complex junctions only if accum_threshold is small (e.g. 150; note that this will take long to run and use a lot of memory).
 
+<!-- uses too much disk space and takes ages
 
 ```r
 derive_streams(burn = 0, accum_threshold = 100)
@@ -211,6 +212,7 @@ lines(streams, col = 'blue', lty = 2, lwd = 2)
 legend("topright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2),
   legend = c("original", "corrected"))
 ```
+-->
 
 An example of a complex junction and the correction would look like this:
 

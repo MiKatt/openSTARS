@@ -1,7 +1,7 @@
 ---
-title: "New package openSTARS"
+title: "Update of package openSTARS"
 author: "Mira Kattwinkel"
-date: "August 10, 2017"
+date: "May 10, 2018"
 output: html_document
 bibliography: bib.bib
 ---
@@ -22,25 +22,29 @@ and accounts for patterns of spatial autocorrelation among sampling locations.
 
 ```{r prepare_plot, echo = FALSE, eval = TRUE, message=FALSE, results='hide'}
 library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass72/",
+if(.Platform$OS.type == "windows"){
+  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
+} else {
+  gisbase = "/usr/lib/grass74/"
+}
+initGRASS(gisBase = gisbase,
           home = tempdir(),
           override = TRUE)
+
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 
-setup_grass_environment(dem = dem_path, sites = sites_path)
+setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path)
 derive_streams()
 calc_edges()
 calc_sites()
 calc_prediction_sites(predictions = "preds", nsites = 100, netIDs = 15 )
 
-
 dem <- readRAST("dem", ignore.stderr = TRUE)
 sites <- readVECT("sites", ignore.stderr = TRUE)
 edges <- readVECT("edges", ignore.stderr = TRUE)
 pred_sites <- readVECT("preds", ignore.stderr = TRUE)
-
 ```
 
 <div style = "float:right; position: relative;"> 
@@ -54,6 +58,11 @@ legend(x = par("usr")[1]*1.0008, y = par("usr")[3]*1.018, col = c(2,1,"blue"), p
 ```
 </div>
 
+## Updates
+* Include vector data as potential predictors in `calc_attributes_edges` and calc_attributes_sites_exact`
+* Some changes in `import_data`to ensure the correct projection and extend of all data
+* Several bug fixes
+
 ## Input data
 Required:
 
@@ -64,7 +73,7 @@ Optional:
 
 * stream network (vector data, e.g., ESRI shapefile)
 * predictions sites (vector data, e.g., ESRI shapefile)
-* potential explanatory variables (raster data, e.g., tiff)
+* potential explanatory variables (raster or vector data, e.g., tiff)
 
 ## Workflow
 A full example can be found [here](https://github.com/MiKatt/openSTARS/blob/master/README.md).
