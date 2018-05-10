@@ -40,7 +40,7 @@
 #' For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
 #' e.g. different land use types. The column \code{attr_name_vect} would then 
 #' give the code for the different land uses. Then, the percentage for each land
-#' use type in the catchment of the edge is calculated and given in seperate columns
+#' use type in the catchment of the edge is calculated and given in separate columns
 #' with column names resampling the different categories given in column 
 #' \code{attr_name_vect}
 #' 

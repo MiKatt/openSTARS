@@ -23,7 +23,7 @@ Nothing. The function changes features in \itemize{
 }
 \description{
 At complex junctions (i.e. more than two inflows to an outflow), the outflow
-is broken into two segments at 1/4 of the DEM's cellsize downstream of the
+is broken into two segments at 1/4 of the DEM's cell size downstream of the
 start using the GRASS function
 \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
 break). Then, the stream with the smallest angle to the outflow is moved to
