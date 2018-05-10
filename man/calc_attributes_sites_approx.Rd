@@ -119,16 +119,16 @@ plot(lu, add = TRUE, col = col[as.numeric(as.factor(lu$landuse))])
  mm <- range(c(edges$agri_c), na.rm = TRUE) 
 b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
 c_ramp <- colorRampPalette(c("blue", "red"))
-cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right=F))]
+cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c, breaks = b, right = FALSE))]
 plot(edges,col=cols, add = TRUE , lwd=2)
 mm <- range(c(sites$agriA), na.rm = TRUE) 
 b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
 c_ramp <- colorRampPalette(c("blue", "red"))
-cols <- c_ramp(length(b))[as.numeric(cut(sites$agriA,breaks = b,right=F))]
+cols <- c_ramp(length(b))[as.numeric(cut(sites$agriA, breaks = b, right = FALSE))]
 plot(sites ,col=cols, add = TRUE, pch = 19)
 legend("topleft", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
   title = "landuse", ncol = 4)
-legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
+legend("topright", col = cols[c(1, length(cols))], lwd = 2, 
   legend = paste("precent agri", c(min(sites$agriA), max(sites$agriA))), pch = 19)
 }
                  

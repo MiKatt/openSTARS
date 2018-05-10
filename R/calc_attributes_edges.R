@@ -126,8 +126,8 @@
 #' mm <- range(c(edges$agri_c), na.rm = TRUE) 
 #' b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
 #' c_ramp <- colorRampPalette(c("blue", "red"))
-#' cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right=F))]
-#' plot(edges,col=cols, add = T, lwd=2)
+#' cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right= FALSE))]
+#' plot(edges, col = cols, add = TRUE, lwd = 2)
 #' legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
 #'   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 #' }
@@ -142,7 +142,7 @@
 
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
                                   input_vector = NULL, stat_vect = NULL, attr_name_vect = NULL,
-                                  round_dig = 2){ #, clean = TRUE
+                                  round_dig = 2){
   
   if(length(input_raster) != length(stat_rast) | length(input_raster) != length(attr_name_rast) | length(attr_name_rast) != length(stat_rast))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
@@ -462,7 +462,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
               parameters = list(
                 type = "vector",
                 name = "temp_inters"
-              ))
+              ), ignore.stderr = TRUE)
     execGRASS("db.droptable", flags = c("quiet","f"),
               parameters = list(
                 table = "edge_attributes"

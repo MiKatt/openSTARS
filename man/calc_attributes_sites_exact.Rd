@@ -76,9 +76,9 @@ with x = locID of all sites the catchments (and their area) are derived.
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
   } else {
-  gisbase = "/usr/lib/grass72/"
+  gisbase = "/usr/lib/grass74/"
   }
 initGRASS(gisBase = gisbase,
     home = tempdir(),
@@ -105,7 +105,7 @@ calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast 
 
 # Prepare sites
 calc_sites()
-calc_attributes_sites_approx(input_attr_name = "maxSlo", stat_rast = "max")
+calc_attributes_sites_approx(input_attr_name = "maxSlo", stat = "max")
 calc_attributes_sites_exact(input_raster = "slope", attr_name_rast = "maxSloE", stat_rast = "max")
 
 # Plot data

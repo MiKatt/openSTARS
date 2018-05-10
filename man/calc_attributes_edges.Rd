@@ -141,8 +141,8 @@ legend("topleft", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse
 mm <- range(c(edges$agri_c), na.rm = TRUE) 
 b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
 c_ramp <- colorRampPalette(c("blue", "red"))
-cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right=F))]
-plot(edges,col=cols, add = T, lwd=2)
+cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right= FALSE))]
+plot(edges, col = cols, add = TRUE, lwd = 2)
 legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 }
