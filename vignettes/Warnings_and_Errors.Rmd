@@ -19,13 +19,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Error when running the examples
-**_Problem_** Error message in R console: 
-
 ```{r eval = TRUE, echo = FALSE, results = 'hide', message = FALSE}
 library(openSTARS)
 if(.Platform$OS.type == "windows"){
-    gisbase = "c:/Program Files/GRASS GIS 7.2.0"
+    gisbase = "c:/Program Files/GRASS GIS 7.4.0"
     } else {
     gisbase = "/usr/lib/grass74/"
     }
@@ -40,11 +37,10 @@ if(.Platform$OS.type == "windows"){
 ```
 
 
-```{r id, error = TRUE, eval = TRUE}
-import_data(dem = dem_path, sites = sites_path)
-```
+## Error when running the examples
+**_Problem_** Error message in R console when running `import_data`on the examples files.
 
-**_Solution_** There are three ways to fix this issue:
+**_Solution_** Please update to the latest version of openSTARS (v 1.1.0). A bug in the example files was fixed.
 
 (a) Install openSTARS from github
 ```{r install_gh, eval=FALSE}
@@ -60,20 +56,16 @@ and place them into the library folder ('.../openSTARS/extdata/nc/').
 might not work), open the attributes table, sort the 'value' column and start 
 editing. Replace all empty cells with an arbitrary integer value. Save and close.
 
-## Error message in import_data()
-**_Problem_** Error message in R console when importing data: 
+## Message in setup_grass_environment()
+**_Problem_** Message in R console when setting up the GRASS environment: 
 
-```{r import, error = TRUE, eval = TRUE}
+```{r setup, error = TRUE, eval = TRUE, message = TRUE, warning = TRUE}
 pred_path <- system.file("extdata", "nc", "landuse.shp", package = "openSTARS")
-import_data(dem = dem_path, sites = sites_path, predictor_vector = pred_path)
+setup_grass_environment(dem = dem_path, sites = sites_path)
 ```
 
-Usually, the import works correctly, nevertheless. Please check, if all files are in the mapset:
-```{r check import, error = TRUE, eval = TRUE}
-execGRASS("g.list", parameters = list(
-  type = "raster,vector"
-))
-```
+The function `setup_grass_environment` has been updated; the `sites` parameter is deprecated. 
+
 
 ## Special settings for MAC OS
 GRASS 7 does not run on Mac with system integrity check (<http://grassmac.wikidot.com>) and it needs to be disbaled. Additionally, GRASS addons (r.hydrodem etc.) need to be installed system-wide (see below how to install them using GRASS GUI).
@@ -114,7 +106,7 @@ Sys.setenv(GDAL_DATA="C:/Program Files/QGIS 2.18/share/gdal")
 *The program can't start because iconv.dll is missing from your computer. Try reinstalling the program to fix this problem.*
 And similar messages for other \*.dll files.
 
-**_Solution_** Check, if the missing file(s) are somewhere ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\Program Files\QGIS 2.18\apps\grass\grass-7.0.5\ and iconv.dll can be found in C:\Program Files\QGIS 2.18\bin. Set the PATH variable to the latter folder. (See instructions in the internet how to set the PATH variable in your specific Windows version.)
+**_Solution_** Check, if the missing file(s) are somewhere ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\\Program Files\\QGIS 2.18\\apps\\grass\\grass-7.0.5 and iconv.dll can be found in C:\\Program Files\\QGIS 2.18\\bin. Set the PATH variable to the latter folder. (See instructions in the internet how to set the PATH variable in your specific Windows version.)
 
 If this does not help, try a stand-alone installation of GRASS (<https://grass.osgeo.org/>). The missing dll files will then probably be located in a folder called 'extrabin' within the GRASS directory and will be found automatically.
 
@@ -154,7 +146,7 @@ If this does not help, try a stand-alone installation of GRASS (<https://grass.o
 
 E.g. your_datum =  North_American_1983_HARN
 
-**_Solution_** Find a folder called 'gdal' containing files including coordinate_axis.csv ‘close’ to or in the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\Program Files\QGIS 2.18\apps\grass\grass-7.0.5\ and the folder gdal can be found in C:\Program Files\QGIS 2.18\share\gdal. Create a System Variable GDAL_DATA and set it to this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
+**_Solution_** Find a folder called 'gdal' containing files including coordinate_axis.csv ‘close’ to or in the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\\Program Files\\QGIS 2.18\\apps\\grass\\grass-7.0.5 and the folder gdal can be found in C:\\Program Files\\QGIS 2.18\\share\\gdal. Create a System Variable GDAL_DATA and set it to this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
 
 \ 
 
@@ -163,7 +155,7 @@ E.g. your_datum =  North_American_1983_HARN
 ERROR: Unable to translate EPSG code
 Warning message: running command 'g.proj.exe -c epsg=your_code had status 1*
 
-**_Solution_** Find a folder called 'gdal' containing files including coordinate_axis.csv ‘close’ to or in the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under c:\Program Files\QGIS 2.18\apps\grass\grass-7.0.5\ and the folder gdal can be found in C:\Program Files\QGIS 2.18\share\gdal. Create a System Variable GDAL_DATA and set it to this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
+**_Solution_** Find a folder called 'gdal' containing files including coordinate_axis.csv ‘close’ to or in the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\\Program Files\\QGIS 2.18\\apps\\grass\\grass-7.0.5 and the folder gdal can be found in C:\\Program Files\\QGIS 2.18\\share\\gdal. Create a System Variable GDAL_DATA and set it to this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
 
 \ 
 
@@ -173,7 +165,7 @@ Warning 1: Cannot find datum.csv or gdal_datum.csv
 Warning 1: Cannot find ellipsoid.csv
 Warning 1: Cannot find prime_meridian.csv*
 
-**_Solution_** Find a folder called gdal containing files including coordinate_axis.csv ‘close’ to or in the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\Program Files\QGIS 2.18\apps\grass\grass-7.0.5\ and the folder gdal can be found in C:\Program Files\QGIS 2.18\share\gdal. Create a System Variable GDAL_DATA and set it to this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
+**_Solution_** Find a folder called gdal containing files including coordinate_axis.csv ‘close’ to or in the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\\Program Files\\QGIS 2.18\\apps\\grass\\grass-7.0.5 and the folder gdal can be found in C:\\Program Files\\QGIS 2.18\\share\\gdal. Create a System Variable GDAL_DATA and set it to this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
 
 
 \  
@@ -182,7 +174,7 @@ Warning 1: Cannot find prime_meridian.csv*
 *Error : XML content does not seem to be XML: The system cannot find the path specified.' In addition: Warning message: running command 'v.db.renamecolumn.bat --interface-description' had status 1 
 Error in parseGRASS(cmd, legacyExec = legacyExec) :   v.db.renamecolumn not parsed*
 
-**_Solution_** Find the file python.exe ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\Program Files\QGIS 2.18\apps\grass\grass-7.0.5\ and the file python.exe can be found in C:\Program Files\QGIS 2.18\bin.  Create a System Variable GRASS_PYTHON and set it to the complete path of this file (e.g. C:/Program Files/QGIS 2.18/bin/python.exe). (See instructions in the internet how to create and set the system variables in your specific Windows version.)
+**_Solution_** Find the file python.exe ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\\Program Files\\QGIS 2.18\\apps\\grass\\grass-7.0.5 and the file python.exe can be found in C:\\Program Files\\QGIS 2.18\\bin.  Create a System Variable GRASS_PYTHON and set it to the complete path of this file (e.g. C:\\Program Files\\QGIS 2.18\\bin\\python.exe). (See instructions in the internet how to create and set the system variables in your specific Windows version.)
 
 \ 
 
@@ -190,7 +182,7 @@ Error in parseGRASS(cmd, legacyExec = legacyExec) :   v.db.renamecolumn not pars
 *Error : XML content does not seem to be XML: 'ImportError: No module named site' In addition: Warning message: running command 'v.db.renamecolumn.bat --interface-description' had status 1 
 Error in parseGRASS(cmd, legacyExec = legacyExec) : v.db.renamecolumn not parsed*
 
-**_Solution_** Find the folder Python27 ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\Program Files\QGIS 2.18\apps\grass\grass-7.0.5\ and the folder can be found in C:\Program Files\QGIS 2.18\apps\Python27\. Create a System Variable PYTHONHOME and set it this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
+**_Solution_** Find the folder Python27 ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\\Program Files\\QGIS 2.18\\apps\\grass\\grass-7.0.5 and the folder can be found in C:\\Program Files\\QGIS 2.18\\apps\\Python27. Create a System Variable PYTHONHOME and set it this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
 
 
 ## Message when using `setup_grass_environment` or `import_data`
@@ -216,7 +208,7 @@ It is the intention of this function is to update the projection.
 
 In the R console when using function `correct_compl_junctions`:
 ```
-WARNING: XX points found, but not requested to be exported. Verify 'type' parameter.
+WARNING: <number> points found, but not requested to be exported. Verify 'type' parameter.
 ```
 
 In this function, the streams are imported and exported during the processing. At one stage, only the lines are exported but no points. These points were created automatically when extracting the streams from the DEM but are not needed.
@@ -225,11 +217,11 @@ In this function, the streams are imported and exported during the processing. A
 
 In various functions:
 ```
-WARNING: Vector map <XX> already exists and will be overwritten
-WARNING: Raster map <XX> already exists and will be overwritten
+WARNING: Vector map <name> already exists and will be overwritten
+WARNING: Raster map <name> already exists and will be overwritten
 ```
 
-This happens if e.g. the function has already been executed in the same GRASS locations. Existing maps are overwritten and all changes that might have been conducted are lost. However, usually this is not a problem and everything can be reconstructed if needed by just executing all functions again. If maps  are manually changed they could be saved under a different name to prevent automatic overwriting.
+This happens if e.g. the function has already been executed in the same GRASS locations. Existing maps are overwritten and all changes that might have been conducted are lost. However, usually this is not a problem and everything can be reconstructed if needed by just executing all functions again. If maps  are manually changed they should be saved under a different name to prevent automatic overwriting.
 
 \ 
 
@@ -244,7 +236,7 @@ In this function, points that were created automatically when extracting the str
 
 In the R console when using function `calc_sites`:
 ```
-WARNING: Width for column XX set to 255 (was not specified by OGR), some strings may be truncated!
+WARNING: Width for column <name> set to 255 (was not specified by OGR), some strings may be truncated!
 ```
 Or in `export_ssn`:
 ```
