@@ -39,8 +39,7 @@ setup_grass_environment <- function(dem, epsg = NULL, sites = NULL) {
   message("Setting up GRASS Environment ...\n")
   
   if(!is.null(sites))
-    message("'sites' is no longe a parameter of set_up_grass (see help). 
-            The function will still execute normally. Please update your code.")
+    message("'sites' is no longe a parameter of set_up_grass (see help). \nThe function will still execute normally. Please update your code.")
   
   dem_raster <- raster::raster(dem)
   #dem_proj <- raster::projection(dem_raster)

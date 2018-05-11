@@ -1,7 +1,7 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "May 9, 2018"
+date: "May 11, 2018"
 output: html_document
 ---
 
@@ -15,7 +15,7 @@ now starting with a capital letter:
 
 ## Test environments
 * Linux Mint 18.2 Sonya, R 3.4.1
-* Windows 7, R 3.4.1
+* Windows 7, R 3.5.0
 * win-builder (devel and release)
 
 ## R CMD check results
@@ -28,13 +28,10 @@ Maintainer: 'Mira Kattwinkel <mira.kattwinkel@gmx.net>'
 This is a stable e-mail address and the spam filter set to let through e-mails 
 from the domain r-project.org.
 
-Notes on 'no visible binding for global variable' for (static) data.table column
-names are prevented by including them as utils::globalVariables.
-
 Some examples take quite a while to run (> 5s) because they all contain the full
 workflow of loading and processing GIS files to be stand-alone examples.
 
 ## Downstream dependencies
-There are no downstream dependencies as this is the first release of the package.
+All downstream dependencies have been checked.
 
 

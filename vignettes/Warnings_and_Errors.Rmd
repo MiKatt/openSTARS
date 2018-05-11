@@ -19,24 +19,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r eval = TRUE, echo = FALSE, results = 'hide', message = FALSE}
-library(openSTARS)
-if(.Platform$OS.type == "windows"){
-    gisbase = "c:/Program Files/GRASS GIS 7.4.0"
-    } else {
-    gisbase = "/usr/lib/grass74/"
-    }
-  initGRASS(gisBase = gisbase,
-      home = tempdir(),
-      override = TRUE)
-
-  # Load files into GRASS
-  dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
-  sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-  setup_grass_environment(dem = dem_path)
-```
-
-
 ## Error when running the examples
 **_Problem_** Error message in R console when running `import_data`on the examples files.
 
@@ -59,10 +41,9 @@ editing. Replace all empty cells with an arbitrary integer value. Save and close
 ## Message in setup_grass_environment()
 **_Problem_** Message in R console when setting up the GRASS environment: 
 
-```{r setup, error = TRUE, eval = TRUE, message = TRUE, warning = TRUE}
-pred_path <- system.file("extdata", "nc", "landuse.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path, sites = sites_path)
-```
+`
+'sites' is no longe a parameter of set_up_grass (see help). The function will still execute normally. Please update your code.
+`
 
 The function `setup_grass_environment` has been updated; the `sites` parameter is deprecated. 
 
