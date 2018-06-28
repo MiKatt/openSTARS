@@ -1,3 +1,10 @@
+# openSTARS 1.1.0.999
+
+* correct_complex_junction now works for three and four inflows to one outflow
+* correct an error in correct_complex_juntions: If there were outflows form a 
+  complex junction that were also inflows to complex junctions a wrong assignment
+  might have occured.
+
 # openSTARS 1.1.0
 
 * Fixed error when loading (import_data) example shapes: no empty cell allowed

@@ -76,9 +76,9 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                       table = "streams_v"
                     ), intern=T)
 
-  if (any(c("prev_str04","prev_str05") %in% cnames))
-    stop("There are four or more inflows to one outflow. Currently, this
-         function only works for complex juctions with three inflows.")
+  if ("prev_str05" %in% cnames)
+    stop("There are five or more inflows to one outflow. Currently, this
+         function only works for complex juctions with up to four inflows.")
 
   # temporary directory
   temp_dir <- tempdir()
@@ -90,6 +90,373 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     stop("north-south cell size != east-west cell size. Please check")
   } else cellsize <- cellsize[1]
 
+  four.inflows <- FALSE
+  # four inflows
+  # move prev_str04, split other inflow with smalles angle to prev_str04, remove column prev_str04
+  if("prev_str04" %in% cnames){
+    four.inflows <- TRUE  
+    # get stream ID of features that have more than three inflows, and stream IDs of those inflows
+    
+    dt.junctions <- do.call(rbind, strsplit(
+      execGRASS("db.select", 
+                parameters = list(
+                  sql = "select stream, prev_str01, prev_str02, prev_str03, prev_str04 from streams_v where prev_str04 > 0"
+                ), intern = T), 
+      split = "\\|"))
+    colnames(dt.junctions) <- dt.junctions[1, ]
+    dt.junctions <- data.frame(dt.junctions[-1, , drop = F], 
+                               stringsAsFactors = FALSE)
+    setDT(dt.junctions)
+    dt.junctions[, `:=`(names(dt.junctions), lapply(.SD, as.numeric))]
+    
+    # Create new vector with all segments that form complex junctions
+    str1 <- paste(unique(unlist(c(dt.junctions))), collapse = ",")
+    str1 <- paste0("(", str1, ")", sep = "")
+    execGRASS("v.extract", flags = c("overwrite", "quiet"), 
+              parameters = list(
+                input = "streams_v", 
+                output = "complex_flows", 
+                type = "line", 
+                where = paste0("stream in ", str1))
+    )
+    
+    # Create file of point positions 0.8 x cellsize  upstream (inflows) and  
+    # 0.8 x cellsizes downstream (outflows) from junction to get the flow direction
+    # close to the juction; cellsize as coordinate does not work, because some 
+    # segements are only one cellsize long; 0.8 lays in the next cell
+    # for outflows, use cell in which junction lies
+    points <- file.path(temp_dir, "complex_points.txt")
+    str1 <- paste(unlist(c(dt.junctions)), collapse = ",")
+    str1 <- paste0("(", str1, ")", sep = "")
+    dt <- data.table(do.call(rbind, strsplit(
+      execGRASS("db.select", 
+                parameters = list(
+                  sql = paste0("select stream, length from streams_v where stream in", str1)
+                ), intern = T), 
+      split = "\\|"))[-1, ])
+    setattr(dt, "names", c("stream", "len"))
+    dt[, `:=`(names(dt), lapply(.SD, as.numeric))]
+    dt3 <- melt(dt.junctions, measure.vars = colnames(dt.junctions))
+    dt <- merge(dt3, dt, by.x = "value", by.y = "stream")
+    setnames(dt, "value", "stream")
+    dt[, newlen := -0.8 * cellsize]
+    dt[grepl("prev_str",variable) & len < (0.8 * cellsize), newlen:=-len]
+    dt[variable == "stream", newlen := 0.8 * cellsize]
+    dt[variable == "stream" & len < (0.8 * cellsize), newlen:=len]
+    
+    dt[, `:=`(pcat, seq(1, nrow(dt)))]
+    write(paste(paste("P ", dt[, pcat], c(dt[, stream]), dt[, newlen], collapse = "\n")), 
+          file = points)
+    
+    # Create point feature with points on complex flows based on points created above
+    execGRASS("v.segment", flags = c("overwrite", "quiet"), 
+              parameters = list(
+                input = "complex_flows", 
+                output = "complex_flows_p",
+                rules = points)
+    )
+    # Get flow direction at these points
+    execGRASS("v.db.addtable", flags = c("quiet"), 
+              parameters = list(
+                map = "complex_flows_p", 
+                columns = "dir int")
+    )
+    execGRASS("v.what.rast", flags = c("quiet"), 
+              parameters = list(
+                map = "complex_flows_p", 
+                raster = "dirs", 
+                column = "dir")
+    )
+    # Get coordinates of ends of juction segments (only used for the inflows)
+    dt.endcoord <- data.frame(do.call(rbind, strsplit(
+      execGRASS("v.to.db", flags = c("p", "quiet"), 
+                parameters = list(
+                  map = "complex_flows", 
+                  type = "line", 
+                  option = "end"
+                ), intern = T), 
+      split = "\\|"))[,-4], stringsAsFactors = FALSE)
+    setDT(dt.endcoord)
+    setattr(dt.endcoord, "names", c("cat", "end_x", "end_y"))
+    dt.endcoord[, `:=`(names(dt.endcoord), lapply(.SD, as.numeric))]
+    setkey(dt.endcoord, cat)
+    
+    # Merge endcoordinates with flow directions one cell above / below juction
+    dt.dirs <- readVECT("complex_flows_p", ignore.stderr = T)
+    dt.dirs <- merge(dt, dt.dirs, by.y = "cat", by.x = "pcat")
+    dt.endcoord <- merge(dt.dirs, dt.endcoord, by.x = "stream", by.y = "cat")
+    rm(list = c("dt.dirs"))
+    
+    # Find that other prev_str with the smalles differnce in flow direction -> 'cut_stream'
+    # "This gives a signed angle for any angles:
+    # a = targetA - sourceA
+    # a = (a + 180) % 360 - 180"
+    # Adjusted for directions (1:8)
+    # Direction is "Flow direction is of D8 type with a range of 1 to 8. 
+    # Multiplying values with 45 gives degrees CCW from East" (r.stream.extraxt help)
+    # 8 -> E, 6 -> S, 4 -> W, 2 -> N
+    df.move_streams <- data.frame(matrix(nrow = nrow(dt.junctions), ncol = 3))
+    colnames(df.move_streams) <- c("move_stream", "cut_stream", "cut_stream_prev")
+    
+    for (i in 1:nrow(dt.junctions)) {
+      outdir <- (dt.endcoord[stream == dt.junctions[i, prev_str04] & 
+                               variable == "prev_str04", dir] + 4)%%8
+      indirs <- dt.endcoord[stream %in% dt.junctions[i, -1] & 
+                              (grepl("prev_str01", variable) | grepl("prev_str02", variable) | grepl("prev_str03", variable)), .(stream, dir, variable)]
+      indirs[, `:=`(dif, abs((outdir - dir + 4)%%8 - 4))]
+      ## max not min here because minimum difference to other prev_str is needed
+      cs <- indirs[dif == max(dif), ]
+      # if there are tow with same angel to outflow, always take the first for reproducability
+      df.move_streams[i, ] <- c(dt.junctions[i, prev_str04], cs[1, stream], as.character(cs[1, variable]))
+    }
+    ## variable != "stream" because one stream can be stream and prev_stream in compl junctions; should not be duplicated here.
+    dt.xy_move <- dt.endcoord[stream %in% df.move_streams[, "move_stream"] & variable != "stream", .(stream, end_x, end_y)]
+    df.move_streams <- merge(df.move_streams, dt.xy_move, by.x = "move_stream", 
+                             by.y = "stream")
+    colnames(df.move_streams)[colnames(df.move_streams) == "end_x"] <- "move_end_x"
+    colnames(df.move_streams)[colnames(df.move_streams) == "end_y"] <- "move_end_y"
+    df.move_streams[,"move_stream"] <- as.numeric(as.character(df.move_streams[, "move_stream"]))
+    df.move_streams[,"cut_stream"] <- as.numeric(as.character(df.move_streams[, "cut_stream"]))
+    rm("dt.endcoord")
+    
+    # Create file of point positions 1/4 cellsize downstream of start of outflow to cut outflow
+    # P <point id>   <line cat> <offset> [<side offset>]
+    points <- file.path(temp_dir, "cut_points.txt")
+    write(paste(paste("P ", df.move_streams[, "cut_stream"], df.move_streams[, "cut_stream"], c(rep(-cellsize/4, nrow(dt.junctions)))), collapse = "\n"), 
+          file = points)
+    execGRASS("v.segment", flags = c("overwrite", "quiet"), 
+              parameters = list(
+                input = "complex_flows",
+                output = "complex_flows_cp", 
+                rules = points)
+    )
+    dt.cut_coords <- data.table(do.call(rbind, strsplit(
+      execGRASS("v.out.ascii", flags = c("overwrite", "quiet"), 
+                parameters = list(
+                  input = "complex_flows_cp"
+                ), intern = T), 
+      split = "\\|")))
+    dt.cut_coords[, `:=`(names(dt.cut_coords), lapply(.SD, as.numeric))]
+    names(dt.cut_coords) <- c("cut_x", "cut_y", "cut_stream")
+    df.move_streams <- merge(df.move_streams, dt.cut_coords, by = "cut_stream")
+    
+    # Save originally derived network to streams_v_o4
+    execGRASS("g.copy", flags = c("overwrite", "quiet"), 
+              parameters = list(
+                vector = "streams_v,streams_v_o4"
+              ), ignore.stderr = TRUE)
+    
+    message("Original stream topology file moved to streams_v_o4.\n")
+    message("Breaking lines and moving vertices ...")
+    
+    # Break features at cut coordinates
+    for (i in 1:nrow(dt.junctions)) {
+      execGRASS("v.edit", flags = c("quiet", "overwrite"), 
+                parameters = list(
+                  map = "streams_v", 
+                  type = "line", 
+                  tool = "break", 
+                  threshold = 1, 
+                  coords = c(dt.cut_coords[i, c(cut_x, cut_y)])
+                ))
+    }
+    # Move end vertices of move streams to cut coordinates
+    for (i in 1:nrow(df.move_streams)) {
+      execGRASS("v.edit", flags = c("quiet", "overwrite"), 
+                parameters = list(
+                  map = "streams_v",
+                  type = "line", 
+                  tool = "vertexmove",
+                  threshold = c(1, cellsize/4, 0), 
+                  where = paste0("stream = ", df.move_streams[i,"move_stream"]), 
+                  coords = c(df.move_streams[i, "move_end_x"], df.move_streams[i, "move_end_y"]), 
+                  move = c(df.move_streams[i, "cut_x"] - df.move_streams[i, "move_end_x"], df.move_streams[i, "cut_y"] - df.move_streams[i, "move_end_y"], 0), 
+                  snap = "node"
+                ))
+    }
+    
+    # Seems to be the easiest way to assingn new, unique cat values to all features
+    streams <- readVECT(vname = "streams_v", remove.duplicates = FALSE, 
+                        ignore.stderr = T, type = "line")
+    streams$cat_old4 <- streams$cat
+    ncat <- max(streams$cat) + 1
+    for (i in 1:nrow(df.move_streams)) {
+      j <- which(streams$cat == df.move_streams[i, "cut_stream"])
+      if (!length(j) > 1) {
+        print(i)
+      }
+      else {
+        streams$cat[j[2]] <- ncat
+        ncat <- ncat + 1
+      }
+    }
+    # writeVECT produces new cat column;
+    writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
+    rm("streams")
+    
+    # Recalculate length of line segments
+    execGRASS("v.to.db", flags = c("quiet"),
+              parameters = list(
+                map = "streams_v",
+                option = "length",
+                type = "line",
+                columns = "length"
+              ))
+    # Find new cat_ of short and long pieces of cut streams
+    str1<-paste(df.move_streams[,"cut_stream"],collapse = ",")
+    str1<-paste0("(", str1, ")",sep="")
+    dt.cut <- do.call(rbind,strsplit(
+      execGRASS("db.select",
+                parameters = list(
+                  sql = paste0("select stream, length, cat_ from streams_v where stream in", str1)
+                ),intern = T),
+      split = '\\|'))
+    colnames(dt.cut)<-dt.cut[1,]
+    dt.cut <- data.table(dt.cut[-1,])
+    dt.cut[,":=" (stream = as.numeric(stream),length = as.numeric(length),cat_ = as.numeric(cat_))]
+    dt.smallcut <- dt.cut[dt.cut[, .I[length == min(length)], by=stream]$V1]
+    setnames(dt.smallcut,"cat_","cat_small")
+    dt.largecut <- dt.cut[dt.cut[, .I[length == max(length)], by=stream]$V1]
+    setnames(dt.largecut,"cat_","cat_large")
+    
+    if(any(df.move_streams[,"cut_stream"] %in% dt.junctions[,stream]))
+    {
+      print("stream cut in prev04")
+    }
+    # TODO do this properly!
+    # dt.junctions <- merge(dt.junctions,df.move_streams,by.x="stream",by.y = "cut_stream")
+    # dt.junctions <- merge(dt.junctions, dt.smallcut[,.(stream,cat_small)],by="stream")
+    # dt.junctions <- merge(dt.junctions, dt.largecut[,.(stream,cat_large)],by="stream")
+    # 
+    # # change prev_str0X if it was also cat_small of cut_stream to new stream id
+    # i_cut <- which(dt.junctions[,cat_small] %in% unlist(dt.junctions[,paste0("prev_str0",1:3)]))
+    # if(length(i_cut) > 0){
+    #   # find where cat_small is previous stream
+    #   i_prev <- do.call(rbind, lapply(i_cut, function(x) 
+    #     which(dt.junctions[, paste0("prev_str0", 1:3)] == dt.junctions[x, cat_small], arr.ind = TRUE)))
+    #   ii <- i_prev[,1]
+    #   jj <- paste0("prev_str0", 1:3)[i_prev[,2]]
+    #   jjj <- which(colnames(dt.junctions) %in% jj)
+    #   # make data frame
+    #   setDF(dt.junctions)
+    #   # use matrix for indexing because differnt columns might be changed for
+    #   # different rows
+    #   # change previous stream to cat_large
+    #   dt.junctions[cbind(ii, jjj)]  <- dt.junctions[i_cut, "cat_large"]
+    #   setDT(dt.junctions)
+    # }
+    # 
+    # # change move_stream if it was also cat_small or cut_stream to new stream id
+    # i_cut <- which(dt.junctions[,cat_small] %in% dt.junctions[,move_stream])
+    # if(length(i_cut) > 0){
+    #   # find where cat_small is move stream
+    #   i_mov <- c(do.call(rbind,lapply(i_cut, function(x) which(dt.junctions[,move_stream] == dt.junctions[x,cat_small]))))
+    #   # change move stream to cat_large
+    #   dt.junctions[i_mov, "move_stream"] <- dt.junctions[i_cut,  cat_large]
+    # }
+    
+    df.move_streams <- merge(df.move_streams, dt.smallcut[,.(stream,cat_small)],by.x="cut_stream", by.y = "stream")
+    df.move_streams <- merge(df.move_streams, dt.largecut[,.(stream,cat_large)],by.x="cut_stream", by.y = "stream")
+    dt.junctions <- merge(dt.junctions, df.move_streams, by.x = "prev_str04", by.y = "move_stream")
+    
+    
+    # assign updated cat_ value to 'stream' for cut stream segments
+    str1<-paste(c(dt.smallcut[,cat_small],dt.largecut[,cat_large]),collapse = ",")
+    str1<-paste0("(", str1, ")",sep="")
+    execGRASS("v.db.update", flags = c("quiet"),
+              parameters = list(
+                map = "streams_v",
+                column = "stream",
+                where = paste0("cat_ in ",str1),
+                query_column = "cat_"
+              ))
+    
+    tabs <- c(tables(silent=T)$NAME)
+    tabs <- tabs[-which(tabs == "df.move_streams")]
+    remove(list = tabs)
+    
+    message("Updating topology ...")
+    
+    for(i in 1:nrow(dt.junctions)){
+      # set the cut prev_strX of stream to cat_small
+      execGRASS("v.db.update", flags = c("quiet"),
+                parameters = list(
+                  map = "streams_v",
+                  column = dt.junctions[i, cut_stream_prev],
+                  where = paste0("stream = ",dt.junctions[i, stream]),
+                  value = paste0(dt.junctions[i, cat_small])
+                ))     
+      
+      # set prev_str01 of cat_small to prev_str04
+      execGRASS("v.db.update", flags = c("quiet"),
+                parameters = list(
+                  map = "streams_v",
+                  column = "prev_str01",
+                  where = paste0("stream = ",dt.junctions[i, cat_small]),
+                  value = paste0(dt.junctions[i, prev_str04])
+                )) 
+      # set prev_str02 of cat_small to cat_large
+      execGRASS("v.db.update", flags = c("quiet"),
+                parameters = list(
+                  map = "streams_v",
+                  column = "prev_str02",
+                  where = paste0("stream = ",dt.junctions[i, cat_small]),
+                  value = paste0(dt.junctions[i, cat_large])
+                )) 
+      # set next_str of cat_small to stream
+      execGRASS("v.db.update", flags = c("quiet"),
+                parameters = list(
+                  map = "streams_v",
+                  column = "next_str",
+                  where = paste0("stream = ",dt.junctions[i, cat_small]),
+                  value = paste0(dt.junctions[i, stream])
+                )) 
+      # set next_str of cat_large and prev_str04 to cat_small
+      execGRASS("v.db.update", flags = c("quiet"),
+                parameters = list(
+                  map = "streams_v",
+                  column = "next_str",
+                  where = paste0("stream in ",paste0("(",paste(dt.junctions[i,c(cat_large,prev_str04)],collapse=","),")")),
+                  value = paste0(dt.junctions[i, cat_small])
+                )) 
+    }
+    
+    # Mark changed features
+    execGRASS("v.db.addcolumn", flags = c("quiet"),
+              parameters = list(
+                map = "streams_v",
+                columns = "changed int"
+              ))
+    # Set 'changed' to '0' for all streams
+    execGRASS("v.db.update", flags = c("quiet"),
+              parameters = list(
+                map = "streams_v",
+                column = "changed",
+                value = "0"
+              ))
+    # Set 'changed' to '1' for the changed ones
+    for(i in 1:nrow(dt.junctions)){
+      #print(i)
+      str1<-paste(unique(unlist(dt.junctions[i,c(prev_str04,cat_small,cat_large, cut_stream)])),collapse = ",")
+      str1<-paste0("(", str1, ")",sep="")
+      execGRASS("v.db.update", flags = c("quiet"),
+                parameters = list(
+                  map = "streams_v",
+                  column = "changed",
+                  where = paste0("stream in ",str1),
+                  value = "1"
+                ))
+    }
+    # delete column prev_str04
+    execGRASS("v.db.dropcolumn", flags = c("quiet"),
+              parameters = list(
+                map = "streams_v",
+                columns = "prev_str04"
+              ))
+  }
+  
+  # three inflows:
+  # split outflow, move one inflow downstream remove column prev_str03
   # get stream ID of features that have more than two inflows, and stream IDs of those inflows
   dt.junctions<-do.call(rbind,strsplit(
     execGRASS("db.select",
@@ -233,13 +600,13 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   names(dt.cut_coords) <- c("cut_x","cut_y","cut_stream")
   df.move_streams <- merge(df.move_streams,dt.cut_coords,by="cut_stream")
 
-  # Save originally derived network to streams_v_o
+  # Save originally derived network to streams_v_o3
   execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
-              vector = "streams_v,streams_v_o"), ignore.stderr = TRUE)
+              vector = "streams_v,streams_v_o3"), ignore.stderr = TRUE)
 
-  message("Original stream topology file moved to streams_v_o.\n")
+  message("Original stream topology file moved to streams_v_o3.\n")
   message("Breaking lines and moving vertices ...")
 
   # Break features at cut coordinates
@@ -275,7 +642,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
 
   # Seems to be the easiest way to assingn new, unique cat values to all features
   streams <- readVECT(vname = "streams_v", remove.duplicates = FALSE, ignore.stderr = T, type = "line")
-  streams$cat_old <- streams$cat
+  streams$cat_old3 <- streams$cat
   ncat <- max(streams$cat) +1
   for(i in 1:nrow(dt.junctions)){
     j <- which(streams$cat == dt.junctions[i,stream])
@@ -289,6 +656,10 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   # writeVECT produces new cat column;
   # IMPORTANT: Take care not to base calculations on that but to use manually updated cat_ (= new 'stream'))
   # 20180219: override projection check
+  if(four.inflows == TRUE){
+    streams$cat4_ <- streams$cat_
+    streams@data <- streams@data[,-which(colnames(streams@data) == "cat_")]
+  }
   writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
   rm("streams")
 
@@ -329,7 +700,8 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
       which(dt.junctions[, paste0("prev_str0", 1:3)] == dt.junctions[x, cat_small], arr.ind = TRUE)))
     ii <- i_prev[,1]
     jj <- paste0("prev_str0", 1:3)[i_prev[,2]]
-    jjj <- which(colnames(dt.junctions) %in% jj)
+    jjj <- unlist(lapply(jj, function(x) which(colnames(dt.junctions) == x)))
+    
     # make data frame
     setDF(dt.junctions)
     # use matrix for indexing because differnt columns might be changed for
@@ -440,18 +812,20 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   }
 
   # Mark changed features
-  execGRASS("v.db.addcolumn", flags = c("quiet"),
-            parameters = list(
-              map = "streams_v",
-              columns = "changed int"
-            ))
-  # Set 'changed' to '0' for all streams
-  execGRASS("v.db.update", flags = c("quiet"),
-            parameters = list(
-              map = "streams_v",
-              column = "changed",
-              value = "0"
-            ))
+  if(! four.inflows){
+    execGRASS("v.db.addcolumn", flags = c("quiet"),
+              parameters = list(
+                map = "streams_v",
+                columns = "changed int"
+              ))
+    # Set 'changed' to '0' for all streams
+    execGRASS("v.db.update", flags = c("quiet"),
+              parameters = list(
+                map = "streams_v",
+                column = "changed",
+                value = "0"
+              ))
+  }
   # Set 'changed' to '1' for the changed ones
   for(i in 1:nrow(dt.junctions)){
     #print(i)

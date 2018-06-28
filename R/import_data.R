@@ -253,7 +253,7 @@ import_vector_data <- function(data, name, proj_dem){
     data <- as(data, 'Spatial')
   }
   if(inherits(data, 'Spatial')) {
-    proj_data <- execGRASS("g.proj", flags = c("j"),
+    proj_data <- execGRASS("g.proj", flags = c("j", "f"),
                             parameters = list(
                               proj4 = proj4string(data)
                             ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
