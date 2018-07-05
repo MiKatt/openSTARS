@@ -402,13 +402,13 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                   value = paste0(dt.move_streams[j, cat_small])
                 ))     
       
-      # set prev_str01 of cat_small to move_stream_prev 
+      # set prev_str01 of cat_small to move_stream 
       execGRASS("v.db.update", flags = c("quiet"),
                 parameters = list(
                   map = "streams_v",
                   column = "prev_str01",
                   where = paste0("stream = ",dt.move_streams[j, cat_small]),
-                  value = paste0("prev_str0", dt.move_streams[j, move_stream_prev])
+                  value = paste0("prev_str0", dt.move_streams[j, move_stream])
                 )) 
       # set prev_str02 of cat_small to cat_large
       execGRASS("v.db.update", flags = c("quiet"),
