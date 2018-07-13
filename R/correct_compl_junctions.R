@@ -71,6 +71,8 @@
 #' }
 
 correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
+  GV <- Sys.getenv("GRASS_VERBOSE")
+  Sys.setenv("GRASS_VERBOSE" = -1)
   cnames<-execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
@@ -82,9 +84,10 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
   # get cellcize of dem raster
   cellsize <- execGRASS("g.region", flags = "p",intern=T)
   cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2])
-  if(round(cellsize[1], celltoldig) != round(cellsize[2], celltoldig)){
-    stop("north-south cell size != east-west cell size. Please check")
-  } else cellsize <- cellsize[1]
+  #if(round(cellsize[1], celltoldig) != round(cellsize[2], celltoldig)){
+    #stop("north-south cell size != east-west cell size. Please check")
+    cellsize <- min(cellsize)
+  #} else cellsize <- cellsize[1]
 
   # get maximum prev_str0X from colnames
   max.prev.str <- max(which(paste0("prev_str0", 3:7) %in% cnames)) + 2
@@ -133,7 +136,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                output = "complex_flows", 
                type = "line", 
                where = paste0("stream in ", prev_str)),
-             ignore.stderr = T
+             ignore.stderr = T, intern = TRUE
    )
    
    # Create file of point positions 0.8 x cellsize  upstream of junction to get the 
@@ -164,7 +167,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                input = "complex_flows", 
                output = "complex_flows_p",
                rules = points),
-             ignore.stderr = T
+             ignore.stderr = TRUE, intern =TRUE
    )
    # Get flow direction at these points
    execGRASS("v.db.addtable", flags = c("quiet"), 
@@ -279,13 +282,13 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
                 input = "complex_flows",
                 output = "complex_flows_cp", 
                 rules = points),
-              ignore.stderr = T
+              ignore.stderr = TRUE, intern = TRUE
     )
     dt.cut_coords <- data.table(do.call(rbind, strsplit(
       execGRASS("v.out.ascii", flags = c("overwrite", "quiet"), 
                 parameters = list(
                   input = "complex_flows_cp"
-                ), intern = T, ignore.stderr = T), 
+                ), intern = TRUE, ignore.stderr = TRUE), 
       split = "\\|")))
     dt.cut_coords[, `:=`(names(dt.cut_coords), lapply(.SD, as.numeric))]
     names(dt.cut_coords) <- c("cut_x", "cut_y", "cut_stream")
@@ -295,7 +298,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     execGRASS("g.copy", flags = c("overwrite", "quiet"), 
               parameters = list(
                 vector = paste0("streams_v,streams_v_o", i)
-              ), ignore.stderr = TRUE)
+              ), ignore.stderr = TRUE, intern = TRUE)
     
     message(paste0("Original stream topology file moved to streams_v_o", i, "."))
     message("Breaking lines and moving vertices ...")
@@ -328,7 +331,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     
     # Seems to be the easiest way to assingn new, unique cat values to all features
     streams <- readVECT(vname = "streams_v", remove.duplicates = FALSE, 
-                        ignore.stderr = T, type = "line")
+                        ignore.stderr = TRUE, type = "line")
     streams@data <- data.frame(streams@data, streams$cat)
     colnames(streams@data)[ncol(streams@data)] <- paste0("cat_old", i) 
 
@@ -347,6 +350,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     if("cat_" %in% colnames(streams@data)){
       streams@data <- streams@data[- which(colnames(streams@data) == "cat_")]
     }
+    #print("writeVECT")
     writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
     rm("streams")
     
@@ -397,7 +401,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     
     message("Updating topology ...")
     for(j in 1:nrow(dt.junctions)){
-      print(j)
+      #print(j)
       jj <- which(dt.move_streams$stream == dt.junctions[j, stream])
       # set the cut prev_strX of stream to cat_small
       execGRASS("v.db.update", flags = c("quiet"),
@@ -509,6 +513,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
               ))
   }
   message("Complex junctions were removed. Please check changed features in streams_v.\n")
+  Sys.setenv("GRASS_VERBOSE"=GV)
 }
 
 
