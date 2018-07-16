@@ -1,15 +1,13 @@
 #' Correct junctions with three inflows.
 #'
-#' At complex junctions (i.e. more than two inflows to an outflow), the outflow
-#' is broken into two segments at 1/4 of the DEM's cell size downstream of the
-#' start using the GRASS function
+#' At complex junctions (i.e. more than two inflows to an outflow),the inflow
+#' with the smalles angle to the shortes inflow is broken into two segments 
+#' close to the juntion using the GRASS function
 #' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-#' break). Then, the stream with the smallest angle to the outflow is moved to
-#' this new junction using
+#' break). Then, the shortes inflow is moved to this new junction using
 #' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-#' vertexmove). So far, this function works only for junctions with three
-#' inflows, not more.
-#'
+#' vertexmove). 
+#' 
 #' @param clean logical; should intermediate files be removed from 'GRASS'
 #'   session?
 #' @param celltoldig integer; number of digits the cell size dimensions are
@@ -111,7 +109,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
    dt.junctions <- do.call(rbind, strsplit(
      execGRASS("db.select", 
                parameters = list(
-                 sql = paste0("select ", paste0("prev_str0", 1:i, collapse = ", "), " from streams_v where prev_str03 > 0")
+                 sql = paste0("select ", paste0("prev_str0", 1:i, collapse = ", "),  " from streams_v where prev_str03 > 0")
                ), intern = T), 
      split = "\\|"))
    colnames(dt.junctions) <- dt.junctions[1, ]
