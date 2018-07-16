@@ -159,6 +159,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
    write(paste(paste("P ", dt[, pcat], c(dt[, stream]), dt[, newlen], collapse = "\n")), 
          file = points)
    
+   # TODO: cat != stream therefore points do not lay on lines. CHECK!!
    # Create point feature with points on complex flows based on points created above
    execGRASS("v.segment", flags = c("overwrite", "quiet"), 
              parameters = list(
