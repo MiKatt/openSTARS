@@ -335,7 +335,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
       streams@data <- streams@data[- which(colnames(streams@data) == "cat_")]
     }
     sink("temp.txt")
-    writeVECT_MK(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
+    writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
     sink()
     rm("streams")
     
@@ -518,24 +518,24 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
             parameters = list(
               raster = "streams_r,streams_r_o"))
   
-  execGRASS("v.db.addcolumn", flags = "quiet",
-            parameters = list(
-              map = "streams_v",
-              columns = "str_rast"
-            )) 
-  execGRASS("v.db.update", flags = "quiet",
-            parameters = list(
-              map = "streams_v",
-              column = "str_rast",
-              query_column = "stream"
-            ))
-  execGRASS("v.db.update", flags = "quiet",
-            parameters = list(
-              map = "streams_v",
-              column = "str_rast",
-              query_column = "next_str",
-              where = paste0("length < ", 0.5 * cellsize, " AND next_str > 0")
-            ))
+  # execGRASS("v.db.addcolumn", flags = "quiet",
+  #           parameters = list(
+  #             map = "streams_v",
+  #             columns = "str_rast"
+  #           )) 
+  # execGRASS("v.db.update", flags = "quiet",
+  #           parameters = list(
+  #             map = "streams_v",
+  #             column = "str_rast",
+  #             query_column = "stream"
+  #           ))
+  # execGRASS("v.db.update", flags = "quiet",
+  #           parameters = list(
+  #             map = "streams_v",
+  #             column = "str_rast",
+  #             query_column = "next_str",
+  #             where = paste0("length < ", 0.5 * cellsize, " AND next_str > 0")
+  #           ))
 
   # now use automatically assigned "cat"
   execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
@@ -544,7 +544,7 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
               type = "line",
               output = "streams_r",
               use = "attr",
-              attribute_column = "str_rast"
+              attribute_column = "cat"
             ))
 
   if(clean){
