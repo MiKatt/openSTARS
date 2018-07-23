@@ -395,121 +395,175 @@ correct_compl_junctions <- function(clean = TRUE, celltoldig = 2){
     # remove(list = tabs)
     
     message("Updating topology ...\n")
+
+    # Using data.table is about 10 times faster than execGRASS(v.db.update)   
+    streams <- readVECT(vname = "streams_v", remove.duplicates = FALSE, 
+                        ignore.stderr = TRUE, type = "line")
+    dt.streams <- data.table(streams@data)
+    
+    # Must all be in the loop over all junctions, because otherwise the sorting is wrong in the different tables
     for(j in 1:nrow(dt.junctions)){
-      #print(j)
       jj <- which(dt.move_streams$stream == dt.junctions[j, stream])
-      # set the cut prev_strX of stream to cat_small
-      # execGRASS("v.db.update", flags = c("quiet"),
-      #           parameters = list(
-      #             map = "streams_v",
-      #             column = paste0("prev_str0",dt.move_streams[jj, cut_stream_prev]),
-      #             where = paste0("stream = ",dt.junctions[j, stream]),
-      #             value = paste0(dt.move_streams[jj, cat_small])
-      #           ))    
-      # # set move_stream_prev of stream to prev_str0i
-      # if(dt.move_streams[jj, move_stream_prev] != i){
-      #   execGRASS("v.db.update", flags = c("quiet"),
-      #             parameters = list(
-      #               map = "streams_v",
-      #               column = paste0("prev_str0", dt.move_streams[jj, move_stream_prev]),
-      #               where = paste0("stream = ",dt.junctions[j, stream]),
-      #               value = paste0(dt.junctions[j, paste0("prev_str0", i), with = F])
-      #             )) 
-      # }
       
       # set stream's cut_stream_prev to cat_small if cut_stream_prev < i
       # else set stream's move_stream_prev to cat_small
       if(dt.move_streams[jj, cut_stream_prev] != i){
-        execGRASS("v.db.update", flags = c("quiet"),
-                  parameters = list(
-                    map = "streams_v",
-                    column = paste0("prev_str0", dt.move_streams[jj, cut_stream_prev]),
-                    where = paste0("stream = ",dt.junctions[j, stream]),
-                    value = paste0(dt.move_streams[jj, str_new_small])
-                  ))
-        # set stream's move_str_prev to prev_str0i
-        if(dt.move_streams[jj, move_stream_prev] != i){
-          execGRASS("v.db.update", flags = c("quiet"),
-                    parameters = list(
-                      map = "streams_v",
-                      column = paste0("prev_str0", dt.move_streams[jj, move_stream_prev]),
-                      where = paste0("stream = ",dt.junctions[j, stream]),
-                      value = paste0(dt.junctions[j, paste0("prev_str0",i), with = F])
-                    ))
-        }
+        dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, cut_stream_prev]) := dt.move_streams[jj, str_new_small]]
+      }
+      # set stream's move_str_prev to prev_str0i
+      if(dt.move_streams[jj, move_stream_prev] != i){
+        dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.junctions[j, paste0("prev_str0",i), with = F]]
       } else {
-        execGRASS("v.db.update", flags = c("quiet"),
-                  parameters = list(
-                    map = "streams_v",
-                    column = paste0("prev_str0", dt.move_streams[jj, move_stream_prev]),
-                    where = paste0("stream = ",dt.junctions[j, stream]),
-                    value = paste0(dt.move_streams[jj, str_new_small])
-                  ))
+        dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.move_streams[jj, str_new_small]]
       }
       
-      
-      # set prev_str01 of cat_small to move_stream 
-      execGRASS("v.db.update", flags = c("quiet"),
-                parameters = list(
-                  map = "streams_v",
-                  column = "prev_str01",
-                  where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
-                  value = paste0(dt.move_streams[jj, move_stream])
-                )) 
-      # set prev_str02 of cat_small to cat_large
-      execGRASS("v.db.update", flags = c("quiet"),
-                parameters = list(
-                  map = "streams_v",
-                  column = "prev_str02",
-                  where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
-                  value = paste0(dt.move_streams[jj, str_new_large])
-                )) 
-      # set next_str of cat_small to stream
-      execGRASS("v.db.update", flags = c("quiet"),
-                parameters = list(
-                  map = "streams_v",
-                  column = "next_str",
-                  where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
-                  value = paste0(dt.junctions[j, stream])
-                )) 
-      # set prev_str0>2 of cat_small to 0
-      for(k in i:3){
-        execGRASS("v.db.update", flags = c("quiet"),
-                  parameters = list(
-                    map = "streams_v",
-                    column = paste0("prev_str0", k),
-                    where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
-                    value = "0"
-                  )) 
-      }
-      # set next_str of cat_large and move_str_prev to cat_small
-      execGRASS("v.db.update", flags = c("quiet"),
-                parameters = list(
-                  map = "streams_v",
-                  column = "next_str",
-                  where = paste0("stream in ", paste0("(",paste(dt.move_streams[jj, .(str_new_large, move_stream)],collapse=","),")")),
-                  value = paste0(dt.move_streams[jj, str_new_small])
-                )) 
-      
-      # Set 'changed' to '1' for the changed streams
-      str1<-paste(unique(unlist(dt.move_streams[jj, c(move_stream, str_new_small, str_new_large, cut_stream)])),collapse = ",")
-      str1<-paste0("(", str1, ")",sep="")
-      execGRASS("v.db.update", flags = c("quiet"),
-                parameters = list(
-                  map = "streams_v",
-                  column = "changed",
-                  where = paste0("stream in ",str1),
-                  value = "1"
-                ))
-    }
-
-    # delete column prev_str0X
-    execGRASS("v.db.dropcolumn", flags = c("quiet"),
-              parameters = list(
-                map = "streams_v",
-                columns = paste0("prev_str0", i)
-              ))
+    # set prev_str01 of str_new_small to move_stream 
+    dt.streams[stream == dt.move_streams[jj, str_new_small],  prev_str01 := as.integer(dt.move_streams[jj, move_stream])]
+    # set prev_str02 of str_new_small to str_new_large
+    dt.streams[stream == dt.move_streams[jj, str_new_small],  prev_str02 := as.integer(dt.move_streams[jj, str_new_large])]
     
+    # set next_str of str_new_small to stream
+    dt.streams[stream == dt.move_streams[jj, str_new_small],  next_str := as.integer(dt.junctions[j, stream])]
+    
+    # set prev_str0>2 of str_new_small to 0
+    dt.streams[stream == dt.move_streams[jj, str_new_small],  paste0("prev_str0", i:3) := 0]
+    
+    # set next_str of str_new_large and move_str_prev to str_new_small
+    dt.streams[stream %in% unlist(dt.move_streams[jj, .(str_new_large, move_stream)]),  next_str := as.integer(dt.move_streams[jj, str_new_small])]
+    
+    # Set 'changed' to '1' for the changed streams
+    str1<-unique(unlist(dt.move_streams[jj, c(move_stream, str_new_small, str_new_large, cut_stream)]))
+    dt.streams[stream %in% str1,  changed := 1]
+    }
+    
+    # delete column prev_str0X
+    dt.streams[,  paste0("prev_str0", i) := NULL]
+    
+    if("cat_" %in% colnames(dt.streams)){
+      dt.streams[,  cat_ := NULL]
+    }
+    streams@data <- data.frame(dt.streams)
+    sink("temp.txt")
+    writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
+    sink()
+    rm("streams")
+    
+    # t2 <- Sys.time()
+    # for(j in 1:nrow(dt.junctions)){
+    #   #print(j)
+    #   jj <- which(dt.move_streams$stream == dt.junctions[j, stream])
+    #   # set the cut prev_strX of stream to cat_small
+    #   # execGRASS("v.db.update", flags = c("quiet"),
+    #   #           parameters = list(
+    #   #             map = "streams_v",
+    #   #             column = paste0("prev_str0",dt.move_streams[jj, cut_stream_prev]),
+    #   #             where = paste0("stream = ",dt.junctions[j, stream]),
+    #   #             value = paste0(dt.move_streams[jj, cat_small])
+    #   #           ))    
+    #   # # set move_stream_prev of stream to prev_str0i
+    #   # if(dt.move_streams[jj, move_stream_prev] != i){
+    #   #   execGRASS("v.db.update", flags = c("quiet"),
+    #   #             parameters = list(
+    #   #               map = "streams_v",
+    #   #               column = paste0("prev_str0", dt.move_streams[jj, move_stream_prev]),
+    #   #               where = paste0("stream = ",dt.junctions[j, stream]),
+    #   #               value = paste0(dt.junctions[j, paste0("prev_str0", i), with = F])
+    #   #             )) 
+    #   # }
+    #   
+    #   # set stream's cut_stream_prev to cat_small if cut_stream_prev < i
+    #   # else set stream's move_stream_prev to cat_small
+    #   if(dt.move_streams[jj, cut_stream_prev] != i){
+    #     execGRASS("v.db.update", flags = c("quiet"),
+    #               parameters = list(
+    #                 map = "streams_v",
+    #                 column = paste0("prev_str0", dt.move_streams[jj, cut_stream_prev]),
+    #                 where = paste0("stream = ",dt.junctions[j, stream]),
+    #                 value = paste0(dt.move_streams[jj, str_new_small])
+    #               ))
+    #     # set stream's move_str_prev to prev_str0i
+    #     if(dt.move_streams[jj, move_stream_prev] != i){
+    #       execGRASS("v.db.update", flags = c("quiet"),
+    #                 parameters = list(
+    #                   map = "streams_v",
+    #                   column = paste0("prev_str0", dt.move_streams[jj, move_stream_prev]),
+    #                   where = paste0("stream = ",dt.junctions[j, stream]),
+    #                   value = paste0(dt.junctions[j, paste0("prev_str0",i), with = F])
+    #                 ))
+    #     }
+    #   } else {
+    #     execGRASS("v.db.update", flags = c("quiet"),
+    #               parameters = list(
+    #                 map = "streams_v",
+    #                 column = paste0("prev_str0", dt.move_streams[jj, move_stream_prev]),
+    #                 where = paste0("stream = ",dt.junctions[j, stream]),
+    #                 value = paste0(dt.move_streams[jj, str_new_small])
+    #               ))
+    #   }
+    #   
+    #   
+    #   # set prev_str01 of cat_small to move_stream 
+    #   execGRASS("v.db.update", flags = c("quiet"),
+    #             parameters = list(
+    #               map = "streams_v",
+    #               column = "prev_str01",
+    #               where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
+    #               value = paste0(dt.move_streams[jj, move_stream])
+    #             )) 
+    #   # set prev_str02 of cat_small to cat_large
+    #   execGRASS("v.db.update", flags = c("quiet"),
+    #             parameters = list(
+    #               map = "streams_v",
+    #               column = "prev_str02",
+    #               where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
+    #               value = paste0(dt.move_streams[jj, str_new_large])
+    #             )) 
+    #   # set next_str of cat_small to stream
+    #   execGRASS("v.db.update", flags = c("quiet"),
+    #             parameters = list(
+    #               map = "streams_v",
+    #               column = "next_str",
+    #               where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
+    #               value = paste0(dt.junctions[j, stream])
+    #             )) 
+    #   # set prev_str0>2 of cat_small to 0
+    #   for(k in i:3){
+    #     execGRASS("v.db.update", flags = c("quiet"),
+    #               parameters = list(
+    #                 map = "streams_v",
+    #                 column = paste0("prev_str0", k),
+    #                 where = paste0("stream = ",dt.move_streams[jj, str_new_small]),
+    #                 value = "0"
+    #               )) 
+    #   }
+    #   # set next_str of cat_large and move_str_prev to cat_small
+    #   execGRASS("v.db.update", flags = c("quiet"),
+    #             parameters = list(
+    #               map = "streams_v",
+    #               column = "next_str",
+    #               where = paste0("stream in ", paste0("(",paste(dt.move_streams[jj, .(str_new_large, move_stream)],collapse=","),")")),
+    #               value = paste0(dt.move_streams[jj, str_new_small])
+    #             )) 
+    #   
+    #   # Set 'changed' to '1' for the changed streams
+    #   str1<-paste(unique(unlist(dt.move_streams[jj, c(move_stream, str_new_small, str_new_large, cut_stream)])),collapse = ",")
+    #   str1<-paste0("(", str1, ")",sep="")
+    #   execGRASS("v.db.update", flags = c("quiet"),
+    #             parameters = list(
+    #               map = "streams_v",
+    #               column = "changed",
+    #               where = paste0("stream in ",str1),
+    #               value = "1"
+    #             ))
+    # }
+    # 
+    # # delete column prev_str0X
+    # execGRASS("v.db.dropcolumn", flags = c("quiet"),
+    #           parameters = list(
+    #             map = "streams_v",
+    #             columns = paste0("prev_str0", i)
+    #           ))
+    # print(Sys.time() - t1)
   }
 
   message("Original stream raster moved to streams_r_o.\n")

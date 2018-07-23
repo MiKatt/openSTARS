@@ -132,7 +132,7 @@ calc_edges <- function() {
   colnames(dt.streams) <- dt.streams[1,]
   dt.streams <- data.table(dt.streams[-1,, drop = FALSE], "total_area" = 0, "netID" = -1)
   dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
-  dt.streams<-merge(dt.streams, areas, by="cat", all = T)  # MiKatt: must be 'cat' not 'stream' because stream_r is based on 'cat'!
+  dt.streams<-merge(dt.streams, areas, by = "cat", all = T)  # MiKatt: must be 'cat' not 'stream' because stream_r is based on 'cat'!
   setkey(dt.streams, stream)
   # set catchment area of short segments that do not have a rca (NA) to zero (mainly resulting form correct_compl_junctions())
   dt.streams[is.na(area), area := 0 ]
@@ -263,8 +263,8 @@ calcCatchmArea_assignNetID <- function(dt, id, net_ID){
   return(dt[stream == id, total_area])
 }
 
-#' get_cats_edges_in_catchment#' 
-#' Returns the cats of this and all upstream edges#' 
+#' get_cats_edges_in_catchment
+#' Returns the cats of this and all upstream edges
 #' 
 #' @description Recursive function to get the stream_ids from one segment upstream.
 #' This function is used internally and is not intended to be called by the user.
