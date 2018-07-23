@@ -468,6 +468,14 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 other_table = "edge_attributes",
                 other_column = "cat_"
               ))
+    
+    # remove temporary files
+    execGRASS("g.remove",
+              flags = c("quiet", "f"),
+              parameters = list(
+                type = "vector",
+                name = "temp_inters"
+              ), ignore.stderr = TRUE)
   }
   
   cnames_edges2 <- execGRASS("db.columns", flags = "quiet",
@@ -475,31 +483,19 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                               table = "edges"
                             ), intern = T)
   cnames_edges2 <- cnames_edges2[-(which(cnames_edges2 %in% cnames_edges))]
-  cnames_edges2 <- unique( gsub("_c|_e$", "", cnames_edges2))
-  cnames_edges2 <- cnames_edges2[- which(cnames_edges2 == "cat_")]
+  cnames_edges2 <- unique(gsub("_c|_e$", "", cnames_edges2))
+  i <- which(cnames_edges2 == "cat_")
+  if(length(i) > 0)
+    cnames_edges2 <- cnames_edges2[-i]
   message(paste0("\nNew attributes values are stored as ", paste(cnames_edges2, collapse = ", ")))
   
- # if (clean) {
-    # MK 02.05.2018 keep for consecutive runs
-    # execGRASS("g.remove",
-    #           flags = c("quiet", "f"),
-    #           parameters = list(
-    #             type = "raster",
-    #             name = "rca"
-    #           ))
-    execGRASS("g.remove",
-              flags = c("quiet", "f"),
-              parameters = list(
-                type = "vector",
-                name = "temp_inters"
-              ), ignore.stderr = TRUE)
-    execGRASS("db.droptable", flags = c("quiet","f"),
-              parameters = list(
-                table = "edge_attributes"
-              ))
-    invisible(file.remove(file.path(temp_dir,"edge_attributes.csv")))
-    invisible(file.remove(file.path(temp_dir,"edge_attributes.csvt")))
-  #}
+  # remove temporary files
+  execGRASS("db.droptable", flags = c("quiet","f"),
+            parameters = list(
+              table = "edge_attributes"
+            ))
+  invisible(file.remove(file.path(temp_dir,"edge_attributes.csv")))
+  invisible(file.remove(file.path(temp_dir,"edge_attributes.csvt")))
 }
 
 #' calc_catchment_attributes_rast

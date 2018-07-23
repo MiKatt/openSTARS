@@ -484,18 +484,32 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
 
     # Delete watershed raster
     if (!keep_basins) {
-      execGRASS("g.remove",
-                flags = c("quiet", "f"),
-                parameters = list(
-                  type = "raster",
-                  name = paste0(sites_map, "_catchm_",locID)
-                ))
+      rast <- execGRASS("g.list",
+                        parameters = list(
+                          type = "rast"
+                        ),
+                        intern = TRUE)
+      if(paste0(sites_map, "_catchm_",locID) %in% rast){
+        execGRASS("g.remove",
+                  flags = c("quiet", "f"),
+                  parameters = list(
+                    type = "raster",
+                    name = paste0(sites_map, "_catchm_",locID)
+                  ))
+      }
+      vect <- execGRASS("g.list",
+                        parameters = list(
+                          type = "vector"
+                        ),
+                        intern = TRUE)
+      if(paste0(sites_map, "_catchm_",locID, "_v") %in% vect){
       execGRASS("g.remove",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "vector",
                   name = paste0(sites_map, "_catchm_",locID, "_v")
                 ), ignore.stderr = TRUE)
+      }
     }
     pb$tick()
   }
