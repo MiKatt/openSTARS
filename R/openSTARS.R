@@ -116,4 +116,8 @@ if(getRversion() >= "2.15.1")
 #' Source \url{https://grass.osgeo.org/download/sample-data/}.
 #' @section sites_nc.shp:
 #' Arbitrary sites along rivers in North Carolina.
+#' @section landuse.shp
+#' Artificial landuse data.
+#' @section pointsources.shp
+#' Artificial point sources.
 NULL

@@ -19,40 +19,30 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Error when running the examples
-**_Problem_** Error message in R console when running `import_data`on the examples files.
+<!-- ## Error when running the examples -->
+<!-- **_Problem_** Error message in R console when running `import_data`on the examples files. -->
 
-**_Solution_** Please update to the latest version of openSTARS (v 1.1.0). A bug in the example files was fixed.
+<!-- **_Solution_** Please update to the latest version of openSTARS (v 1.1.0). A bug in the example files was fixed. -->
 
-(a) Install openSTARS from github
-```{r install_gh, eval=FALSE}
-# install.packages("devtools")
-devtools::install_github("MiKatt/openSTARS")
-```
+<!-- (a) Install openSTARS from github -->
+<!-- ```{r install_gh, eval=FALSE} -->
+<!-- # install.packages("devtools") -->
+<!-- devtools::install_github("MiKatt/openSTARS") -->
+<!-- ``` -->
 
-(b) Download a fixed version of the example shape file for 
-monitoring sites ('sites_nc') from <https://github.com/MiKatt/openSTARS/tree/master/inst/extdata/nc> 
-and place them into the library folder ('.../openSTARS/extdata/nc/').
+<!-- (b) Download a fixed version of the example shape file for  -->
+<!-- monitoring sites ('sites_nc') from <https://github.com/MiKatt/openSTARS/tree/master/inst/extdata/nc>  -->
+<!-- and place them into the library folder ('.../openSTARS/extdata/nc/'). -->
 
-(c) Open sites_nc.shp from the library folder in a GIS program (e.g. QGIS, GRASS
-might not work), open the attributes table, sort the 'value' column and start 
-editing. Replace all empty cells with an arbitrary integer value. Save and close.
+<!-- (c) Open sites_nc.shp from the library folder in a GIS program (e.g. QGIS, GRASS -->
+<!-- might not work), open the attributes table, sort the 'value' column and start  -->
+<!-- editing. Replace all empty cells with an arbitrary integer value. Save and close. -->
 
-## Message in setup_grass_environment()
-**_Problem_** Message in R console when setting up the GRASS environment: 
-
-`
-'sites' is no longe a parameter of set_up_grass (see help). The function will still execute normally. Please update your code.
-`
-
-The function `setup_grass_environment` has been updated; the `sites` parameter is deprecated. 
-
-
-## Special settings for MAC OS
+# Special settings for MAC OS
 GRASS 7 does not run on Mac with system integrity check (<http://grassmac.wikidot.com>) and it needs to be disbaled. Additionally, GRASS addons (r.hydrodem etc.) need to be installed system-wide (see below how to install them using GRASS GUI).
 
 
-## Errors and warnings on WINDOWS systems
+# Errors and warnings on WINDOWS systems
 Most problems occur because GRASS, which is called by the openSTARS package functions via package rgrass7, cannot find certain files, i.e. because some path and system variables are not set. The easiest solution is to install a stand-alone version of GRASS, i.e. not within QGIS or OSGeo.
 
 ### Setting PATH and SYSTEM variables
@@ -166,12 +156,47 @@ Error in parseGRASS(cmd, legacyExec = legacyExec) : v.db.renamecolumn not parsed
 **_Solution_** Find the folder Python27 ‘close’ to the GRASS installation; e.g., if Grass was installed with QGIS, GRASS might be located under C:\\Program Files\\QGIS 2.18\\apps\\grass\\grass-7.0.5 and the folder can be found in C:\\Program Files\\QGIS 2.18\\apps\\Python27. Create a System Variable PYTHONHOME and set it this path. (See instructions in the internet how to create and set the system variables in your specific Windows version.)
 
 
+# Messages and warnings in specific functions
+
 ## Message when using `setup_grass_environment` or `import_data`
 Warning in R console: *WARNING: Over-riding projection check. Windows does not recognize the projection of the DEM raster. It will be overwritten with the one of the observation sites (* your working directory *). Please verify that the projections match.*
 
 GRASS usually checks if all files that are imported into a mapset have the same projection. However, under Windows, this check would always results in an error. Therefore, the check is disabled under Windows and the user is asked to make sure that all sources come from the same projection manually (e.g. using another GIS).
 
-## Messages you do not need to worry about
+## Message in `setup_grass_environment`
+**_Problem_** Message in R console when setting up the GRASS environment: 
+
+`
+'sites' is no longer a parameter of setup_grass_environment (see help). The function will still execute normally. Please update your code.
+`
+
+The function `setup_grass_environment` has been updated; the `sites` parameter is deprecated. 
+
+## Warning message in `derive_streams`
+**_Problem_** Message in R console when deriving the streams from the DEM:
+
+`
+WARNING: Stream network may be too dense
+`
+
+The parameter `accum_threshold`  (i.e. minimum number of cells that will initiate a new stream) is probably too small; try to increase it and check if all desired small streams are constructed.
+
+
+## Error message in `calc_edges`
+**_Problem_** Message in R console when using `calc_edges`:
+
+`
+Error in execGRASS("r.stream.basins", flags = c("overwrite", "quiet"),  : 
+  The command:
+r.stream.basins --overwrite --quiet direction=dirs stream_rast=streams_r basins=rca
+produced an error (1) during execution:
+ERROR: Stream and direction maps probably do not match
+`
+
+The stream network was too dense. Please increase the parameter `accum_threshold` in `derive_streams`. Then, run `correct_compl_junctions` again, if necessary, and `calc_edges`.
+
+
+# Messages you do not need to worry about
 In the R console when using function `setup_grass_environment`:
 
 ```
@@ -202,7 +227,7 @@ WARNING: Vector map <name> already exists and will be overwritten
 WARNING: Raster map <name> already exists and will be overwritten
 ```
 
-This happens if e.g. the function has already been executed in the same GRASS locations. Existing maps are overwritten and all changes that might have been conducted are lost. However, usually this is not a problem and everything can be reconstructed if needed by just executing all functions again. If maps  are manually changed they should be saved under a different name to prevent automatic overwriting.
+This happens if e.g. the function has already been executed in the same GRASS locations. Existing maps are overwritten and all changes that might have been conducted are lost. However, usually this is not a problem and everything can be reconstructed if needed by just executing all functions again. If maps are manually changed they should be saved under a different name to prevent automatic overwriting.
 
 \ 
 
@@ -211,7 +236,7 @@ In the R console when using function `calc_edges`:
 WARNING: No features selected, nothing to edit
 ```
 
-In this function, points that were created automatically when extracting the streams from the DEM but are not needed are deleted. This warning appears if `correct_compl_junctions` has been executed before and the points have already been deleted.
+In this function, point features that were created automatically when extracting the streams from the DEM but are not needed are deleted. This warning appears if `correct_compl_junctions` has been executed before and the points have already been deleted.
 
 \ 
 

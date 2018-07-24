@@ -226,4 +226,10 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                 ))
     }
   }
+  cnames2 <- execGRASS("db.columns", flags = "quiet",
+                             parameters = list(
+                               table = "sites"
+                             ), intern = T)
+  cnames2 <- cnames2[-(which(cnames2 %in% cnames))]
+  message(paste0("\nNew attributes values are stored as ", paste(cnames2, collapse = ", ")))
 }

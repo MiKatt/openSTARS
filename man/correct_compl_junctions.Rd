@@ -4,14 +4,11 @@
 \alias{correct_compl_junctions}
 \title{Correct junctions with three inflows.}
 \usage{
-correct_compl_junctions(clean = TRUE, celltoldig = 2)
+correct_compl_junctions(clean = TRUE)
 }
 \arguments{
 \item{clean}{logical; should intermediate files be removed from 'GRASS'
 session?}
-
-\item{celltoldig}{integer; number of digits the cell size dimensions are
-rounded to before it is checked whether they are identical}
 }
 \value{
 Nothing. The function changes features in \itemize{
@@ -22,15 +19,13 @@ Nothing. The function changes features in \itemize{
   raster (raster).} }
 }
 \description{
-At complex junctions (i.e. more than two inflows to an outflow), the outflow
-is broken into two segments at 1/4 of the DEM's cell size downstream of the
-start using the GRASS function
+At complex junctions (i.e. more than two inflows to an outflow),the inflow
+with the smalles angle to the shortes inflow is broken into two segments 
+close to the juntion using the GRASS function
 \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-break). Then, the stream with the smallest angle to the outflow is moved to
-this new junction using
+break). Then, the shortes inflow is moved to this new junction using
 \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-vertexmove). So far, this function works only for junctions with three
-inflows, not more.
+vertexmove).
 }
 \note{
 \code{\link{setup_grass_environment}}, \code{\link{import_data}} and

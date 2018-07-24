@@ -2,8 +2,8 @@
 % Please edit documentation in R/calc_edges.R
 \name{get_cats_edges_in_catchment}
 \alias{get_cats_edges_in_catchment}
-\title{get_cats_edges_in_catchment#' 
-Returns the cats of this and all upstream edges#'}
+\title{get_cats_edges_in_catchment
+Returns the cats of this and all upstream edges}
 \usage{
 get_cats_edges_in_catchment(dt, str_id)
 }
