@@ -1,9 +1,10 @@
 # openSTARS 1.1.0.999
 
 * correct_complex_junction now works for three and four inflows to one outflow
-* correct an error in correct_complex_juntions: If there were outflows form a 
+* Correct an error in correct_complex_juntions: If there were outflows form a 
   complex junction that were also inflows to complex junctions a wrong assignment
   might have occured.
+* New function to delete lakes from the network ('delete_lakes').
 
 # openSTARS 1.1.0
 
