@@ -67,6 +67,7 @@
 #'   legend = c("though lakes", "lakes cut out"))
 #' }
 #' 
+#' lakes <- lakes_path
 delete_lakes <- function(lakes, save = TRUE){
   
   proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
@@ -93,6 +94,7 @@ delete_lakes <- function(lakes, save = TRUE){
               ))
   }
   
+  message("Deleting streams intersecting with lakes.")
   # delete streams the intersect with lakes
   execGRASS("v.overlay", flags = c("quiet", "overwrite"),
             parameters = list(
@@ -106,7 +108,7 @@ delete_lakes <- function(lakes, save = TRUE){
   # get start and end coordinates of streams
   execGRASS("v.db.addcolumn", parameters = list(
     map = "streams_wo_lakes",
-    columns = "end_x double,end_y double,start_x double,start_y double"
+    columns = "end_x double,end_y double,start_x double,start_y double,new_length double"
   ))
   execGRASS("v.to.db", flags = c("quiet"), 
             parameters = list(
@@ -122,8 +124,37 @@ delete_lakes <- function(lakes, save = TRUE){
               option = "start",
               columns = "start_x,start_y"
             ))
-  
+  execGRASS("v.to.db", flags = c("quiet"), 
+            parameters = list(
+              map = "streams_wo_lakes", 
+              type = "line", 
+              option = "length",
+              columns = "new_length"
+            ))
+
+  sink("temp.txt")
   streams <- readVECT("streams_wo_lakes")
+  sink()
+  
+  ###################
+  ## does not work!
+  # execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
+  #           parameters = list(
+  #             input = "streams_wo_lakes",
+  #             type = "line",
+  #             output = "streams_r_wo_lakes",
+  #             use = "cat"
+  #           ))
+  # execGRASS("r.stream.order",
+  #           flags = c("overwrite", "z"), #"quiet", "m"
+  #           parameters = list(stream_rast = "streams_r_wo_lakes",     # input
+  #                             direction = "dirs",            # input
+  #                             elevation = "dem_cond",      # input
+  #                             accumulation = "accums",       # input
+  #                             stream_vect = "streams_v_order_wo_lakes"))    # output
+  #          # ignore.stderr=T)
+  # ###################
+  
   execGRASS("g.remove", flags = c("f", "quiet"),
             parameters = list(
               type = "vector",
@@ -133,8 +164,10 @@ delete_lakes <- function(lakes, save = TRUE){
   dt.streams[, colnames(dt.streams)[grep("^b_", colnames(dt.streams))] := NULL]
   dt.streams[, which(colnames(dt.streams) %in% c("a_cat", "a_cat_")) := NULL]
   colnames(dt.streams) <- gsub("^a_", "", colnames(dt.streams))
+  dt.streams[, end_xy := paste(end_x, end_y, sep = "_")]
+  dt.streams[, start_xy := paste(start_x, start_y, sep = "_")]
   
-  # position of duplicated (= cut) streams
+  # position of duplicated (= cut in several pieces) streams
   dup_streams <- which(duplicated(dt.streams$stream))
   
   mstream <- max(dt.streams$stream) + 1
@@ -143,70 +176,127 @@ delete_lakes <- function(lakes, save = TRUE){
   dt.streams[dup_streams, str_new_lake := as.integer(new_str)]
   # stream of cut  streams
   dup_streams <- unique(dt.streams[dup_streams, stream, ])
+  cut_streams <- dt.streams[new_length < length & !(stream %in% dup_streams), stream ]
+  i0 <- which(dt.streams$stream %in% cut_streams)
   
+
+  message("Updating topology.")
   # update topology
-  for(i in dup_streams){
-    i0 <- which(dt.streams$stream == i)
-    i1 <- which(dt.streams$prev_str01 == i)
-    i2 <- which(dt.streams$prev_str02 == i)
-    i3 <- which(dt.streams$next_str == i)
-    # change prev and next of outgoing and incomming streams of the cut streams
-    if(length(i1) > 0){
-      ii <- which(dt.streams[i0, end_x] == dt.streams[i1, start_x] & dt.streams[i0, end_y] == dt.streams[i1, start_y])
-      if(length(ii) > 0){
-        dt.streams[i2, prev_str01 := dt.streams[i0[ii], str_new_lake]]
-        dt.streams[i0[-ii], next_str := -1]
-        dt.streams[c(i0, i1), changed := 1]
-      } 
-    } else {
-      if(length(i2) > 0){
-        ii <- which(dt.streams[i0, end_x] == dt.streams[i2, start_x] & dt.streams[i0, end_y] == dt.streams[i2, start_y])
-        if(length(ii) > 0){
-          dt.streams[i2, prev_str02 := dt.streams[i0[ii], str_new_lake]]
-          dt.streams[i0[-ii], next_str := -1]
-          dt.streams[c(i0, i2), changed := 1]
-        }
-      }
-    }
-    if(length(i3) > 0){
-      ii <- which(!(dt.streams[i3, end_x] %in% dt.streams[i0, start_x]) & !(dt.streams[i3, end_y] %in% dt.streams[i0, start_y]))
-      if(length(ii) > 0){
-        dt.streams[i3[ii], next_str := -1]
-      }
-    }
-    # change prev and next of cut streams
-    dt.streams$stream[i0] <-  dt.streams$str_new_lake[i0]
-    i1 <- which(dt.streams$stream == unique(dt.streams[i0, prev_str01]))
-    i2 <- which(dt.streams$stream == unique(dt.streams[i0, prev_str02]))
-    i3 <-which(dt.streams$stream == unique(dt.streams[i0, next_str]))
-    ii <- which(!(dt.streams[i0, start_x] == dt.streams[i1, end_x]) & !(dt.streams[i0, start_y] == dt.streams[i1, end_y]))
-    dt.streams[i0[ii], prev_str01 := 0]
-    dt.streams[i0[ii], changed := 1]
-    ii <- which(!(dt.streams[i0, start_x] == dt.streams[i2, end_x]) & !(dt.streams[i0, start_y] == dt.streams[i2, end_y]))
-    dt.streams[i0[ii], prev_str02 := 0]
-    dt.streams[i0[ii], changed := 1]
-    ii <- which(!(dt.streams[i0, end_x] == dt.streams[i3, start_x]) & !(dt.streams[i0, end_y] == dt.streams[i3, start_y]))
-    dt.streams[i0[ii], next_str := -1]
-    dt.streams[i0[ii], changed := 1]
+  
+  # 1. segments cut and / or deleted, no duplicates
+  # 1.1 check, if next_str exists
+  ii <- which(dt.streams[i0, next_str] %in% dt.streams$stream)
+  ## if not, set next_str to -1
+  if(length(ii) < length(i0) & length(ii) > 0)
+  dt.streams[i0[-ii], next_str := -1]
+  dt.streams[i0[-ii], changed := 1]
+  
+  ## if yes, check if end_coor = start_coor of next_str
+  iii <- which(!unlist(lapply(i0[ii], function(x) dt.streams$end_xy[x] == dt.streams[stream == dt.streams[x, next_str], start_xy])))
+  ### if not set prev_str of next_str to 0 and next_str of cut_str to -1
+  if(length(iii) > 0){
+    dt.streams[stream %in% dt.streams$next_str[i0[ii[iii]]], c("prev_str01", "prev_str02") := 0]
+    dt.streams[i0[ii[iii]], next_str := -1]
+    dt.streams[i0[ii[iii]], changed := 1]
+  }
+  # 1.2 check, if prev_str exist
+  i1 <- which(dt.streams[i0, prev_str01] %in% dt.streams$stream)
+  i2 <- which(dt.streams[i0, prev_str02] %in% dt.streams$stream)
+  # if not, set prev_str to 0 (it can happen, that one prev_str is deleted, onother is cut, i.e. i1 != i2)
+  if(length(i1) < length(i0) & length(i1) > 0){
+    dt.streams[i0[-i1], prev_str01 := 0]
+    dt.streams[i0[-i1], changed := 1]
   }
   
-  # find streams that do not exist any more and update topology
-  stream_ids <- as.numeric(as.character(execGRASS("v.db.select",
-                                                  parameters = list(
-                                                    map = "streams_v",
-                                                    columns = "stream"
-                                                  ), intern = T)[-1]))
-  stream_del <- stream_ids[which(!(stream_ids %in% dt.streams$stream))]
-  dt.streams[prev_str01 %in% stream_del, `:=`(prev_str01 = 0, changed = 1)]
-  dt.streams[prev_str02 %in% stream_del, `:=`(prev_str02 = 0, changed = 1)]
-  dt.streams[next_str %in% stream_del, `:=`(next_str = -1, changed = 1)]
+  if(length(i2) < length(i0) & length(i2) > 0)
+    dt.streams[i0[-i2], prev_str02 := 0]
+  ii1 <- which(!unlist(lapply(i0[i1], function(x) dt.streams$start_xy[x] == dt.streams[stream == dt.streams[x, prev_str01], end_xy])))
+  ii2 <- which(!unlist(lapply(i0[i2], function(x) dt.streams$start_xy[x] == dt.streams[stream == dt.streams[x, prev_str02], end_xy])))
+  if(length(ii1) > 0){
+    dt.streams[stream %in% dt.streams$prev_str01[i0[i1[ii1]]], next_str := -1]
+    dt.streams[i0[i1[ii1]], prev_str01 := 0]
+    dt.streams[i0[i1[ii1]], changed := 1]
+  }
+  if(length(ii2) > 0){
+    dt.streams[stream %in% dt.streams$prev_str02[i0[i2[ii2]]], next_str := -1]
+    dt.streams[i0[i2[ii2]], prev_str02 := 0]
+    dt.streams[i0[i2[ii2]], changed := 1]
+    
+  }
+  
+  # 2. duplicate stream segments
+  i_dup <- which(dt.streams$stream %in% dup_streams)
+  
+  for(i in dup_streams){
+    i0 <- which(dt.streams$stream == i)
+    i_wnext <- which(dt.streams[i0, end_xy] == dt.streams[stream == unique(dt.streams[stream == i, next_str]), start_xy])
+    if(length(i_wnext) > 0){
+      if(length(i_wnext) < length(i0)){
+        dt.streams[i0[-i_wnext], next_str := -1]
+      }
+      i_next <- which(dt.streams$stream == dt.streams[i0[i_wnext], next_str])
+      i_p <- which(dt.streams[i_next, c("prev_str01","prev_str02")] == i)
+      dt.streams[i_next, c("prev_str01","prev_str02")[i_p] := dt.streams[i0[i_wnext], str_new_lake]]
+      dt.streams[i_next, changed := 1]
+    }
+    i_wp1 <- which(dt.streams[i0, start_xy] == dt.streams[stream == unique(dt.streams[stream == i, prev_str01]), end_xy])
+    if(length(i_wp1) > 0){
+      if(length(i_wp1) < length(i0)){
+        dt.streams[i0[-i_wp1], prev_str01 := 0]
+      }
+      i_p1 <- which(dt.streams$stream == dt.streams[i0[i_wp1], prev_str01])
+      dt.streams[i_p1, next_str := dt.streams[i0[i_wp1], str_new_lake]]
+      dt.streams[i_p1, changed := 1]
+      
+    }
+    i_wp2 <- which(dt.streams[i0, start_xy] == dt.streams[stream == unique(dt.streams[stream == i, prev_str02]), end_xy])
+    if(length(i_wp2) > 0){
+      if(length(i_wp2) < length(i0)){
+        dt.streams[i0[-i_wp2], prev_str02 := 0]
+      }
+      i_p2 <- which(dt.streams$stream == dt.streams[i0[i_wp2], prev_str02])
+      dt.streams[i_p2, next_str := dt.streams[i0[i_wp2], str_new_lake]]
+      dt.streams[i_p2, changed := 1]
+      
+    }
+    dt.streams[i0, stream := str_new_lake]  
+    dt.streams[i0, changed := 1] 
+  }
+  
+  
+  # # find streams that do not exist any more and update topology
+  # stream_ids <- as.numeric(as.character(execGRASS("v.db.select",
+  #                                                 parameters = list(
+  #                                                   map = "streams_v",
+  #                                                   columns = "stream"
+  #                                                 ), intern = T)[-1]))
+  # stream_del <- stream_ids[which(!(stream_ids %in% dt.streams$stream))]
+  # dt.streams[prev_str01 %in% stream_del, `:=`(prev_str01 = 0, changed = 1)]
+  # dt.streams[prev_str02 %in% stream_del, `:=`(prev_str02 = 0, changed = 1)]
+  # dt.streams[next_str %in% stream_del, `:=`(next_str = -1, changed = 1)]
   
   # delete unneeded columns
-  dt.streams[, c("end_x", "end_y", "start_x", "start_y", "str_new_lake") := NULL]
+  dt.streams[, c("end_x", "end_y", "start_x", "start_y", "end_xy", "start_xy", "str_new_lake") := NULL]
   
   # save updated streams_v
   streams@data <- data.frame(dt.streams)
   sink("temp.txt")
   writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
   sink()
+  
+  message("Original stream raster moved to streams_r_prev_lakes.\n")
+  execGRASS("g.copy",
+            flags = c("overwrite", "quiet"),
+            parameters = list(
+              raster = "streams_r,streams_r_prev_lakes"))
+  
+  # use unique "cat" automatically assigned be writeVECT
+  execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
+            parameters = list(
+              input = "streams_v",
+              type = "line",
+              output = "streams_r",
+              use = "attr",
+              attribute_column = "cat"
+            ))
 }

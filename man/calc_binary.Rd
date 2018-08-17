@@ -2,7 +2,6 @@
 % Please edit documentation in R/calc_binary.R, R/export_ssn.R
 \name{calc_binary}
 \alias{calc_binary}
-\alias{calc_binary}
 \title{Calculate binary IDs for each stream network.}
 \usage{
 calc_binary()

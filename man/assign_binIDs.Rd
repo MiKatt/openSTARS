@@ -2,7 +2,6 @@
 % Please edit documentation in R/calc_binary.R, R/export_ssn.R
 \name{assign_binIDs}
 \alias{assign_binIDs}
-\alias{assign_binIDs}
 \title{Recursive function to assign binary id to stream segments
 Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments}
 \usage{
@@ -24,9 +23,6 @@ assign_binIDs(dt, id, binID, lastbit)
 \item{lastbit:}{last char to be added (0 or 1)}
 }
 \description{
-Recursive function to assign binary id to stream segments
-Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments
-
 This function is run for all outlets in the network ( = most downstream segments)
 and fills the binID for all segments. It is called by \code{calc_binary} in
 \code{export_ssn} and should not be called by the user.

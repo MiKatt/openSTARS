@@ -5,7 +5,8 @@
 \title{Derive stream network from DEM.}
 \usage{
 derive_streams(burn = 5, accum_threshold = 700, condition = TRUE,
-  min_stream_length = 0, dem_name = NULL, clean = TRUE, mem = FALSE)
+  min_stream_length = 0, dem_name = NULL, clean = TRUE,
+  mem = FALSE)
 }
 \arguments{
 \item{burn}{numeric; how many meters should the streams be burned into the

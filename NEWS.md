@@ -4,7 +4,8 @@
 * Correct an error in correct_complex_juntions: If there were outflows form a 
   complex junction that were also inflows to complex junctions a wrong assignment
   might have occured.
-* New function to delete lakes from the network ('delete_lakes').
+* New function to delete lakes from the network ('delete_lakes'). Added "lakes.shp"
+  to example data.
 
 # openSTARS 1.1.0
 

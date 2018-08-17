@@ -115,7 +115,7 @@ if(getRversion() >= "2.15.1")
 #' The data has been taken from the GRASS GIS North Carolina data set.
 #' Source \url{https://grass.osgeo.org/download/sample-data/}.
 #' @section  lakes.shp:
-#' Artificial lakes.
+#' Artificial lakes (not at topologically correct locations).
 #' @section sites_nc.shp:
 #' Arbitrary sites along rivers in North Carolina.
 #' @section landuse.shp

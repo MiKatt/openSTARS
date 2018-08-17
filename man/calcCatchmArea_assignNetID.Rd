@@ -33,6 +33,8 @@ calcCatchmArea_assignNetID
    netID <- netID + 1
  }
 }
+
+calcCatchmArea_assignNetID(dt <- dt.streams, id=i, netID)
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}

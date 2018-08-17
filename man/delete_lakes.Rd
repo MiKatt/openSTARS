@@ -73,6 +73,7 @@ legend("topright", col = c("red", "blue"), lty = c(1,4), lwd = c(2,2),
   legend = c("though lakes", "lakes cut out"))
 }
 
+lakes <- lakes_path
 }
 \author{
 Mira Kattwinkel  \email{mira.kattwinkel@gmx.net}

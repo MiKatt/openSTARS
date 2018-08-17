@@ -13,6 +13,11 @@ The data has been taken from the GRASS GIS North Carolina data set.
 Source \url{https://grass.osgeo.org/download/sample-data/}.
 }
 
+\section{lakes.shp}{
+
+Artificial lakes.
+}
+
 \section{sites_nc.shp}{
 
 Arbitrary sites along rivers in North Carolina.
