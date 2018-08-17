@@ -16,6 +16,11 @@
 #' @return Nothing. The function updates 'streams_v' and (if save = TRUE) saves 
 #' the original file to streams_v_prev_lakes.
 #' 
+#' @note The column 'out_dist' (flow length from the upstream node of the 
+#'  segment to the outlet of the network) is updated based on the new segment length.
+#'  In contrast, 'cum_length' is not updated as it is no longer needed and will 
+#'  be deleted in calc_edges. 
+#' 
 #' #' 
 #' @author Mira Kattwinkel  \email{mira.kattwinkel@@gmx.net}
 #' @export
@@ -94,7 +99,7 @@ delete_lakes <- function(lakes, save = TRUE){
               ))
   }
   
-  message("Deleting streams intersecting with lakes.")
+  message("Deleting streams intersecting with lakes ...")
   # delete streams the intersect with lakes
   execGRASS("v.overlay", flags = c("quiet", "overwrite"),
             parameters = list(
@@ -178,9 +183,8 @@ delete_lakes <- function(lakes, save = TRUE){
   dup_streams <- unique(dt.streams[dup_streams, stream, ])
   cut_streams <- dt.streams[new_length < length & !(stream %in% dup_streams), stream ]
   i0 <- which(dt.streams$stream %in% cut_streams)
-  
 
-  message("Updating topology.")
+  message("Updating topology ...")
   # update topology
   
   # 1. segments cut and / or deleted, no duplicates
@@ -263,6 +267,9 @@ delete_lakes <- function(lakes, save = TRUE){
     dt.streams[i0, changed := 1] 
   }
   
+  next_str <- sort(unique(dt.streams[, next_str]))[-1]
+  no_str <- next_str[which(is.na(match(next_str, dt.streams$stream)))]
+  dt.streams[next_str %in% no_str, next_str := -1]
   
   # # find streams that do not exist any more and update topology
   # stream_ids <- as.numeric(as.character(execGRASS("v.db.select",
@@ -275,9 +282,17 @@ delete_lakes <- function(lakes, save = TRUE){
   # dt.streams[prev_str02 %in% stream_del, `:=`(prev_str02 = 0, changed = 1)]
   # dt.streams[next_str %in% stream_del, `:=`(next_str = -1, changed = 1)]
   
-  # delete unneeded columns
-  dt.streams[, c("end_x", "end_y", "start_x", "start_y", "end_xy", "start_xy", "str_new_lake") := NULL]
+  message("Updating out_dist ...")
+  dt.streams[, length := new_length]
+  dt.streams[, out_dist := 0]
+  outlets <- dt.streams[next_str == -1, stream]
+  for(i in outlets){
+    calc_outdist(dt.streams, id=i)
+  }
   
+  
+  # delete unneeded columns
+  dt.streams[, c("end_x", "end_y", "start_x", "start_y", "end_xy", "start_xy", "str_new_lake", "new_length") := NULL]
   # save updated streams_v
   streams@data <- data.frame(dt.streams)
   sink("temp.txt")
@@ -299,4 +314,44 @@ delete_lakes <- function(lakes, save = TRUE){
               use = "attr",
               attribute_column = "cat"
             ))
+}
+
+
+#' calc_outdist
+#' @title Update flow length from the upstream node of each stream segment 
+#'   to the outlet of the network .
+#'
+#' @description Recursive function to calculate the flow length from the 
+#' upstream node of the stream segment to the outlet of the network.
+#' It is called by \code{\link{delete_lakes}} for each
+#' outlet and should not be called by the user.
+
+#' @param dt data.table containing the attributes of the stream segments
+#' @param id integer; 'stream' of the stream segment
+#' @keywords internal
+#'
+#' @return nothing
+#'
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+#'
+#'@examples
+#'\dontrun{
+#'  outlets <- dt.streams[next_str == -1, stream]
+#'  netID <- 1
+#'  for(i in outlets){
+#'    calc_outdist(dt.streams, id = i)
+#'  }
+#'}
+#'
+#'calcCumLength(dt <- dt.streams, id=i)
+
+calc_outdist <- function(dt, id){
+  #print(id)
+  dt[stream == id, out_dist := out_dist + length]
+  if(dt[stream == id, prev_str01,] != 0){  # check only one of prev01 and prev02 because they are always both 0
+    dt[stream == dt[stream == id, prev_str01], out_dist := dt[stream == id, out_dist]]
+    dt[stream == dt[stream == id, prev_str02], out_dist := dt[stream == id, out_dist]]
+    calc_outdist(dt, dt[stream == id, prev_str01])
+    calc_outdist(dt, dt[stream == id, prev_str02])
+  }
 }

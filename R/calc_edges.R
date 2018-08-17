@@ -186,16 +186,21 @@ calc_edges <- function() {
               column = "Length",
               value = "round(Length, 2)"
             ))
-  execGRASS("v.db.renamecolumn", flags = "quiet",
+  # execGRASS("v.db.renamecolumn", flags = "quiet",
+  #           parameters = list(
+  #             map = "edges",
+  #             column = "cum_length,sourceDist"
+  #           ))
+  # execGRASS("v.db.update", flags = c("quiet"),
+  #           parameters = list(
+  #             map = "edges",
+  #             column = "sourceDist",
+  #             value = "round(sourceDist, 2)"
+  #           ))
+  execGRASS("v.db.dropcolumn", flags = "quiet",
             parameters = list(
               map = "edges",
-              column = "cum_length,sourceDist"
-            ))
-  execGRASS("v.db.update", flags = c("quiet"),
-            parameters = list(
-              map = "edges",
-              column = "sourceDist",
-              value = "round(sourceDist, 2)"
+              columns = "cum_length"
             ))
   execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
@@ -253,8 +258,7 @@ calc_edges <- function() {
 #'calcCatchmArea_assignNetID(dt <- dt.streams, id=i, netID)
 
 calcCatchmArea_assignNetID <- function(dt, id, net_ID){
-  print(id)
-  if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
+    if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, total_area := area]
     dt[stream == id, netID := net_ID]
   } else {

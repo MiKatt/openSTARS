@@ -15,8 +15,6 @@ or sp or sf data object.}
 \value{
 Nothing. The function updates 'streams_v' and (if save = TRUE) saves 
 the original file to streams_v_prev_lakes.
-
-#'
 }
 \description{
 When the stream network is derived from a dem, the streams 
@@ -27,6 +25,14 @@ be retained and temperature altered in a lake. This function intersects
 the stream network with a given vector map of lakes; it deletes the stream
 segments in the lake, breaks those the cross its borders and 
 assigns a new, updated topology.
+}
+\note{
+The column 'out_dist' (flow length from the upstream node of the 
+ segment to the outlet of the network) is updated based on the new segment length.
+ In contrast, 'cum_length' is not updated as it is no longer needed and will 
+ be deleted in calc_edges. 
+
+#'
 }
 \examples{
 \donttest{
