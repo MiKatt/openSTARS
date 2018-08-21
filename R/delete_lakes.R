@@ -75,15 +75,30 @@
 #' lakes <- lakes_path
 delete_lakes <- function(lakes, save = TRUE){
   
-  proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
+  vect <- execGRASS("g.list",
+                    parameters = list(
+                      type = "vector"
+                    ), intern = T)
+  
+  if(lakes %in% vect){
+    if(lakes != "lakes"){
+    message(paste("Renaming", lakes, "to 'lakes'"))
+    execGRASS("g.copy", flags = c("overwrite", "quiet"), 
+              parameters = list(
+                vector = paste0(lakes, ",lakes")
+              ))
+    }
+  } else {
+    message("Importing lakes ...")
+    proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
                         intern = TRUE, ignore.stderr = TRUE)
-  import_vector_data(data = lakes, name = "lakes", proj_dem = proj_dem)
+    import_vector_data(data = lakes, name = "lakes", proj_dem = proj_dem)
+  }
   
   vect <- execGRASS("g.list",
              parameters = list(
                type = "vector"
              ), intern = T)
-  
   if(!("lakes" %in% vect))
     stop("Import of lakes vector map failed. Please check.")
   
@@ -232,36 +247,51 @@ delete_lakes <- function(lakes, save = TRUE){
   i_dup <- which(dt.streams$stream %in% dup_streams)
   
   for(i in dup_streams){
+    print(i)
     i0 <- which(dt.streams$stream == i)
-    i_wnext <- which(dt.streams[i0, end_xy] == dt.streams[stream == unique(dt.streams[stream == i, next_str]), start_xy])
+    # not '==' but '%in% because next_str could be cut into pieces, too, and therefore there are more than one start_xy
+    i_wnext <- which(dt.streams[i0, end_xy] %in% dt.streams[stream %in% unique(dt.streams[stream == i, next_str]), start_xy])
     if(length(i_wnext) > 0){
       if(length(i_wnext) < length(i0)){
         dt.streams[i0[-i_wnext], next_str := -1]
       }
       i_next <- which(dt.streams$stream == dt.streams[i0[i_wnext], next_str])
-      i_p <- which(dt.streams[i_next, c("prev_str01","prev_str02")] == i)
-      dt.streams[i_next, c("prev_str01","prev_str02")[i_p] := dt.streams[i0[i_wnext], str_new_lake]]
-      dt.streams[i_next, changed := 1]
+      if(length(i_next) == 1){
+        i_p <- which(dt.streams[i_next, c("prev_str01","prev_str02")] == i)
+        dt.streams[i_next, c("prev_str01","prev_str02")[i_p] := dt.streams[i0[i_wnext], str_new_lake]]
+        dt.streams[i_next, changed := 1]
+      } else {
+        i_p0 <- unlist(lapply(i_next, function(x) which(dt.streams[x, c("prev_str01","prev_str02")] == i)))
+        i_p1 <- which(dt.streams[i_next, start_xy] == dt.streams[i0[i_wnext], end_xy])
+        dt.streams[i_next[i_p1], c("prev_str01","prev_str02")[i_p0[i_p1]] := dt.streams[i0[i_wnext], str_new_lake]]
+        dt.streams[i_next[i_p1], changed := 1]
+      }
     }
-    i_wp1 <- which(dt.streams[i0, start_xy] == dt.streams[stream == unique(dt.streams[stream == i, prev_str01]), end_xy])
+    # not '==' but '%in% because prev_str could be cut into pieces, too, and therefore there are more than one start_xy
+    i_wp1 <- which(dt.streams[i0, start_xy] %in% dt.streams[stream %in% unique(dt.streams[stream == i, prev_str01]), end_xy])
     if(length(i_wp1) > 0){
       if(length(i_wp1) < length(i0)){
         dt.streams[i0[-i_wp1], prev_str01 := 0]
       }
       i_p1 <- which(dt.streams$stream == dt.streams[i0[i_wp1], prev_str01])
+      if(length(i_p1) != 1){
+        i_p1  <- i_p1[which(dt.streams[i_p1, end_xy] == dt.streams[i0[i_wp1], start_xy])]
+      }
       dt.streams[i_p1, next_str := dt.streams[i0[i_wp1], str_new_lake]]
       dt.streams[i_p1, changed := 1]
-      
     }
-    i_wp2 <- which(dt.streams[i0, start_xy] == dt.streams[stream == unique(dt.streams[stream == i, prev_str02]), end_xy])
+    # not '==' but '%in% because prev_str could be cut into pieces, too, and therefore there are more than one start_xy
+    i_wp2 <- which(dt.streams[i0, start_xy] %in% dt.streams[stream %in% unique(dt.streams[stream == i, prev_str02]), end_xy])
     if(length(i_wp2) > 0){
       if(length(i_wp2) < length(i0)){
         dt.streams[i0[-i_wp2], prev_str02 := 0]
       }
       i_p2 <- which(dt.streams$stream == dt.streams[i0[i_wp2], prev_str02])
-      dt.streams[i_p2, next_str := dt.streams[i0[i_wp2], str_new_lake]]
+      if(length(i_p2) != 1){
+        i_p2  <- i_p2[which(dt.streams[i_p2, end_xy] == dt.streams[i0[i_wp2], start_xy])]
+      }
+      dt.streams[i_p2, next_str := dt.streams[i0[i_wp1], str_new_lake]]
       dt.streams[i_p2, changed := 1]
-      
     }
     dt.streams[i0, stream := str_new_lake]  
     dt.streams[i0, changed := 1] 
