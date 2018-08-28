@@ -2,17 +2,18 @@
 % Please edit documentation in R/import_data.R
 \name{import_vector_data}
 \alias{import_vector_data}
-\title{Generic function to import vector data of various formats into the GRASS environment.}
+\title{Import vector data into GRASS.}
 \usage{
-import_vector_data(data, name, proj_dem)
+import_vector_data(data, name, layer = 1)
 }
 \arguments{
-\item{data}{character string or object; path to data vector file (shape) 
-or sp or sf data object.}
+\item{data}{character string or object; path to data vector file (shape), postgis 
+data source name (dsn; see details), or sp or sf data object.}
 
-\item{name}{string giving the base name of the vector data to use for the import}
+\item{name}{string giving the base name of the vector data within the GRASS envrionment (i.e. output)}
 
-\item{proj_dem}{projection of the dem as project4string}
+\item{layer}{character string; default 1, particularly needed if data is a dsn for 
+importing postgis data (see details)}
 }
 \value{
 Nothing.
@@ -20,7 +21,18 @@ Nothing.
 \description{
 Generic function to import vector data of various formats into the GRASS environment.
 }
+\details{
+For importing data from Postgis, all data base credentials must be supplied 
+ in \code{data} and the correct \code{layer} and, if the table containing the polygons
+ are in a specific schema also that one (see example)
+}
+\examples{
+# import data from Postgis
+import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890', 'port='1234', 'user=username', 'password=password'",
+ name = "forest", layer = "landuse_schema.forest")
+
+
+}
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }
-\keyword{internal}

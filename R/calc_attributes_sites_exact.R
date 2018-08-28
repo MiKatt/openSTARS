@@ -253,7 +253,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   pb <- progress::progress_bar$new(total = nrow(d.sites@data))
   
   for (i in seq_along(locIDs)) {
-    #message(i)
+    # message(i)
     locID <- locIDs[i]
     dat[i,"locID"]  <-  locID
     # get first entry from d.sites@data with locID
@@ -461,11 +461,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                          parameters = list(
                            sql = paste0("select a_", attr_name_vect[j],",sum(area) from intersect_out group by a_", attr_name_vect[j])
                          ), intern = T)
-          
-          a <- do.call(rbind,strsplit(a,split = '\\|'))
-          a <- data.frame(a,  stringsAsFactors = F)
-          a[,2] <- round(as.numeric(a[,2]) / carea, round_dig[j.count])
-          dat[i, a[,1]] <- a[,2]
+          if(length(a) > 0){
+            a <- do.call(rbind,strsplit(a,split = '\\|'))
+            a <- data.frame(a,  stringsAsFactors = F)
+            a[,2] <- round(as.numeric(a[,2]) / carea, round_dig[j.count])
+            dat[i, a[,1]] <- a[,2]
+          }
         } else { # if this is a point vector
           dat[i, attr_name_vect[j]] <- as.numeric(unlist(strsplit(
             execGRASS("v.vect.stats", flags = c("p", "quiet"),

@@ -133,24 +133,12 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
               band = band,
               output = "dem"),ignore.stderr=T)
   #}
-  # TODO: check if this works on Windows
-  # on windows [1] seems to be needed
-  #> proj_dem
-  #[1] "+proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +no_defs +a=6378137 +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1"
-  #[2] "Versuche mit OGR zu ?ffnen..."                                                                                                                                                         
-  #[3] "Versuche mit GDAL zu ?ffnen..."                                                                                                                                                        
-  #[4] "...erfolgreich beendet."    
-  # ignore.strerr = T works!
-  proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
-                        parameters = list(
-                          georef = dem
-                        ), intern = TRUE, ignore.stderr = TRUE)#[1]
-  
-  message("Loading sites into GRASS as sites_o ...")
+
+    message("Loading sites into GRASS as sites_o ...")
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
-  import_vector_data(data = sites, name = "sites_o", proj_dem = proj_dem)
+  import_vector_data(data = sites, name = "sites_o")
   
   # prediction sites data
   if (!is.null(pred_sites)) {
@@ -162,7 +150,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
       message(paste0("Loading preditions sites into GRASS as ",
                      paste(pred_sites_names, collapse=", ", sep=""), " ..."))
       for(i in 1:length(pred_sites)){
-        import_vector_data(data = pred_sites[i], name = pred_sites_names[i], proj_dem = proj_dem)
+        import_vector_data(data = pred_sites[i], name = pred_sites_names[i])
         
       }
     }
@@ -197,7 +185,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
       predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
     message(paste0("Loading vector predictor varibales into GRASS as ",paste(predictor_v_names, collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_v_names)){
-      import_vector_data(data = predictor_vector[i], name = predictor_v_names[i], proj_dem = proj_dem)
+      import_vector_data(data = predictor_vector[i], name = predictor_v_names[i])
     }
   }
   
@@ -206,7 +194,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     message("Loading streams into GRASS as streams_o  ...")
     # flag "-r": only current region
     
-    import_vector_data(data = streams, name = "streams_o", proj_dem = proj_dem)
+    import_vector_data(data = streams, name = "streams_o")
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
       execGRASS("v.clean",
@@ -233,20 +221,31 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   }
 }
 
-
+#' Import vector data into GRASS.
+#' 
 #' Generic function to import vector data of various formats into the GRASS environment.
 #' 
-#' @param data character string or object; path to data vector file (shape) 
-#' or sp or sf data object.
-#' @param name string giving the base name of the vector data to use for the import
-#' @param proj_dem projection of the dem as project4string 
-#' @keywords internal
+#' @param data character string or object; path to data vector file (shape), postgis 
+#' data source name (dsn; see details), or sp or sf data object.
+#' @param name string giving the base name of the vector data within the GRASS envrionment (i.e. output)
+#' @param layer character string; default 1, particularly needed if data is a dsn for 
+#' importing postgis data (see details)
 #' 
 #' @return Nothing.
 #' 
+#' @details For importing data from Postgis, all data base credentials must be supplied 
+#'  in \code{data} and the correct \code{layer} and, if the table containing the polygons
+#'  are in a specific schema also that one (see example)
+#'  
+#'@examples 
+#'# import data from Postgis
+#' import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890', 'port='1234', 'user=username', 'password=password'",
+#'  name = "forest", layer = "landuse_schema.forest")
+#'
+#' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
-import_vector_data <- function(data, name, proj_dem){
+import_vector_data <- function(data, name, layer = 1){
   # flag "-r": only current region
   import_flag <- TRUE
   if(inherits(data, 'sf')){
@@ -257,6 +256,10 @@ import_vector_data <- function(data, name, proj_dem){
                             parameters = list(
                               proj4 = proj4string(data)
                             ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
+    proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
+                          parameters = list(
+                            georef = dem
+                          ), intern = TRUE, ignore.stderr = TRUE)
     if(identical(proj_dem, proj_data)) {
       writeVECT(data, name,  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
                 ignore.stderr=TRUE)
@@ -272,6 +275,7 @@ import_vector_data <- function(data, name, proj_dem){
     execGRASS("v.import", flags = c("overwrite", "quiet"),
               parameters = list(
                 input = data,
+                layer = layer,
                 output =  name,
                 extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
               intern = TRUE, ignore.stderr = TRUE)
