@@ -111,7 +111,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     stop("DEM and sites are needed.")
   
   # Import data -------------------
-  message("Loading DEM into GRASS as dem ...")
+  message("Loading DEM into GRASS as 'dem' ...")
   
   # import raster
   # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
@@ -134,7 +134,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
               output = "dem"),ignore.stderr=T)
   #}
 
-    message("Loading sites into GRASS as sites_o ...")
+    message("Loading sites into GRASS as 'sites_o' ...")
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
@@ -148,7 +148,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     } else{
       pred_sites_names <- paste0(pred_sites_names, "_o")
       message(paste0("Loading preditions sites into GRASS as ",
-                     paste(pred_sites_names, collapse=", ", sep=""), " ..."))
+                     paste("'", pred_sites_names, "'", collapse=", ", sep=""), " ..."))
       for(i in 1:length(pred_sites)){
         import_vector_data(data = pred_sites[i], name = pred_sites_names[i])
         
@@ -161,7 +161,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_raster)) {
     if(is.null(predictor_r_names))
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(paste0("Loading raster predictor varibales into GRASS as ",paste(predictor_r_names, collapse = ", ", sep=""), " ..."))
+    message(paste0("Loading raster predictor varibales into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_r_names)){
       if(.Platform$OS.type == "windows"){
         execGRASS("r.in.gdal",
@@ -183,7 +183,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_vector)) {
     if(is.null(predictor_v_names))
       predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(paste0("Loading vector predictor varibales into GRASS as ",paste(predictor_v_names, collapse = ", ", sep=""), " ..."))
+    message(paste0("Loading vector predictor varibales into GRASS as ",paste("'", predictor_v_names, "'", collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_v_names)){
       import_vector_data(data = predictor_vector[i], name = predictor_v_names[i])
     }
@@ -191,7 +191,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # streams data
   if (!is.null(streams)) {
-    message("Loading streams into GRASS as streams_o  ...")
+    message("Loading streams into GRASS as 'streams_o'  ...")
     # flag "-r": only current region
     
     import_vector_data(data = streams, name = "streams_o")
@@ -245,7 +245,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
-import_vector_data <- function(data, name, layer = 1){
+import_vector_data <- function(data, name, layer = NULL){
   # flag "-r": only current region
   import_flag <- TRUE
   if(inherits(data, 'sf')){
@@ -253,9 +253,9 @@ import_vector_data <- function(data, name, layer = 1){
   }
   if(inherits(data, 'Spatial')) {
     proj_data <- execGRASS("g.proj", flags = c("j", "f"),
-                            parameters = list(
-                              proj4 = proj4string(data)
-                            ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
+                           parameters = list(
+                             proj4 = proj4string(data)
+                           ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
     proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
                           parameters = list(
                             georef = dem
@@ -272,13 +272,22 @@ import_vector_data <- function(data, name, layer = 1){
   if(import_flag) {
     # gives error on Linux if projection is not identical but it works!
     # 'intern' and 'ignore.stderr' to suppress error messages
-    execGRASS("v.import", flags = c("overwrite", "quiet"),
-              parameters = list(
-                input = data,
-                layer = layer,
-                output =  name,
-                extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
-              intern = TRUE, ignore.stderr = TRUE)
+    if(is.null(layer)){
+      execGRASS("v.import", flags = c("overwrite", "quiet"),
+                parameters = list(
+                  input = data,
+                  output =  name,
+                  extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
+                intern = TRUE, ignore.stderr = TRUE)      
+    } else {
+      execGRASS("v.import", flags = c("overwrite", "quiet"),
+                parameters = list(
+                  input = data,
+                  layer = layer,
+                  output =  name,
+                  extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
+                intern = TRUE, ignore.stderr = TRUE)
+    }
     if(file.exists(file.path(tempdir(), paste0(name, ".shp")))){
       invisible(file.remove(file.path(tempdir(), list.files(path = tempdir(), pattern = paste0(name, ".")))))
     }

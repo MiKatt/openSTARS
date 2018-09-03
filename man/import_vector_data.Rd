@@ -4,7 +4,7 @@
 \alias{import_vector_data}
 \title{Import vector data into GRASS.}
 \usage{
-import_vector_data(data, name, layer = 1)
+import_vector_data(data, name, layer = NULL)
 }
 \arguments{
 \item{data}{character string or object; path to data vector file (shape), postgis 

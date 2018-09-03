@@ -250,10 +250,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   
   message("Intersecting attributes for ",nrow(d.sites@data)," sites ...")
   # progress bar
-  pb <- progress::progress_bar$new(total = nrow(d.sites@data))
+  #pb <- progress::progress_bar$new(total = nrow(d.sites@data))
   
   for (i in seq_along(locIDs)) {
-    # message(i)
+    message(i)
     locID <- locIDs[i]
     dat[i,"locID"]  <-  locID
     # get first entry from d.sites@data with locID
@@ -512,7 +512,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 ), ignore.stderr = TRUE)
       }
     }
-    pb$tick()
+    #pb$tick()
   }
 
   # Join attributes to sites attribute table

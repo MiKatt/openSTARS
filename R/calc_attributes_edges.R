@@ -31,11 +31,12 @@
 #' This function must be run before computing approximate attribute values for 
 #' sites \code{\link{calc_attributes_sites_approx}}.
 #'
-#'For \code{stat_rast} = "percent" the \code{input_raster} must be coded as 1 and 0
-#'  (e.g., cells occupied by the land use under consideration and not). If
-#'   the \code{input_raster} consists of percentages per cell (e.g., proportional land
-#'   use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
-#'   of this land use in the catchment.
+#'For \code{stat_rast} = "percent" the \code{input_raster} can be either coded as 1 and 0
+#'  (e.g., cells occupied by the land use under consideration and not) or as different classes. 
+#'  In the latter case, the percentage of each class in the catchment is calculated. If
+#'  the \code{input_raster} consists of percentages per cell (e.g., proportional land
+#'  use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
+#'  of this land use in the catchment.
 #'
 #' For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
 #' e.g. different land use types. The column \code{attr_name_vect} would then 
@@ -132,13 +133,10 @@
 #'   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 #' }
 #'
-
-# input_vector = "pointsources"
-# stat_vect = "count"
-# attr_name_vect = "psource"
-# round_dig = 4
-# clean = F
-# input_raster = NULL; stat_rast = NULL; attr_name_rast = NULL
+# input_vector = NULL; stat_vect = NULL; attr_name_vect = NULL; round_dig = 2
+# input_raster = c("slope", "landuse")
+# stat_rast = c("mean", "percent")
+# attr_name_rast = c("avSloE", "lu")
 
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
                                   input_vector = NULL, stat_vect = NULL, attr_name_vect = NULL,
@@ -278,36 +276,63 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     rca_cell_count <- data.frame(apply(rca_cell_count,2,as.numeric))
     setDT(rca_cell_count)
     
+    stat_r <- NULL
+    
     for(j in 1:length(stat_rast)){
-      st <- execGRASS("r.univar",
-                      flags = c("overwrite", "quiet","t"),
-                      parameters = list(
-                        map = input_raster[j],
-                        zones = "rca",
-                        separator = "comma"),
-                      intern = TRUE)
-      st <- do.call(rbind,strsplit(st,","))
-      colnames(st) <- st[1,]
-      st <- st[-1,, drop = FALSE]
-      st <- data.frame(apply(st,2,as.numeric))
-      setDT(st)
-      
-      if(nrow(st) > 0){
-        if(stat_rast[j] %in% names(st)){
-          st <- st[, c("zone", stat_rast[j]), with = FALSE]
-        } else if(any(st[,"variance", with = F] != 0)) { # if(stat_rast == "percent") and coded as 0 and 1, mean gives the ratio
-          st <- st[, c("zone", "mean"), with = FALSE]  
-        } else{  # if coded as something and NA, null(), no data value
-          st[, "all_cells" := sum(.SD), .SDcols = c("non_null_cells", "null_cells"), by = "zone"]
-          st <- data.table(data.frame(st[,"zone"],st[, "non_null_cells"] /st[,"all_cells"]))
-        }
-        names(st)[2] <- attr_name_rast[j]
-        st[, attr_name_rast[j] := round(st[, attr_name_rast[j], with = FALSE], round_dig[j])]
+      # TODO: check what happens with 0/1 coded
+      if(stat_rast[j] == "percent" & get_raster_range(input_raster[j]) > 2){
+        st <- execGRASS("r.stats", flags = c("c"),
+                        parameters = list(
+                          input =  paste0("rca,", input_raster[j]),
+                          separator = "comma"
+                        ), intern = TRUE)
+        st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
+        colnames(st) <- c("zone", "class", "cellcount")
+        st$cellcount <- as.numeric(st$cellcount)
+        suppressWarnings(st$zone <- as.numeric(st$zone))
+        setDT(st)
+        #st[, `:=`(names(st), lapply(.SD, as.numeric))]
+        st <- dcast(st, "zone  ~ class", value.var = "cellcount")
+        st[, all_cells := rowSums(.SD, na.rm = TRUE), .SDcols = 2:ncol(st)]
+        st[, "*" := NULL]
+        st[, 2:(ncol(st)-1) := lapply(.SD, function(x) x / st$all_cells), .SDcols = 2:(ncol(st)-1)]
+        st[, all_cells := NULL]
+        colnames(st)[-1] <- paste(attr_name_rast[j], colnames(st)[-1], sep = "_")
         rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
-      } else{
-        rca_cell_count[,attr_name_rast[j] := 0]
+        stat_r <- c(stat_r, rep("percent_class", ncol(st) - 1))
+      } else {
+        st <- execGRASS("r.univar",
+                        flags = c("overwrite", "quiet","t"),
+                        parameters = list(
+                          map = input_raster[j],
+                          zones = "rca",
+                          separator = "comma"),
+                        intern = TRUE)
+        st <- do.call(rbind,strsplit(st,","))
+        colnames(st) <- st[1,]
+        st <- st[-1,, drop = FALSE]
+        st <- data.frame(apply(st,2,as.numeric))
+        setDT(st)
+        if(nrow(st) > 0){
+          if(stat_rast[j] %in% names(st)){
+            st <- st[, c("zone", stat_rast[j]), with = FALSE]
+          } else if(any(st[,"variance", with = F] != 0)) { # if(stat_rast == "percent") and coded as 0 and 1, mean gives the ratio
+            st <- st[, c("zone", "mean"), with = FALSE]  
+          } else{  # if coded as something and NA, null(), no data value
+            st[, "all_cells" := sum(.SD), .SDcols = c("non_null_cells", "null_cells"), by = "zone"]
+            st <- data.table(data.frame(st[,"zone"],st[, "non_null_cells"] /st[,"all_cells"]))
+          }
+          names(st)[2] <- attr_name_rast[j]
+          st[, attr_name_rast[j] := round(st[, attr_name_rast[j], with = FALSE], round_dig[j])]
+          rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
+        } else{
+          rca_cell_count[,attr_name_rast[j] := 0]
+        }
+        stat_r <- c(stat_r, stat_rast[j])
       }
     }
+    attr_name_rast <- colnames(rca_cell_count)[-c(1:2)]
+    stat_rast <- stat_r
     
     dt.streams <- do.call(rbind,strsplit(
       execGRASS("db.select",
@@ -515,6 +540,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
 #'
 #' @return Nothing. The function changes the values of the columns attr_name_rast in dt.
 
+#dt <- copy(dt.streams)
+
 calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_dig){
   outlets <- dt[next_str == -1, stream]
   dt[, paste0(attr_name_rast,"_c") := dt[, attr_name_rast, with = FALSE]]
@@ -524,9 +551,10 @@ calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_
   # for "mean" and "percent", calc_catchment_attributes_rast_rec gives the cmmulative sum of mean value * non_null_cells
   # => divide here by total number of cells
   ind <- c(grep("mean", stat_rast), grep("percent", stat_rast))
-  if(length(ind) > 0)
-    dt[cumsum_cells > 0, paste0(attr_name_rast[ind], "_c") := round(dt[cumsum_cells > 0, paste0(attr_name_rast[ind],"_c"), with = FALSE] / dt[cumsum_cells > 0, cumsum_cells], round_dig[ind])]
-
+  if(length(ind) > 0){
+    dt[cumsum_cells > 0, paste0(attr_name_rast[ind], "_c") := lapply(.SD, function(x) x / cumsum_cells), .SDcols =  paste0(attr_name_rast[ind], "_c")]
+    #dt[cumsum_cells <= 0, paste0(attr_name_rast[ind], "_c1") := lapply(.SD, function(x) x ), .SDcols =  paste0(attr_name_rast[ind], "_c")]
+  }
   newcols <- paste0(rep(attr_name_rast, each = 2), c("", "_c"))
   setcolorder(dt, c(colnames(dt)[!colnames(dt) %in% newcols], newcols))
 }
@@ -645,4 +673,29 @@ calc_catchment_attributes_vect_rec <- function(dt, id, stat_vect, attr_name_vect
       }
     }
   return(dt[stream == id, attr_name_vect, with = FALSE])
+}
+
+
+
+#' get_raster_range
+#' Returns the number of differnt values in the raster.
+#'
+#' @description Returns the number of different values in the input raster.
+#'
+#' @param raster_name name of the raster map
+#' @keywords internal
+#'
+#' @return The range of values in the raster map.
+
+get_raster_range <- function(raster_name){
+  st <- execGRASS("r.univar",
+                  flags = c("overwrite", "quiet","t"),
+                  parameters = list(
+                    map = raster_name,
+                    separator = "comma"),
+                  intern = TRUE)
+  st <- do.call(rbind,strsplit(st,","))
+  colnames(st) <- st[1,]
+  st <- st[-1,, drop = FALSE]
+  return(as.numeric(st[,"range"]))
 }
