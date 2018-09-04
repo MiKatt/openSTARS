@@ -231,5 +231,5 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                                table = "sites"
                              ), intern = T)
   cnames2 <- cnames2[-(which(cnames2 %in% cnames))]
-  message(paste0("\nNew attributes values are stored as ", paste(cnames2, collapse = ", ")))
+  message(paste0("\nNew attributes values are stored as ", paste("'", cnames2, "'", sep = "", collapse = ", ")))
 }

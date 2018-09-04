@@ -1,0 +1,49 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <Description>landuse@PERMANENT</Description>
+    <GDALRasterAttributeTable>
+      <FieldDefn index="0">
+        <Name>value</Name>
+        <Type>0</Type>
+        <Usage>5</Usage>
+      </FieldDefn>
+      <FieldDefn index="1">
+        <Name>label</Name>
+        <Type>2</Type>
+        <Usage>2</Usage>
+      </FieldDefn>
+      <Row index="0">
+        <F>0</F>
+        <F>undefined</F>
+      </Row>
+      <Row index="1">
+        <F>1</F>
+        <F>developed</F>
+      </Row>
+      <Row index="2">
+        <F>2</F>
+        <F>agriculture</F>
+      </Row>
+      <Row index="3">
+        <F>3</F>
+        <F>herbaceous</F>
+      </Row>
+      <Row index="4">
+        <F>4</F>
+        <F>shrubland</F>
+      </Row>
+      <Row index="5">
+        <F>5</F>
+        <F>forest</F>
+      </Row>
+      <Row index="6">
+        <F>6</F>
+        <F>water</F>
+      </Row>
+      <Row index="7">
+        <F>7</F>
+        <F>sediment</F>
+      </Row>
+    </GDALRasterAttributeTable>
+  </PAMRasterBand>
+</PAMDataset>

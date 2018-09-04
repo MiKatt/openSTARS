@@ -110,6 +110,17 @@
 #' # approximate and exact calculation (different colors for inner and outer points)
 #' }
 
+input_raster = c("slope","landuse_r")
+stat_rast = c("mean","percent")
+attr_name_rast = c("avSloE","luE")
+round_dig = 4
+sites_map = "sites"
+input_vector = c("geology", "pointsources")
+stat_vect = c("percent", "count")
+attr_name_vect = c("GEO_NAME", "npsource")
+calc_basin_area = TRUE
+keep_basins = FALSE
+
 calc_attributes_sites_exact <- function(sites_map = "sites",
                                         input_raster = NULL,
                                         stat_rast = NULL,
@@ -130,10 +141,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 and statistics to calculate (", length(stat_vect), ")."))
   
   if(!is.null(stat_rast) & any(stat_rast %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat_rast)) == 0) # TRUE = 1, FALSE = 0
-    stop('Statistisc to calculate must be one of "min","max", "mean", "stddev","variance","sum", "median", "percentile_X" or "percent".')
+    stop('Statistisc to calculate from raster data must be one of "min","max", "mean", "stddev","variance","sum", "median", "percentile_X" or "percent".')
 
   if(any(!stat_vect %in% c("percent", "count")))
-    stop('statistics to calculate must be one of "count" or "percent".')
+    stop('statistics to calculate from vector data must be one of "count" or "percent".')
   
   # 1 for area, 2 for points
   vtype <- rep(1, length(stat_vect))
@@ -179,9 +190,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     } else {
       mes <- input_raster
     }
-    stop(paste0("Missing input raster data ", paste0("'",mes,"'", collapse = ", "), 
+    stop(paste0("Missing input raster data ", paste0("'", mes, "'", collapse = ", "), 
                 ". Please give valid raster names. \nAvailable raster are ",  
-                paste0("'",rast,"'", collapse = ", ")))
+                paste0("'", rast, "'", collapse = ", ")))
   }
 
   vect <- execGRASS("g.list",
@@ -197,14 +208,14 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     } else {
       mes <- input_vector
     }
-    stop(paste0("Missing input vector data ", paste0("'",mes,"'", collapse = ", "), 
+    stop(paste0("Missing input vector data ", paste0("'", mes, "'", collapse = ", "), 
                 ". Please give valid vector file names. \nAvailable vector files are ",  
-                paste0("'",vect,"'", collapse = ", ")))
+                paste0("'", vect, "'", collapse = ", ")))
   }
   
   d.sites <- readVECT(sites_map, ignore.stderr = TRUE)
   
-  if(!all(paste0(sites_map,"_catchm_",d.sites@data$locID) %in% rast)){
+  if(!all(paste0(sites_map, "_catchm_", d.sites@data$locID) %in% rast)){
     calc_basin_area <- TRUE
   }
   if(any(d.sites@data$ratio == 0) & calc_basin_area){
@@ -215,12 +226,19 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   }
 
   locIDs <- unique(d.sites@data$locID)
+  dat.h2o <- dat.rast <- dat.vect <- NULL
   if(calc_basin_area){
-    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast)+2, data = 0)
-    colnames(dat) <- c("H2OArea", attr_name_rast, "locID")
-  } else {
-    dat <- matrix(nrow = length(locIDs), ncol = length(attr_name_rast) + 1, data = 0)
-    colnames(dat) <- c(attr_name_rast, "locID")
+    dat.h2o <- matrix(nrow = length(locIDs), ncol = 1, data = 0)
+    colnames(dat.h2o) <- c("H2OArea")
+  } 
+  if(!is.null(input_raster)){
+    vals.rast <- lapply(1:length(input_raster), function(x) ifelse(stat_rast[x] == "percent", list(get_all_raster_values(input_raster[x])), 1))
+    ndat <- length(unlist(vals.rast))
+    dat.rast <- matrix(nrow = length(locIDs), ncol = ndat, data = 0)
+    cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] == "percent", 
+                                                                       list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
+                                                                       attr_name_rast[x]))
+    colnames(dat.rast) <- unlist(cnames.rast)
   }
   if(!is.null(input_vector)){
     attribute_cats <- NULL
@@ -238,9 +256,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       if(length(round_dig) < length(attribute_cats) + length(input_raster) + calc_basin_area)
         round_dig <- c(round_dig, rep(round_dig[1], length(attribute_cats)))
     }
-    d1 <- matrix(ncol = length(attribute_cats), nrow = length(locIDs), data = 0)
-    colnames(d1) <- attribute_cats
-    dat <- cbind(dat, d1)
+    dat.vect <- matrix(ncol = length(attribute_cats), nrow = length(locIDs), data = 0)
+    colnames(dat.vect) <- c(attribute_cats)
   }
   
   cnames_sites <- execGRASS("db.columns", flags = "quiet",
@@ -248,14 +265,14 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                table = "sites"
                              ), intern = T)
   
-  message("Intersecting attributes for ",nrow(d.sites@data)," sites ...")
+  message("Intersecting attributes for ", nrow(d.sites@data)," sites ...")
   # progress bar
-  #pb <- progress::progress_bar$new(total = nrow(d.sites@data))
+  pb <- progress::progress_bar$new(total = nrow(d.sites@data))
   
   for (i in seq_along(locIDs)) {
-    message(i)
+    #message(i)
     locID <- locIDs[i]
-    dat[i,"locID"]  <-  locID
+    #dat[i,"locID"]  <-  locID
     # get first entry from d.sites@data with locID
     ii <- which(d.sites@data$locID == locID)[1] 
 
@@ -267,67 +284,73 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       if(d.sites@data$ratio[ii] == 0){
         j <- which(dt.edges[, "rid"] == d.sites@data$rid[ii])
         # use $ here to get single value from data.table to match dimensions of dat
-        dat[i,"H2OArea"] <- round(dt.edges$H2OArea[j], round_dig[1])
-        cats <- get_cats_edges_in_catchment(dt.edges, dt.edges[j, "stream"])
-
-        ## more than 106 categories in r.mask crashes (i.e. no MASK is created)
-        ## workaround:
-        n <- length(cats) %/% 100
-        if(n == 0){
-          execGRASS("r.mask", flags = c("overwrite","quiet"),
-                    parameters = list(
-                      raster = "rca",
-                      maskcats = paste0(cats, collapse = " "))
-          )
-          execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
-                    parameters = list(
-                      expression = paste0("'", paste0(sites_map, "_catchm_",locID), "=MASK'")
-                    ))
-          execGRASS("r.mask", flags = c("r","quiet")
-          )
-        } else {
-          count <- 0
-          for(j in 1:n){
-            execGRASS("r.mask", flags = c("overwrite","quiet"),
-                      parameters = list(
-                        raster = "rca",
-                        maskcats = paste0(cats[((j-1)*100+1):(j*100)], collapse = " "))
-            )
-            execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
-                      parameters = list(
-                        expression = paste0("'temp", j, "=MASK'")
-                      ))
-            execGRASS("r.mask", flags = c("r","quiet")
-            )
-            count <- count + 1
-          }
-          if(length(cats) %% 100 != 0){
-            execGRASS("r.mask", flags = c("overwrite","quiet"),
-                      parameters = list(
-                        raster = "rca",
-                        maskcats = paste0(cats[(n*100+1):length(cats)], collapse = " "))
-            )
-            execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
-                      parameters = list(
-                        expression = paste0("'temp", n+1, "=MASK'")
-                      ))
-            execGRASS("r.mask", flags = c("r","quiet")
-            )
-            count <- count + 1
-          }
-          m <- paste0("temp",1:count)
-          m <- paste0("if(", paste0(m, collapse = "|||"),",1)")
-          execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
-                    parameters = list(
-                      expression = paste0('\"', paste0(sites_map, '_catchm_',locID), '=', m,'\"')
-                    ))
-          execGRASS("g.remove", flags = c("f","quiet"),
-                    parameters = list(
-                      type = "raster",
-                      name = paste0("temp",1:count)
-                    ))
-          
-        }
+        dat.h2o[i,"H2OArea"] <- round(dt.edges$H2OArea[j], round_dig[1])
+        cats <- get_cats_edges_in_catchment(dt.edges, dt.edges$stream[j])
+        ## new, simpler approach
+        m <- paste0("if(", paste0("rca == ", cats, collapse =  " || "), ", 1, 0)")
+        execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+                  parameters = list(
+                    expression = paste0(sites_map, "_catchm_", locID,  " = ", m)
+                  ))
+        
+        ## old approach
+        # ## more than 106 categories in r.mask crashes (i.e. no MASK is created)
+        # ## workaround:
+        # n <- length(cats) %/% 100
+        # if(n == 0){
+        #   execGRASS("r.mask", flags = c("overwrite","quiet"),
+        #             parameters = list(
+        #               raster = "rca",
+        #               maskcats = paste0(cats, collapse = " "))
+        #   )
+        #   execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+        #             parameters = list(
+        #               expression = paste0("'", paste0(sites_map, "_catchm_",locID), "=MASK'")
+        #             ))
+        #   execGRASS("r.mask", flags = c("r","quiet")
+        #   )
+        # } else {
+        #   count <- 0
+        #   for(j in 1:n){
+        #     execGRASS("r.mask", flags = c("overwrite","quiet"),
+        #               parameters = list(
+        #                 raster = "rca",
+        #                 maskcats = paste0(cats[((j-1)*100+1):(j*100)], collapse = " "))
+        #     )
+        #     execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+        #               parameters = list(
+        #                 expression = paste0("'temp", j, "=MASK'")
+        #               ))
+        #     execGRASS("r.mask", flags = c("r","quiet")
+        #     )
+        #     count <- count + 1
+        #   }
+        #   if(length(cats) %% 100 != 0){
+        #     execGRASS("r.mask", flags = c("overwrite","quiet"),
+        #               parameters = list(
+        #                 raster = "rca",
+        #                 maskcats = paste0(cats[(n*100+1):length(cats)], collapse = " "))
+        #     )
+        #     execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+        #               parameters = list(
+        #                 expression = paste0("'temp", n+1, "=MASK'")
+        #               ))
+        #     execGRASS("r.mask", flags = c("r","quiet")
+        #     )
+        #     count <- count + 1
+        #   }
+        #   m <- paste0("temp",1:count)
+        #   m <- paste0("if(", paste0(m, collapse = "|||"),",1)")
+        #   execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
+        #             parameters = list(
+        #               expression = paste0('\"', paste0(sites_map, '_catchm_',locID), '=', m,'\"')
+        #             ))
+        #   execGRASS("g.remove", flags = c("f","quiet"),
+        #             parameters = list(
+        #               type = "raster",
+        #               name = paste0("temp",1:count)
+        #             ))
+        #}
       } else {
         coord <- coordinates(d.sites[ii,])
         execGRASS("r.stream.basins",
@@ -335,13 +358,15 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                   parameters = list(direction = "dirs",
                                     coordinates = coord,
                                     basins = paste0(sites_map, "_catchm_",locID)))
-        dat[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
+        dat.h2o[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
           execGRASS("r.stats",
                     flags = c("a", "quiet"),
                     parameters = list(input = paste0(sites_map, "_catchm_",locID)),
                     intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
       }
     }
+    
+    ##########################
     
     # raster data
     # calculate unviriate statistics per watershed
@@ -351,51 +376,71 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 flags = c("overwrite", "quiet"),
                 parameters = list(
                   raster = paste0(sites_map, "_catchm_",locID)))
+      st <- execGRASS("r.univar",
+                      flags = c("overwrite", "quiet", "t"),
+                      parameters = list(
+                        map = "MASK",
+                        separator = ","),
+                      intern = TRUE)
+      st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
+      non_null_cells <- as.numeric(st[2,which(st[1,] == "non_null_cells")])
       for(j in 1:length(stat_rast)){
-        if(stat_rast[j] == "median"){
-          st <- execGRASS("r.univar",
-                          flags = c("overwrite", "quiet","g", "e"),
+        if(stat_rast[j] == "percent" & length(unlist(vals.rast[j])) > 2){
+          st <- execGRASS("r.stats", flags = c("c"),
                           parameters = list(
-                            map = input_raster[j]), intern = TRUE)
+                            input =   input_raster[j], #paste0("rca,", input_raster[j]),
+                            separator = "comma"
+                          ), intern = TRUE)
+          st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
+          colnames(st) <- c("class", "cellcount")
+          st$cellcount <- as.numeric(st$cellcount)
+          #suppressWarnings(st$zone <- as.numeric(st$zone))
+          setDT(st)
+          #st[, `:=`(names(st), lapply(.SD, as.numeric))]
+          #st <- dcast(st, "zone  ~ class", value.var = "cellcount")
+          #st[, all_cells := rowSums(.SD, na.rm = TRUE), .SDcols = 2:ncol(st)]
+          #st[, "*" := NULL]
+          #st[, 2:(ncol(st)-1) := lapply(.SD, function(x) x / st$all_cells), .SDcols = 2:(ncol(st)-1)]
+          #st[, all_cells := NULL]
+          #colnames(st)[-1] <- paste(attr_name_rast[j], colnames(st)[-1], sep = "_")
+          #rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
+          #stat_r <- c(stat_r, rep("percent_class", ncol(st) - 1))
+          if(length(ind <- which(st$class == "*")) > 0)
+            st <- st[-ind,, drop = FALSE]
+          dat.rast[i, paste(attr_name_rast[j], st$class, sep = "_")] <- st$cellcount / non_null_cells
         } else {
-          if(grepl("percentile",stat_rast[j])){
+          if(stat_rast[j] == "median"){
+            st <- execGRASS("r.univar",
+                            flags = c("overwrite", "quiet","g", "e"),
+                            parameters = list(
+                              map = input_raster[j]), intern = TRUE)
+          } else if(grepl("percentile",stat_rast[j])){
             p <- as.numeric(as.character(unlist(strsplit(stat_rast[j],"_"))[2]))
             st <- execGRASS("r.univar",
                             flags = c("overwrite", "quiet","g", "e"),
                             parameters = list(
                               map = input_raster[j],
                               percentile = p), intern = TRUE)
-          } else{
+          } else {
             st <- execGRASS("r.univar",
                             flags = c("overwrite", "quiet","g"),
                             parameters = list(
                               map = input_raster[j]), intern = TRUE)
           } 
+          st <- setDT(data.frame(do.call(rbind,strsplit(st,"="))))
+          if(nrow(st) > 0){
+            st[,X2 := as.numeric(as.character(X2))]
+            if(grepl("percent", stat_rast[j])){
+              if(st[X1 == "variance", X2] == 0){  # if coded as something and NA, null(), no data valu
+                dat.rast[i, cnames.rast[[j]]] <- round(st[X1 == "n", X2] /non_null_cells, round_dig[j + 1])
+              } else{  # if coded as 1 and 0, "mean" gives ratio
+                dat.rast[i, cnames.rast[[j]]] <- round(st[X1 == "mean", X2], round_dig[j + 1])
+              }
+            } else
+              dat.rast[i, cnames.rast[[j]]] <- round(st[X1 == stat_rast[j], X2], round_dig[j + 1])
+          } else
+            dat.rast[i, cnames.rast[[j]]] <- 0
         }
-        st <- setDT(data.frame(do.call(rbind,strsplit(st,"="))))
-        if(nrow(st) > 0){
-          st[,X2 := as.numeric(as.character(X2))]
-          if(grepl("percent", stat_rast[j])){
-            if(st[X1=="variance",X2] == 0){  # if coded as something and NA, null(), no data value
-              st2 <- execGRASS("r.univar",
-                               flags = c("overwrite", "quiet","g"),
-                               parameters = list(
-                                 map = "MASK"), intern = TRUE)
-              n <- st2[grep("^n=", st2)]
-              n <- as.numeric(substring(n,3,nchar(n)))
-              st <- rbindlist(list(st, data.table(X1 = "n2", X2 = n)))
-              dat[i,attr_name_rast[j]] <- round(st[X1 == "n", X2] / st[X1 == "n2", X2], round_dig[j + 1])
-              # this was wrong cells and non_null_cells stell refers to the 
-              # whole map; MASK only sets to null value
-              # dat[i,j+1] <- round((st[X1 == "cells", X2] - st[X1 == "null_cells", X2])/
-              #                     st[X1 == "cells", X2], round_dig[j+1])
-            } else{  # if coded as 1 and 0, "mean" gives ratio
-              dat[i,attr_name_rast[j]] <- round(st[X1 == "mean",X2],round_dig[j+1])
-            }
-          }else
-            dat[i,attr_name_rast[j]] <- round(st[X1 == stat_rast[j],X2],round_dig[j+1])
-        } else
-          dat[i,attr_name_rast[j]] <- 0
       }
       # Remove the mask!
       execGRASS("r.mask",
@@ -465,10 +510,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
             a <- do.call(rbind,strsplit(a,split = '\\|'))
             a <- data.frame(a,  stringsAsFactors = F)
             a[,2] <- round(as.numeric(a[,2]) / carea, round_dig[j.count])
-            dat[i, a[,1]] <- a[,2]
+            dat.vect[i, a[,1]] <- a[,2]
           }
         } else { # if this is a point vector
-          dat[i, attr_name_vect[j]] <- as.numeric(unlist(strsplit(
+          dat.vect[i, attr_name_vect[j]] <- as.numeric(unlist(strsplit(
             execGRASS("v.vect.stats", flags = c("p", "quiet"),
                     parameters = list(
                       points = input_vector[j],
@@ -481,7 +526,6 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       }
     }
     ###################################################
-    
 
     # Delete watershed raster
     if (!keep_basins) {
@@ -512,9 +556,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 ), ignore.stderr = TRUE)
       }
     }
-    #pb$tick()
+    pb$tick()
   }
-
+  dat <- cbind(dat.h2o, dat.rast, dat.vect, locIDs)
+  
   # Join attributes to sites attribute table
   message("Joining new attributes to attribute table ...")
   utils::write.csv(dat, file.path(temp_dir,"sites_attributes_exact.csv"),row.names = F)
@@ -529,7 +574,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
               map = sites_map,
               column = "locID",
               other_table = "sites_attributes_exact",
-              other_column = "locID"
+              other_column = "locIDs"
             ))
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
@@ -543,5 +588,5 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                table = "sites"
                              ), intern = T)
   cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
-  message(paste0("\nNew attributes values are stored as ", paste(cnames_sites2, collapse = ", ")))
+  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", ")))
 }
