@@ -121,5 +121,5 @@ if(getRversion() >= "2.15.1")
 #' @section landuse.shp
 #' Artificial landuse data.
 #' @section pointsources.shp
-#' Artificial point sources.
+#' #' Artificial point sources.
 NULL

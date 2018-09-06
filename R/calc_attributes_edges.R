@@ -133,10 +133,14 @@
 #'   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 #' }
 #'
-# input_vector = NULL; stat_vect = NULL; attr_name_vect = NULL; round_dig = 2
+#input_vector = NULL; stat_vect = NULL; attr_name_vect = NULL;
+# round_dig = 2
 # input_raster = c("slope", "landuse_r")
 # stat_rast = c("mean", "percent")
 # attr_name_rast = c("avSloE", "lu")
+# input_vector = c("geology", "pointsources")
+# stat_vect = c("percent", "count")
+# attr_name_vect = c("GEO_NAME", "npsource")
 
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
                                   input_vector = NULL, stat_vect = NULL, attr_name_vect = NULL,
@@ -252,7 +256,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   
   temp_dir <- tempdir()
   
-  # MK 02.05.2018: not necessary becaus this is already done in calc_edges
+  # MK 02.05.2018: not necessary because this is already done in calc_edges
   ## Calculate reach contributing area (= sub chatchment) for each segment).
   # message("Calculating reach contributing area (RCA)...\n")
   # execGRASS("r.stream.basins",
@@ -277,7 +281,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     setDT(rca_cell_count)
     
     stat_r <- NULL
-    
+
     for(j in 1:length(stat_rast)){
       # TODO: check what happens with 0/1 coded
       if(stat_rast[j] == "percent" & get_n_val_raster(input_raster[j]) > 2){
@@ -470,7 +474,9 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
       set(dt.streams, which(is.na(dt.streams[[k]])),k , 0)
     }
     stat_vect2 <- c(unlist(sapply(1:length(nanames), function(x) rep(stat_vect[x], each=nanames[x]))))
-    round_dig2 <- c(unlist(sapply(1:length(nanames), function(x) rep(round_dig[(1+length(stat_rast)):length(round_dig)][x], each=nanames[x]))))
+    round_dig2 <- c(unlist(sapply(1:length(nanames), function(x) rep(round_dig[(1+length(input_raster)):length(round_dig)][x], each=nanames[x]))))
+    
+    #dt <- copy(dt.streams)
     calc_catchment_attributes_vect(dt.streams, stat_vect2, anames, round_dig2)
     
     # Delete unneeded columns
@@ -486,6 +492,13 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 input = file.path(temp_dir,"edge_attributes.csv"),
                 output = "edge_attributes"
               ),ignore.stderr = T, intern = T)
+    
+    # execGRASS("db.select",
+    #           sql = "SELECT * FROM edge_attributes WHERE cat_ < 10"
+    #           )
+    # execGRASS("db.select",
+    #           sql = "SELECT * FROM edges WHERE cat_ < 10"
+    #           )
     execGRASS("v.db.join", flags = "quiet",
               parameters = list(
                 map = "edges",
@@ -512,7 +525,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   i <- which(cnames_edges2 == "cat_")
   if(length(i) > 0)
     cnames_edges2 <- cnames_edges2[-i]
-  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_edges2, "'", collapse = ", ", sep = "")))
+  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_edges2, "'", collapse = ", ", sep = ""), " in 'edges'."))
   
   # remove temporary files
   execGRASS("db.droptable", flags = c("quiet","f"),
@@ -623,6 +636,12 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
 #'
 #' @return Nothing. The function changes the values of the columns attr_name_vect in dt.
      
+# dt <- copy(dt.streams)
+# stat_vect <- stat_vect2
+# attr_name_vect <- anames
+# round_dig <- round_dig2
+
+
 calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_dig){
   outlets <- dt[next_str == -1, stream]
   dt[, paste0(attr_name_vect, "_c") := dt[, attr_name_vect, with = FALSE]]
@@ -631,6 +650,8 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
   }
   ind <- grep("percent", stat_vect)
   if(length(ind) > 0){
+    #dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000)]
+    #sapply(ind, function(x) round(dt[, paste0(attr_name_vect[x], "_c"), with = FALSE], round_dig[x]))
     dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000), round_dig[ind])]
     dt[rcaArea > 0, attr_name_vect[ind] := round(dt[rcaArea > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaArea > 0, rcaArea] * 1000000), round_dig[ind])]
     # TODO: correct, check, why it did not work with this!!

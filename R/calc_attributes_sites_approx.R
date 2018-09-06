@@ -117,7 +117,11 @@
 #' legend("topright", col = cols[c(1, length(cols))], lwd = 2, 
 #'   legend = paste("precent agri", c(min(sites$agriA), max(sites$agriA))), pch = 19)
 #'}
+#'
 #'                  
+input_attr_name =         c("avSlo_e", "luse_1", "luse_2", "luse_3", "luse_4", "luse_5", "luse_6", "luse_7", "CZam", "CZbg", "CZfg", "CZg", "CZig", "CZlg", "CZve", "Km", "npsource")
+output_attr_name = paste0(c("avSlo_e", "luse_1", "luse_2", "luse_3", "luse_4", "luse_5", "luse_6", "luse_7", "CZam", "CZbg", "CZfg", "CZg", "CZig", "CZlg", "CZve", "Km", "npsource"), "_A")
+stat = c("mean", rep("percent", 15), "count")               
 
 calc_attributes_sites_approx <- function(sites_map = "sites",
                                          input_attr_name,
@@ -231,5 +235,5 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                                table = "sites"
                              ), intern = T)
   cnames2 <- cnames2[-(which(cnames2 %in% cnames))]
-  message(paste0("\nNew attributes values are stored as ", paste("'", cnames2, "'", sep = "", collapse = ", ")))
+  message(paste0("\nNew attributes values are stored as ", paste("'", cnames2, "'", sep = "", collapse = ", "), "in 'sites'."))
 }

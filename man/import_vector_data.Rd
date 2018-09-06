@@ -28,7 +28,8 @@ For importing data from Postgis, all data base credentials must be supplied
 }
 \examples{
 # import data from Postgis
-import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890', 'port='1234', 'user=username', 'password=password'",
+import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890', 
+'port='1234', 'user=username', 'password=password'",
  name = "forest", layer = "landuse_schema.forest")
 
 

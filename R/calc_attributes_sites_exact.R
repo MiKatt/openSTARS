@@ -110,16 +110,17 @@
 #' # approximate and exact calculation (different colors for inner and outer points)
 #' }
 
-input_raster = c("slope","landuse_r")
-stat_rast = c("mean","percent")
-attr_name_rast = c("avSloE","luE")
-round_dig = 4
-sites_map = "sites"
-input_vector = c("geology", "pointsources")
-stat_vect = c("percent", "count")
-attr_name_vect = c("GEO_NAME", "npsource")
-calc_basin_area = TRUE
-keep_basins = FALSE
+#input_raster = c("slope","landuse_r")
+#stat_rast = c("mean","percent")
+#attr_name_rast = c("avSloE","luE")
+
+# round_dig = 4
+# sites_map = "sites"
+# input_vector = c("geology")#, "pointsources")
+# stat_vect = c("percent")#, "count")
+# attr_name_vect = c("GEO_NAME")#, "npsource")
+# calc_basin_area = TRUE
+# keep_basins = FALSE
 
 calc_attributes_sites_exact <- function(sites_map = "sites",
                                         input_raster = NULL,
@@ -588,5 +589,5 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                table = "sites"
                              ), intern = T)
   cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
-  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", ")))
+  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", "), "in 'sites'."))
 }

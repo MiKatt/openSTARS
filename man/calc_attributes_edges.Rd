@@ -23,10 +23,10 @@ to be calculated. Attribute names must not be longer than 8 characters.}
 from the vector maps, must be one of: "count" (for point data), "percent"
 (for polygon data).}
 
-\item{attr_name_vect}{name(s) of attribute column(s) to calculate the 
-statistics from. For point data, results columns will have the same name, for
-polygon data, the results column names are determined by the content of 
-this column.}
+\item{attr_name_vect}{name(s) of attribute column(s). For polygon data, this is
+the column to calculate the statistics from; the results column names are 
+created by the content of this column. For point data, a column will be created
+with this name to hold the counts.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
   of different values or just one value for all attributes.

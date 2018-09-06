@@ -6,6 +6,9 @@
   might have occured.
 * New function to delete lakes from the network ('delete_lakes'). Added "lakes.shp"
   to example data.
+* New functionality in calc_attributes_edges and calc_attributes_sites_exact: 
+  It is now possible to calculate percentages from raster maps with multiple values
+  (e.g. land cover classes). 
 
 # openSTARS 1.1.0
 

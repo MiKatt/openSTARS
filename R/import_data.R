@@ -239,7 +239,8 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #'  
 #'@examples 
 #'# import data from Postgis
-#' import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890', 'port='1234', 'user=username', 'password=password'",
+#' import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890', 
+#' 'port='1234', 'user=username', 'password=password'",
 #'  name = "forest", layer = "landuse_schema.forest")
 #'
 #' 

@@ -274,7 +274,7 @@ correct_compl_junctions <- function(clean = TRUE){
                 vector = paste0("streams_v,streams_v_o", i)
               ), ignore.stderr = TRUE, intern = TRUE)
     
-    message(paste0("Original stream topology file moved to streams_v_o", i, "."))
+    message(paste0("Original stream topology file moved to 'streams_v_o", i, "'."))
     message("Breaking lines and moving vertices ...")
     
     # Break features at cut coordinates
@@ -383,7 +383,7 @@ correct_compl_junctions <- function(clean = TRUE){
                 query_column = "str_new"
               ))
 
-    message("Updating topology ...\n")
+    message("Updating topology ...")
 
     # Using data.table is about 10 times faster than execGRASS(v.db.update)   
     streams <- readVECT(vname = "streams_v", remove.duplicates = FALSE, 
@@ -438,7 +438,7 @@ correct_compl_junctions <- function(clean = TRUE){
     rm("streams")
   }
 
-  message("Original stream raster moved to streams_r_o.\n")
+  message("Original stream raster moved to 'streams_r_o'.")
   execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
@@ -453,6 +453,9 @@ correct_compl_junctions <- function(clean = TRUE){
               use = "attr",
               attribute_column = "cat"
             ))
+  
+  invisible(file.remove(file.path(temp_dir,"complex_points.txt")))
+  invisible(file.remove(file.path(temp_dir,"cut_points.txt")))
 
   if(clean){
     # Remove temporary vector files
@@ -464,5 +467,5 @@ correct_compl_junctions <- function(clean = TRUE){
               ))
     try(unlink("temp.txt"), silent = TRUE)
   }
-  message("Complex junctions were removed. Please check changed features in streams_v.\n")
+  message("Complex junctions were removed. Please check changed features in 'streams_v'.\n")
 }
