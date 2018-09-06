@@ -147,7 +147,6 @@ plot(edges, col = cols, add = TRUE, lwd = 2)
 legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 }
-
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}

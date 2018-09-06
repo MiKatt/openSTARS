@@ -132,15 +132,6 @@
 #' legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
 #'   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 #' }
-#'
-#input_vector = NULL; stat_vect = NULL; attr_name_vect = NULL;
-# round_dig = 2
-# input_raster = c("slope", "landuse_r")
-# stat_rast = c("mean", "percent")
-# attr_name_rast = c("avSloE", "lu")
-# input_vector = c("geology", "pointsources")
-# stat_vect = c("percent", "count")
-# attr_name_vect = c("GEO_NAME", "npsource")
 
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
                                   input_vector = NULL, stat_vect = NULL, attr_name_vect = NULL,

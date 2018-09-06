@@ -110,18 +110,6 @@
 #' # approximate and exact calculation (different colors for inner and outer points)
 #' }
 
-#input_raster = c("slope","landuse_r")
-#stat_rast = c("mean","percent")
-#attr_name_rast = c("avSloE","luE")
-
-# round_dig = 4
-# sites_map = "sites"
-# input_vector = c("geology")#, "pointsources")
-# stat_vect = c("percent")#, "count")
-# attr_name_vect = c("GEO_NAME")#, "npsource")
-# calc_basin_area = TRUE
-# keep_basins = FALSE
-
 calc_attributes_sites_exact <- function(sites_map = "sites",
                                         input_raster = NULL,
                                         stat_rast = NULL,

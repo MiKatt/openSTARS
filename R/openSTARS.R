@@ -119,7 +119,7 @@ if(getRversion() >= "2.15.1")
 #' @section sites_nc.shp:
 #' Arbitrary sites along rivers in North Carolina.
 #' @section landuse.shp
-#' Artificial landuse data.
+#' #' Artificial landuse data.
 #' @section pointsources.shp
 #' #' Artificial point sources.
 NULL
