@@ -232,6 +232,14 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(!is.null(input_vector)){
     attribute_cats <- NULL
     for(i in 1:length(input_vector)){
+      cnames <- execGRASS("db.columns", flags = "quiet",
+                                parameters = list(
+                                  table = input_vector[i]
+                                ), intern = T)
+      if(!attr_name_vect[i] %in% cnames)
+        stop(paste0("Invalid vector attribute name ", paste0("'", attr_name_vect[i], "'", collapse = ", "), 
+                    ". Please give a valid column name. \nAvailable columns are ",  
+                    paste0("'", cnames, "'", collapse = ", ")))
       if(vtype[i] == 1){
         attribute_cats <- c(attribute_cats, 
                            unique(execGRASS("db.select", flags = c("c"),

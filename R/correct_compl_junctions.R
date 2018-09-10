@@ -467,5 +467,5 @@ correct_compl_junctions <- function(clean = TRUE){
               ))
     try(unlink("temp.txt"), silent = TRUE)
   }
-  message("Complex junctions were removed. Please check changed features in 'streams_v'.\n")
+  message("Complex junctions were removed. Please check changed features in 'streams_v'.")
 }
