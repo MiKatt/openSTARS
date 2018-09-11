@@ -258,7 +258,7 @@ calc_edges <- function() {
 #'calcCatchmArea_assignNetID(dt <- dt.streams, id=i, netID)
 
 calcCatchmArea_assignNetID <- function(dt, id, net_ID){
-    if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
+  if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, total_area := area]
     dt[stream == id, netID := net_ID]
   } else {

@@ -154,19 +154,19 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   if(any(!stat_vect %in% c("percent", "count")))
     stop('statistics to calculate must be one of "count" or "percent".')
   
-  i <- which(stat_vect == "count")
-  if(length(i) > 0){
-    for(j in i){
-      a <- execGRASS("v.info", flags = "t",
-                     parameters = list(
-                       map = input_vector[j]
-                     ), intern = T)
-      a <- do.call(rbind,strsplit(a, "="))
-      k <- which(a[,1] == "points")
-      if(as.numeric(a[k,2]) == 0)
-        stop('If statistic to calculate is "count" the respective input vector must be of type point.')
-    }
-  }
+  # i <- which(stat_vect == "count")
+  # if(length(i) > 0){
+  #   for(j in i){
+  #     a <- execGRASS("v.info", flags = "t",
+  #                    parameters = list(
+  #                      map = input_vector[j]
+  #                    ), intern = T)
+  #     a <- do.call(rbind,strsplit(a, "="))
+  #     k <- which(a[,1] == "points")
+  #     if(as.numeric(a[k,2]) == 0)
+  #       stop('If statistic to calculate is "count" the respective input vector must be of type point.')
+  #   }
+  # }
   
   # 1 for area, 2 for points
   vtype <- rep(1, length(stat_vect))
@@ -183,6 +183,15 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         if(stat_vect[i] != "count"){
           stop('If an input vector is of type point the statistic to calculate must be "count".')
         }
+      } else {
+        cnames <- execGRASS("db.columns", flags = "quiet",
+                            parameters = list(
+                              table = input_vector[i]
+                            ), intern = T)
+        if(!attr_name_vect[i] %in% cnames)
+          stop(paste0("Invalid vector attribute name ", paste0("'", attr_name_vect[i], "'", collapse = ", "), 
+                      ". Please give a valid column name. \nAvailable columns are ",  
+                      paste0("'", cnames, "'", collapse = ", ")))
       }
     }
   }
