@@ -395,18 +395,30 @@ correct_compl_junctions <- function(clean = TRUE){
       jj <- which(dt.move_streams$stream == dt.junctions[j, stream])
       
       # set stream's cut_stream_prev to cat_small if cut_stream_prev < i
-      # else set stream's move_stream_prev to cat_small
       if(dt.move_streams[jj, cut_stream_prev] != i){
         dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, cut_stream_prev]) := dt.move_streams[jj, str_new_small]]
-      } else {
-        # set stream's move_str_prev to prev_str0i
-        if(dt.move_streams[jj, move_stream_prev] != i){
-          #     dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.junctions[j, paste0("prev_str0",i), with = F]]
-          #   } else {
-          dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.move_streams[jj, str_new_small]]
-        }
+      } else if(dt.move_streams[jj, move_stream_prev] != i){
+        # else set stream's move_stream_prev to cat_small if move_stream_prev < i
+        dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.move_streams[jj, str_new_small]]
+      }
+      # if both cut_str_prev and move_str_prev are != i, set mover_str_prev to prev_str0i
+      if(dt.move_streams[jj, cut_stream_prev] != i & dt.move_streams[jj, move_stream_prev] != i){
+        dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.junctions[j, paste0("prev_str0",i), with = F]]
       }
       
+      # # set stream's cut_stream_prev to cat_small if cut_stream_prev < i
+      # # else set stream's move_stream_prev to cat_small
+      # if(dt.move_streams[jj, cut_stream_prev] != i){
+      #   dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, cut_stream_prev]) := dt.move_streams[jj, str_new_small]]
+      # } else {
+      #   # set stream's move_str_prev to prev_str0i
+      #   if(dt.move_streams[jj, move_stream_prev] != i){
+      #     #     dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.junctions[j, paste0("prev_str0",i), with = F]]
+      #     #   } else {
+      #     dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.move_streams[jj, str_new_small]]
+      #   }
+      # }
+
     # set prev_str01 of str_new_small to move_stream 
     dt.streams[stream == dt.move_streams[jj, str_new_small],  prev_str01 := as.integer(dt.move_streams[jj, move_stream])]
     # set prev_str02 of str_new_small to str_new_large

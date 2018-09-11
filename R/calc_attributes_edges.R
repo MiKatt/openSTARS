@@ -12,10 +12,10 @@
 #' @param stat_vect name(s) giving the statistics to be calculated
 #'   from the vector maps, must be one of: "count" (for point data), "percent"
 #'   (for polygon data).
-#' @param attr_name_vect name(s) of attribute column(s). For polygon data, this is
-#'   the column to calculate the statistics from; the results column names are 
-#'   created by the content of this column. For point data, a column will be created
-#'   with this name to hold the counts.
+#' @param attr_name_vect name(s) of attribute column(s) to calculate the 
+#'   statistics from. For point data, results columns will have the same name, for
+#'   polygon data, the results column names are determined by the content of 
+#'   this column.
 #' @param round_dig integer; number of digits to round results to. Can be a vector
 #'   of different values or just one value for all attributes.
 #' #@param clean logical; should intermediate files be deleted
@@ -31,12 +31,11 @@
 #' This function must be run before computing approximate attribute values for 
 #' sites \code{\link{calc_attributes_sites_approx}}.
 #'
-#'For \code{stat_rast} = "percent" the \code{input_raster} can be either coded as 1 and 0
-#'  (e.g., cells occupied by the land use under consideration and not) or as different classes. 
-#'  In the latter case, the percentage of each class in the catchment is calculated. If
-#'  the \code{input_raster} consists of percentages per cell (e.g., proportional land
-#'  use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
-#'  of this land use in the catchment.
+#'For \code{stat_rast} = "percent" the \code{input_raster} must be coded as 1 and 0
+#'  (e.g., cells occupied by the land use under consideration and not). If
+#'   the \code{input_raster} consists of percentages per cell (e.g., proportional land
+#'   use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
+#'   of this land use in the catchment.
 #'
 #' For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
 #' e.g. different land use types. The column \code{attr_name_vect} would then 
@@ -132,6 +131,14 @@
 #' legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
 #'   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
 #' }
+#'
+
+# input_vector = "pointsources"
+# stat_vect = "count"
+# attr_name_vect = "psource"
+# round_dig = 4
+# clean = F
+# input_raster = NULL; stat_rast = NULL; attr_name_rast = NULL
 
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
                                   input_vector = NULL, stat_vect = NULL, attr_name_vect = NULL,
@@ -154,19 +161,19 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   if(any(!stat_vect %in% c("percent", "count")))
     stop('statistics to calculate must be one of "count" or "percent".')
   
-  # i <- which(stat_vect == "count")
-  # if(length(i) > 0){
-  #   for(j in i){
-  #     a <- execGRASS("v.info", flags = "t",
-  #                    parameters = list(
-  #                      map = input_vector[j]
-  #                    ), intern = T)
-  #     a <- do.call(rbind,strsplit(a, "="))
-  #     k <- which(a[,1] == "points")
-  #     if(as.numeric(a[k,2]) == 0)
-  #       stop('If statistic to calculate is "count" the respective input vector must be of type point.')
-  #   }
-  # }
+  i <- which(stat_vect == "count")
+  if(length(i) > 0){
+    for(j in i){
+      a <- execGRASS("v.info", flags = "t",
+                     parameters = list(
+                       map = input_vector[j]
+                     ), intern = T)
+      a <- do.call(rbind,strsplit(a, "="))
+      k <- which(a[,1] == "points")
+      if(as.numeric(a[k,2]) == 0)
+        stop('If statistic to calculate is "count" the respective input vector must be of type point.')
+    }
+  }
   
   # 1 for area, 2 for points
   vtype <- rep(1, length(stat_vect))
@@ -183,15 +190,6 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         if(stat_vect[i] != "count"){
           stop('If an input vector is of type point the statistic to calculate must be "count".')
         }
-      } else {
-        cnames <- execGRASS("db.columns", flags = "quiet",
-                            parameters = list(
-                              table = input_vector[i]
-                            ), intern = T)
-        if(!attr_name_vect[i] %in% cnames)
-          stop(paste0("Invalid vector attribute name ", paste0("'", attr_name_vect[i], "'", collapse = ", "), 
-                      ". Please give a valid column name. \nAvailable columns are ",  
-                      paste0("'", cnames, "'", collapse = ", ")))
       }
     }
   }
@@ -220,7 +218,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   
   if ("MASK" %in% rast)
     execGRASS("r.mask",flags = c("r", "quiet"))
-
+  
   if(!all(input_raster %in% rast)){
     if(length(input_raster)>1){
       i <- which(input_raster %in% rast)
@@ -229,8 +227,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
       mes <- input_raster
     }
     stop(paste0("Missing input raster data ", paste0("'",mes,"'", collapse = ", "), 
-               ". Please give valid raster names. \nAvailable raster are ",  
-               paste0("'",rast,"'", collapse = ", ")))
+                ". Please give valid raster names. \nAvailable raster are ",  
+                paste0("'",rast,"'", collapse = ", ")))
   }
   
   vect <- execGRASS("g.list",
@@ -247,8 +245,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
       mes <- input_vector
     }
     stop(paste0("Missing input vector data ", paste0("'",mes,"'", collapse = ", "), 
-                     ". Please give valid vector file names. \nAvailable vector files are ",  
-                     paste0("'",vect,"'", collapse = ", ")))
+                ". Please give valid vector file names. \nAvailable vector files are ",  
+                paste0("'",vect,"'", collapse = ", ")))
   }
   
   if(length(round_dig) == 1)
@@ -256,7 +254,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   
   temp_dir <- tempdir()
   
-  # MK 02.05.2018: not necessary because this is already done in calc_edges
+  # MK 02.05.2018: not necessary becaus this is already done in calc_edges
   ## Calculate reach contributing area (= sub chatchment) for each segment).
   # message("Calculating reach contributing area (RCA)...\n")
   # execGRASS("r.stream.basins",
@@ -280,63 +278,36 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     rca_cell_count <- data.frame(apply(rca_cell_count,2,as.numeric))
     setDT(rca_cell_count)
     
-    stat_r <- NULL
-
     for(j in 1:length(stat_rast)){
-      # TODO: check what happens with 0/1 coded
-      if(stat_rast[j] == "percent" & get_n_val_raster(input_raster[j]) > 2){
-        st <- execGRASS("r.stats", flags = c("c"),
-                        parameters = list(
-                          input =  paste0("rca,", input_raster[j]),
-                          separator = "comma"
-                        ), intern = TRUE)
-        st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
-        colnames(st) <- c("zone", "class", "cellcount")
-        st$cellcount <- as.numeric(st$cellcount)
-        suppressWarnings(st$zone <- as.numeric(st$zone))
-        setDT(st)
-        #st[, `:=`(names(st), lapply(.SD, as.numeric))]
-        st <- dcast(st, "zone  ~ class", value.var = "cellcount")
-        st[, all_cells := rowSums(.SD, na.rm = TRUE), .SDcols = 2:ncol(st)]
-        st[, "*" := NULL]
-        st[, 2:(ncol(st)-1) := lapply(.SD, function(x) x / st$all_cells), .SDcols = 2:(ncol(st)-1)]
-        st[, all_cells := NULL]
-        colnames(st)[-1] <- paste(attr_name_rast[j], colnames(st)[-1], sep = "_")
-        rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
-        stat_r <- c(stat_r, rep("percent_class", ncol(st) - 1))
-      } else {
-        st <- execGRASS("r.univar",
-                        flags = c("overwrite", "quiet","t"),
-                        parameters = list(
-                          map = input_raster[j],
-                          zones = "rca",
-                          separator = "comma"),
-                        intern = TRUE)
-        st <- do.call(rbind,strsplit(st,","))
-        colnames(st) <- st[1,]
-        st <- st[-1,, drop = FALSE]
-        st <- data.frame(apply(st,2,as.numeric))
-        setDT(st)
-        if(nrow(st) > 0){
-          if(stat_rast[j] %in% names(st)){
-            st <- st[, c("zone", stat_rast[j]), with = FALSE]
-          } else if(any(st[,"variance", with = F] != 0)) { # if(stat_rast == "percent") and coded as 0 and 1, mean gives the ratio
-            st <- st[, c("zone", "mean"), with = FALSE]  
-          } else{  # if coded as something and NA, null(), no data value
-            st[, "all_cells" := sum(.SD), .SDcols = c("non_null_cells", "null_cells"), by = "zone"]
-            st <- data.table(data.frame(st[,"zone"],st[, "non_null_cells"] /st[,"all_cells"]))
-          }
-          names(st)[2] <- attr_name_rast[j]
-          st[, attr_name_rast[j] := round(st[, attr_name_rast[j], with = FALSE], round_dig[j])]
-          rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
-        } else{
-          rca_cell_count[,attr_name_rast[j] := 0]
+      st <- execGRASS("r.univar",
+                      flags = c("overwrite", "quiet","t"),
+                      parameters = list(
+                        map = input_raster[j],
+                        zones = "rca",
+                        separator = "comma"),
+                      intern = TRUE)
+      st <- do.call(rbind,strsplit(st,","))
+      colnames(st) <- st[1,]
+      st <- st[-1,, drop = FALSE]
+      st <- data.frame(apply(st,2,as.numeric))
+      setDT(st)
+      
+      if(nrow(st) > 0){
+        if(stat_rast[j] %in% names(st)){
+          st <- st[, c("zone", stat_rast[j]), with = FALSE]
+        } else if(any(st[,"variance", with = F] != 0)) { # if(stat_rast == "percent") and coded as 0 and 1, mean gives the ratio
+          st <- st[, c("zone", "mean"), with = FALSE]  
+        } else{  # if coded as something and NA, null(), no data value
+          st[, "all_cells" := sum(.SD), .SDcols = c("non_null_cells", "null_cells"), by = "zone"]
+          st <- data.table(data.frame(st[,"zone"],st[, "non_null_cells"] /st[,"all_cells"]))
         }
-        stat_r <- c(stat_r, stat_rast[j])
+        names(st)[2] <- attr_name_rast[j]
+        st[, attr_name_rast[j] := round(st[, attr_name_rast[j], with = FALSE], round_dig[j])]
+        rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
+      } else{
+        rca_cell_count[,attr_name_rast[j] := 0]
       }
     }
-    attr_name_rast <- colnames(rca_cell_count)[-c(1:2)]
-    stat_rast <- stat_r
     
     dt.streams <- do.call(rbind,strsplit(
       execGRASS("db.select",
@@ -410,7 +381,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     for(j in 1:length(stat_vect)){
       if(vtype[j] == 1){ # if polygon data
         
-       execGRASS("v.overlay", flags = c("overwrite", "quiet"),
+        execGRASS("v.overlay", flags = c("overwrite", "quiet"),
                   parameters = list(
                     ainput = "rca_v",
                     atype = "area",
@@ -474,9 +445,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
       set(dt.streams, which(is.na(dt.streams[[k]])),k , 0)
     }
     stat_vect2 <- c(unlist(sapply(1:length(nanames), function(x) rep(stat_vect[x], each=nanames[x]))))
-    round_dig2 <- c(unlist(sapply(1:length(nanames), function(x) rep(round_dig[(1+length(input_raster)):length(round_dig)][x], each=nanames[x]))))
-    
-    #dt <- copy(dt.streams)
+    round_dig2 <- c(unlist(sapply(1:length(nanames), function(x) rep(round_dig[(1+length(stat_rast)):length(round_dig)][x], each=nanames[x]))))
     calc_catchment_attributes_vect(dt.streams, stat_vect2, anames, round_dig2)
     
     # Delete unneeded columns
@@ -492,13 +461,6 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 input = file.path(temp_dir,"edge_attributes.csv"),
                 output = "edge_attributes"
               ),ignore.stderr = T, intern = T)
-    
-    # execGRASS("db.select",
-    #           sql = "SELECT * FROM edge_attributes WHERE cat_ < 10"
-    #           )
-    # execGRASS("db.select",
-    #           sql = "SELECT * FROM edges WHERE cat_ < 10"
-    #           )
     execGRASS("v.db.join", flags = "quiet",
               parameters = list(
                 map = "edges",
@@ -506,34 +468,38 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 other_table = "edge_attributes",
                 other_column = "cat_"
               ))
-    
-    # remove temporary files
-    execGRASS("g.remove",
-              flags = c("quiet", "f"),
-              parameters = list(
-                type = "vector",
-                name = "temp_inters"
-              ), ignore.stderr = TRUE)
   }
   
   cnames_edges2 <- execGRASS("db.columns", flags = "quiet",
-                            parameters = list(
-                              table = "edges"
-                            ), intern = T)
+                             parameters = list(
+                               table = "edges"
+                             ), intern = T)
   cnames_edges2 <- cnames_edges2[-(which(cnames_edges2 %in% cnames_edges))]
-  cnames_edges2 <- unique(gsub("_c|_e$", "", cnames_edges2))
-  i <- which(cnames_edges2 == "cat_")
-  if(length(i) > 0)
-    cnames_edges2 <- cnames_edges2[-i]
-  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_edges2, "'", collapse = ", ", sep = ""), " in 'edges'."))
+  cnames_edges2 <- unique( gsub("_c|_e$", "", cnames_edges2))
+  cnames_edges2 <- cnames_edges2[- which(cnames_edges2 == "cat_")]
+  message(paste0("\nNew attributes values are stored as ", paste(cnames_edges2, collapse = ", ")))
   
-  # remove temporary files
+  # if (clean) {
+  # MK 02.05.2018 keep for consecutive runs
+  # execGRASS("g.remove",
+  #           flags = c("quiet", "f"),
+  #           parameters = list(
+  #             type = "raster",
+  #             name = "rca"
+  #           ))
+  execGRASS("g.remove",
+            flags = c("quiet", "f"),
+            parameters = list(
+              type = "vector",
+              name = "temp_inters"
+            ), ignore.stderr = TRUE)
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
               table = "edge_attributes"
             ))
   invisible(file.remove(file.path(temp_dir,"edge_attributes.csv")))
   invisible(file.remove(file.path(temp_dir,"edge_attributes.csvt")))
+  #}
 }
 
 #' calc_catchment_attributes_rast
@@ -553,7 +519,6 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
 #'
 #' @return Nothing. The function changes the values of the columns attr_name_rast in dt.
 
-#dt <- copy(dt.streams)
 calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_dig){
   outlets <- dt[next_str == -1, stream]
   dt[, paste0(attr_name_rast,"_c") := dt[, attr_name_rast, with = FALSE]]
@@ -562,11 +527,10 @@ calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_
   }
   # for "mean" and "percent", calc_catchment_attributes_rast_rec gives the cmmulative sum of mean value * non_null_cells
   # => divide here by total number of cells
-  ind <-  which(stat_rast %in% c("mean", "percent", "percent_class"))# c(grep("mean", stat_rast), grep("percent", stat_rast))
-  if(length(ind) > 0){
-    dt[cumsum_cells > 0, paste0(attr_name_rast[ind], "_c") := lapply(.SD, function(x) x / cumsum_cells), .SDcols =  paste0(attr_name_rast[ind], "_c")]
-    #dt[cumsum_cells <= 0, paste0(attr_name_rast[ind], "_c1") := lapply(.SD, function(x) x ), .SDcols =  paste0(attr_name_rast[ind], "_c")]
-  }
+  ind <- c(grep("mean", stat_rast), grep("percent", stat_rast))
+  if(length(ind) > 0)
+    dt[cumsum_cells > 0, paste0(attr_name_rast[ind], "_c") := round(dt[cumsum_cells > 0, paste0(attr_name_rast[ind],"_c"), with = FALSE] / dt[cumsum_cells > 0, cumsum_cells], round_dig[ind])]
+  
   newcols <- paste0(rep(attr_name_rast, each = 2), c("", "_c"))
   setcolorder(dt, c(colnames(dt)[!colnames(dt) %in% newcols], newcols))
 }
@@ -597,7 +561,7 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
   if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, cumsum_cells := non_null_cells]
     for(j in 1:length(stat)){
-      if(stat[j] %in% c("mean", "percent", "percent_class"))
+      if(stat[j] %in% c("mean","percent"))
         dt[stream == id, attr_name[j] := dt[stream == id, attr_name[j], with = FALSE] * dt[stream == id, non_null_cells]]
     } # else: do nothing (value = value)
   }  else {
@@ -635,12 +599,6 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
 #'   of different values or just one value for all attributes.
 #'
 #' @return Nothing. The function changes the values of the columns attr_name_vect in dt.
-     
-# dt <- copy(dt.streams)
-# stat_vect <- stat_vect2
-# attr_name_vect <- anames
-# round_dig <- round_dig2
-
 
 calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_dig){
   outlets <- dt[next_str == -1, stream]
@@ -650,8 +608,6 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
   }
   ind <- grep("percent", stat_vect)
   if(length(ind) > 0){
-    #dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000)]
-    #sapply(ind, function(x) round(dt[, paste0(attr_name_vect[x], "_c"), with = FALSE], round_dig[x]))
     dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000), round_dig[ind])]
     dt[rcaArea > 0, attr_name_vect[ind] := round(dt[rcaArea > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaArea > 0, rcaArea] * 1000000), round_dig[ind])]
     # TODO: correct, check, why it did not work with this!!
@@ -688,52 +644,9 @@ calc_catchment_attributes_vect_rec <- function(dt, id, stat_vect, attr_name_vect
     d1 <- calc_catchment_attributes_vect_rec(dt, dt[stream == id, prev_str01], stat_vect, attr_name_vect)
     d2 <- calc_catchment_attributes_vect_rec(dt, dt[stream == id, prev_str02], stat_vect, attr_name_vect)
     for(j in 1:length(stat_vect)){ 
-        dt[stream == id, attr_name_vect[j] := dt[stream == id, attr_name_vect[j], with = FALSE] +
-             d1[, attr_name_vect[j], with = FALSE] + d2[, attr_name_vect[j], with = FALSE]]
-      }
+      dt[stream == id, attr_name_vect[j] := dt[stream == id, attr_name_vect[j], with = FALSE] +
+           d1[, attr_name_vect[j], with = FALSE] + d2[, attr_name_vect[j], with = FALSE]]
     }
+  }
   return(dt[stream == id, attr_name_vect, with = FALSE])
-}
-
-
-
-#' get_n_val_raster
-#' Returns the number of differnt values in the raster.
-#'
-#' @description Returns the number of different values in the input raster.
-#'
-#' @param raster_name name of the raster map
-#' @keywords internal
-#'
-#' @return The range of values in the raster map.
-#' 
-#' @note This function is sensitive to MASKs, i.e. if a MASK is present,
-#'  only the part or the raster is processed within the MASK; 
-#'  \href{https://grass.osgeo.org/grass75/manuals/r.mask.html}{r.mask}.
-
-get_n_val_raster <- function(raster_name){
-  return(length(get_all_raster_values(raster_name)))
-}
-
-#' get_all_raster_values
-#' Returns all unuque values in the raster
-#' 
-#' @description Returns the number of different values in the input raster.
-#'
-#' @param raster_name name of the raster map
-#' @keywords internal
-#'
-#' @return a vector of all values in the raster
-#' 
-#' @note This function is sensitive to MASKs, i.e. if a MASK is present,
-#'  only the part or the raster is processed within the MASK; 
-#'  \href{https://grass.osgeo.org/grass75/manuals/r.mask.html}{r.mask}.
-
-get_all_raster_values <- function(raster_name){
-  r <- execGRASS("r.stats", flags = c("l","n"),
-            parameters = list(
-              input = raster_name
-            ), intern = T)
-  r <- gsub(" $", "", r)
-  return(r)
 }
