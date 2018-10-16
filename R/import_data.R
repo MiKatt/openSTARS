@@ -134,11 +134,11 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
               output = "dem"),ignore.stderr=T)
   #}
 
-    message("Loading sites into GRASS as 'sites_o' ...")
+  message("Loading sites into GRASS as 'sites_o' ...")
   # sites data
   # flag "-r": only current region
   # 20180216: not flag "o", because if projection is wrong I want to see an error
-  import_vector_data(data = sites, name = "sites_o")
+  import_vector_data(data = sites, name = "sites_o", proj_ref_obj = dem)
   
   # prediction sites data
   if (!is.null(pred_sites)) {
@@ -150,7 +150,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
       message(paste0("Loading preditions sites into GRASS as ",
                      paste("'", pred_sites_names, "'", collapse=", ", sep=""), " ..."))
       for(i in 1:length(pred_sites)){
-        import_vector_data(data = pred_sites[i], name = pred_sites_names[i])
+        import_vector_data(data = pred_sites[i], name = pred_sites_names[i], proj_ref_obj = dem)
         
       }
     }
@@ -185,7 +185,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
       predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
     message(paste0("Loading vector predictor varibales into GRASS as ",paste("'", predictor_v_names, "'", collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_v_names)){
-      import_vector_data(data = predictor_vector[i], name = predictor_v_names[i])
+      import_vector_data(data = predictor_vector[i], name = predictor_v_names[i], proj_ref_obj = dem)
     }
   }
   
@@ -194,7 +194,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     message("Loading streams into GRASS as 'streams_o'  ...")
     # flag "-r": only current region
     
-    import_vector_data(data = streams, name = "streams_o")
+    import_vector_data(data = streams, name = "streams_o", proj_ref_obj = dem)
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
       execGRASS("v.clean",
@@ -246,7 +246,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
-import_vector_data <- function(data, name, layer = NULL){
+import_vector_data <- function(data, name, layer = NULL, proj_ref_obj){
   # flag "-r": only current region
   import_flag <- TRUE
   if(inherits(data, 'sf')){
@@ -257,11 +257,11 @@ import_vector_data <- function(data, name, layer = NULL){
                            parameters = list(
                              proj4 = proj4string(data)
                            ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
-    proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
+    proj_ref <- execGRASS("g.proj", flags = c("j", "f"),
                           parameters = list(
-                            georef = dem
+                            georef = proj_ref_obj
                           ), intern = TRUE, ignore.stderr = TRUE)
-    if(identical(proj_dem, proj_data)) {
+    if(identical(proj_ref, proj_data)) {
       writeVECT(data, name,  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
                 ignore.stderr=TRUE)
       import_flag <- FALSE
