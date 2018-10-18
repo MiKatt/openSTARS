@@ -243,6 +243,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 'port='1234', 'user=username', 'password=password'",
 #'  name = "forest", layer = "landuse_schema.forest")
 #'
+#' @export
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
