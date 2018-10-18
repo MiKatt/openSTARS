@@ -230,8 +230,9 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' @param name string giving the base name of the vector data within the GRASS envrionment (i.e. output)
 #' @param layer character string; default 1, particularly needed if data is a dsn for 
 #' importing postgis data (see details)
-#' @param proj_ref_obj character; path to a georeferenzed data file to be used as reference; typicalle the 
-#'   dem raster file used in this project.
+#' @param proj_ref_obj character; path to a georeferenced data file to be used as reference; only
+#'   used if \code{data} is an sf of sp object, then, the two projections are compared to find the
+#'   correct way for importing; typically the dem raster file used in this project.
 #' @param snap float; snapping threshold in map units. If != -1 (default) vertices are snapped to other vertices
 #'   in this snapping distance during import. If used, the features are automatically cleaned afterwards 
 #'   (see GRASS tools \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}  
@@ -253,29 +254,32 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
-import_vector_data <- function(data, name, layer = NULL, proj_ref_obj, snap = -1){
+import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, snap = -1){
   # flag "-r": only current region
   import_flag <- TRUE
   if(inherits(data, 'sf')){
     data <- as(data, 'Spatial')
   }
   if(inherits(data, 'Spatial')) {
-    proj_data <- execGRASS("g.proj", flags = c("j", "f"),
-                           parameters = list(
-                             proj4 = proj4string(data)
-                           ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
-    proj_ref <- execGRASS("g.proj", flags = c("j", "f"),
-                          parameters = list(
-                            georef = proj_ref_obj
-                          ), intern = TRUE, ignore.stderr = TRUE)
-    if(identical(proj_ref, proj_data)) {
-      writeVECT(data, name,  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
-                ignore.stderr=TRUE)
-      import_flag <- FALSE
-    } else {
-      rgdal::writeOGR(obj = data, dsn = tempdir(), layer = name, driver="ESRI Shapefile", overwrite_layer = TRUE)
-      data <- file.path(tempdir(), paste0(name, ".shp"))
+    if(!is.null(proj_ref_obj)){
+      proj_data <- execGRASS("g.proj", flags = c("j", "f"),
+                             parameters = list(
+                               proj4 = proj4string(data)
+                             ), intern = TRUE)[1] # sites_in@proj4string@projargs does not work!
+      proj_ref <- execGRASS("g.proj", flags = c("j", "f"),
+                            parameters = list(
+                              georef = proj_ref_obj
+                            ), intern = TRUE, ignore.stderr = TRUE)
+      if(identical(proj_ref, proj_data)) {
+        writeVECT(data, name,  v.in.ogr_flags = c("overwrite", "quiet", "r", "o"), # "o": overwrite projection check
+                  ignore.stderr=TRUE)
+        import_flag <- FALSE
+      }
     }
+    if(import_flag) {
+        rgdal::writeOGR(obj = data, dsn = tempdir(), layer = name, driver="ESRI Shapefile", overwrite_layer = TRUE)
+        data <- file.path(tempdir(), paste0(name, ".shp"))
+      }
   } 
   if(import_flag) {
     # gives error on Linux if projection is not identical but it works!
@@ -285,7 +289,7 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj, snap = -1
                 parameters = list(
                   input = data,
                   output =  name,
-                  sanp = snap,
+                  snap = snap,
                   extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
                 intern = TRUE, ignore.stderr = TRUE)      
     } else {
