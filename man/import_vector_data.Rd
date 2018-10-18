@@ -4,7 +4,7 @@
 \alias{import_vector_data}
 \title{Import vector data into GRASS.}
 \usage{
-import_vector_data(data, name, layer = NULL, proj_ref_obj)
+import_vector_data(data, name, layer = NULL, proj_ref_obj, snap = -1)
 }
 \arguments{
 \item{data}{character string or object; path to data vector file (shape), postgis 
@@ -14,6 +14,14 @@ data source name (dsn; see details), or sp or sf data object.}
 
 \item{layer}{character string; default 1, particularly needed if data is a dsn for 
 importing postgis data (see details)}
+
+\item{proj_ref_obj}{character; path to a georeferenzed data file to be used as reference; typicalle the 
+dem raster file used in this project.}
+
+\item{snap}{float; snapping threshold in map units. If != -1 (default) vertices are snapped to other vertices
+in this snapping distance during import. If used, the features are automatically cleaned afterwards 
+(see GRASS tools \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}  
+and \href{https://grass.osgeo.org/grass74/manuals/v.clean.html}{v.clean} )}
 }
 \value{
 Nothing.

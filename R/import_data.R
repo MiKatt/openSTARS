@@ -230,6 +230,12 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' @param name string giving the base name of the vector data within the GRASS envrionment (i.e. output)
 #' @param layer character string; default 1, particularly needed if data is a dsn for 
 #' importing postgis data (see details)
+#' @param proj_ref_obj character; path to a georeferenzed data file to be used as reference; typicalle the 
+#'   dem raster file used in this project.
+#' @param snap float; snapping threshold in map units. If != -1 (default) vertices are snapped to other vertices
+#'   in this snapping distance during import. If used, the features are automatically cleaned afterwards 
+#'   (see GRASS tools \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}  
+#'   and \href{https://grass.osgeo.org/grass74/manuals/v.clean.html}{v.clean} )
 #' 
 #' @return Nothing.
 #' 
@@ -247,7 +253,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
-import_vector_data <- function(data, name, layer = NULL, proj_ref_obj){
+import_vector_data <- function(data, name, layer = NULL, proj_ref_obj, snap = -1){
   # flag "-r": only current region
   import_flag <- TRUE
   if(inherits(data, 'sf')){
@@ -279,6 +285,7 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj){
                 parameters = list(
                   input = data,
                   output =  name,
+                  sanp = snap,
                   extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
                 intern = TRUE, ignore.stderr = TRUE)      
     } else {
@@ -287,8 +294,26 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj){
                   input = data,
                   layer = layer,
                   output =  name,
+                  snap = snap,
                   extent = "region"),  # to import into current region (= flags("r") in v.in.ogr)
                 intern = TRUE, ignore.stderr = TRUE)
+    }
+    if(snap != -1){
+      execGRASS("v.clean", flags = c("c", "quiet"),
+                parameters = list(
+                  input = name,
+                  output = paste0(name, "_c"),
+                  tool = "break,rmdupl,rmsa"
+                ))
+      execGRASS("v.copy", flags = c("overwrite", "quiet"),
+                parameters = list(
+                  vector(paste0(name, "_c"), name)
+                ))
+      execGRASS("g.remove", flags = c("f", "quiet"),
+                parameters = list(
+                  type = "vector",
+                  name =  paste0(name, "_c")
+                ))
     }
     if(file.exists(file.path(tempdir(), paste0(name, ".shp")))){
       invisible(file.remove(file.path(tempdir(), list.files(path = tempdir(), pattern = paste0(name, ".")))))
