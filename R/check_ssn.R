@@ -128,7 +128,7 @@ check_ssn <- function(path, predictions = NULL) {
     message("\tUnique rids...FAIL!")
   }
   
-  if (max(edges$rid) == nrow(edges) - 1) {
+  if (max(edges$rid) >= nrow(edges) - 1) {
     message("\tMax rid...OK")
   } else {
     out <- out & FALSE
