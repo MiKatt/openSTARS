@@ -120,9 +120,9 @@
 #'
 
 calc_attributes_sites_approx <- function(sites_map = "sites",
-                                         input_attr_name,
+                                         input_attr_name = NULL,
                                          output_attr_name = NULL,
-                                         stat,
+                                         stat = NULL,
                                          round_dig = 2,
                                          calc_basin_area = TRUE){
 
@@ -144,6 +144,9 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                   columns = "H2OAreaA"
                 ))
     }
+  }
+  if(calc_basin_area == FALSE & is.null(input_attr_name)){
+    stop("Either input attribute name(s) must be given or calc_basin_area must be TRUE.")
   }
 
   if(length(input_attr_name) != length(output_attr_name))

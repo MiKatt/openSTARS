@@ -382,6 +382,10 @@ correct_compl_junctions <- function(clean = TRUE){
                 where = paste0("cat_ in ",cut.str),
                 query_column = "str_new"
               ))
+    execGRASS("v.db.dropcolumn", flags = "quiet",
+              map = "streams_v",
+              columns = "str_new"
+              )
 
     message("Updating topology ...")
 

@@ -192,8 +192,8 @@ calc_binary <- function(){
                       type = "vect"
                     ),
                     intern = TRUE)
-  if (!"sites_o" %in% vect)
-    stop("Sites not found. Did you run import_data()?")
+  #if (!"sites_o" %in% vect)
+  #  stop("Sites not found. Did you run import_data()?")
   if (!"edges" %in% vect)
     stop("edges not found. Did you run calc_edges()?")
   if (!"sites" %in% vect)
