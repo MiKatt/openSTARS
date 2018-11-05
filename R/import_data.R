@@ -205,10 +205,12 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
                   output = "streams_oc",
                   tool = "snap",
                   threshold = 10),ignore.stderr=T)
+      sink("temp.txt")
       execGRASS("g.copy",
                 flags = c("overwrite", "quiet"),
                 parameters = list(
                   vector = "streams_oc,streams_o"))
+      sink()
       execGRASS("g.remove",
                 flags = c("quiet", "f"),
                 parameters = list(

@@ -214,16 +214,16 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     rm(d.edges)
   }
 
-  locIDs <- unique(d.sites@data$locID)
+  locID <- unique(d.sites@data$locID)
   dat.h2o <- dat.rast <- dat.vect <- NULL
   if(calc_basin_area){
-    dat.h2o <- matrix(nrow = length(locIDs), ncol = 1, data = 0)
+    dat.h2o <- matrix(nrow = length(locID), ncol = 1, data = 0)
     colnames(dat.h2o) <- c("H2OArea")
   } 
   if(!is.null(input_raster)){
     vals.rast <- lapply(1:length(input_raster), function(x) ifelse(stat_rast[x] == "percent", list(get_all_raster_values(input_raster[x])), 1))
     ndat <- length(unlist(vals.rast))
-    dat.rast <- matrix(nrow = length(locIDs), ncol = ndat, data = 0)
+    dat.rast <- matrix(nrow = length(locID), ncol = ndat, data = 0)
     cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] == "percent", 
                                                                        list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
                                                                        attr_name_rast[x]))
@@ -253,7 +253,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       if(length(round_dig) < length(attribute_cats) + length(input_raster) + calc_basin_area)
         round_dig <- c(round_dig, rep(round_dig[1], length(attribute_cats)))
     }
-    dat.vect <- matrix(ncol = length(attribute_cats), nrow = length(locIDs), data = 0)
+    dat.vect <- matrix(ncol = length(attribute_cats), nrow = length(locID), data = 0)
     colnames(dat.vect) <- c(attribute_cats)
   }
   
@@ -266,12 +266,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   # progress bar
   pb <- progress::progress_bar$new(total = nrow(d.sites@data))
   
-  for (i in seq_along(locIDs)) {
+  for (i in seq_along(locID)) {
     #message(i)
-    locID <- locIDs[i]
+    id <- locID[i]
     #dat[i,"locID"]  <-  locID
     # get first entry from d.sites@data with locID
-    ii <- which(d.sites@data$locID == locID)[1] 
+    ii <- which(d.sites@data$locID == id)[1] 
 
     # calculate drainage area in km^2
     if(calc_basin_area){
@@ -287,7 +287,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         m <- paste0("if(", paste0("rca == ", cats, collapse =  " || "), ", 1, 0)")
         execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                   parameters = list(
-                    expression = paste0(sites_map, "_catchm_", locID,  " = ", m)
+                    expression = paste0(sites_map, "_catchm_", id,  " = ", m)
                   ))
         
         ## old approach
@@ -354,11 +354,11 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                   flags = c("overwrite", "l", "quiet"),
                   parameters = list(direction = "dirs",
                                     coordinates = coord,
-                                    basins = paste0(sites_map, "_catchm_",locID)))
+                                    basins = paste0(sites_map, "_catchm_",id)))
         dat.h2o[i,"H2OArea"] <- round(as.numeric(as.character(strsplit(
           execGRASS("r.stats",
                     flags = c("a", "quiet"),
-                    parameters = list(input = paste0(sites_map, "_catchm_",locID)),
+                    parameters = list(input = paste0(sites_map, "_catchm_",id)),
                     intern = TRUE)[1], split = ' ')[[1]][[2]]))/1000000,round_dig[1])
       }
     }
@@ -372,7 +372,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       execGRASS("r.mask",
                 flags = c("overwrite", "quiet"),
                 parameters = list(
-                  raster = paste0(sites_map, "_catchm_",locID)))
+                  raster = paste0(sites_map, "_catchm_",id)))
       st <- execGRASS("r.univar",
                       flags = c("overwrite", "quiet", "t"),
                       parameters = list(
@@ -382,7 +382,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
       non_null_cells <- as.numeric(st[2,which(st[1,] == "non_null_cells")])
       for(j in 1:length(stat_rast)){
-        if(stat_rast[j] == "percent" & length(unlist(vals.rast[j])) > 2){
+        if(stat_rast[j] == "percent"){
           st <- execGRASS("r.stats", flags = c("c"),
                           parameters = list(
                             input =   input_raster[j], #paste0("rca,", input_raster[j]),
@@ -404,7 +404,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           #stat_r <- c(stat_r, rep("percent_class", ncol(st) - 1))
           if(length(ind <- which(st$class == "*")) > 0)
             st <- st[-ind,, drop = FALSE]
-          dat.rast[i, paste(attr_name_rast[j], st$class, sep = "_")] <- st$cellcount / non_null_cells
+          if(nrow(st) > 0)
+            dat.rast[i, paste(attr_name_rast[j], st$class, sep = "_")] <- st$cellcount / non_null_cells
         } else {
           if(stat_rast[j] == "median"){
             st <- execGRASS("r.univar",
@@ -448,8 +449,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     # vector data
     if(length(input_vector) > 0){
       # convert raster catchment to vector
-      rname <- paste0(sites_map, "_catchm_",locID)
-      vname <- paste0(sites_map, "_catchm_",locID, "_v")
+      rname <- paste0(sites_map, "_catchm_",id)
+      vname <- paste0(sites_map, "_catchm_",id, "_v")
       execGRASS("r.to.vect", flags = c("overwrite","v", "quiet"),
                 parameters = list(
                   input = rname,
@@ -531,12 +532,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                           type = "rast"
                         ),
                         intern = TRUE)
-      if(paste0(sites_map, "_catchm_",locID) %in% rast){
+      if(paste0(sites_map, "_catchm_",id) %in% rast){
         execGRASS("g.remove",
                   flags = c("quiet", "f"),
                   parameters = list(
                     type = "raster",
-                    name = paste0(sites_map, "_catchm_",locID)
+                    name = paste0(sites_map, "_catchm_",id)
                   ))
       }
       vect <- execGRASS("g.list",
@@ -544,18 +545,25 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                           type = "vector"
                         ),
                         intern = TRUE)
-      if(paste0(sites_map, "_catchm_",locID, "_v") %in% vect){
+      if(paste0(sites_map, "_catchm_",id, "_v") %in% vect){
       execGRASS("g.remove",
                 flags = c("quiet", "f"),
                 parameters = list(
                   type = "vector",
-                  name = paste0(sites_map, "_catchm_",locID, "_v")
+                  name = paste0(sites_map, "_catchm_",id, "_v")
                 ), ignore.stderr = TRUE)
       }
     }
     pb$tick()
   }
-  dat <- cbind(dat.h2o, dat.rast, dat.vect, locIDs)
+  
+  # change column names if there is just one raster class (and NULL)
+  cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] == "percent" & length(vals.rast[[x]]) > 1, 
+                                                                     list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
+                                                                     attr_name_rast[x]))
+  colnames(dat.rast) <- unlist(cnames.rast)
+  
+  dat <- cbind(dat.h2o, dat.rast, dat.vect, locID)
   
   # Join attributes to sites attribute table
   message("Joining new attributes to attribute table ...")
@@ -571,7 +579,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
               map = sites_map,
               column = "locID",
               other_table = "sites_attributes_exact",
-              other_column = "locIDs"
+              other_column = "locID"
             ))
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
