@@ -203,9 +203,6 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                       type = "rast"
                     ),
                     intern = TRUE)
-  if (!"streams_r" %in% rast | !"dirs" %in% rast)
-    stop("Missing data. Did you run derive_streams()?")
-  
   if (!"rca" %in% rast)
     stop("Missing data. Did you run calc_edges()?")
   
@@ -246,16 +243,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     round_dig <- rep(round_dig, length(stat_rast) + length(stat_vect))
   
   temp_dir <- tempdir()
-  
-  # MK 02.05.2018: not necessary because this is already done in calc_edges
-  ## Calculate reach contributing area (= sub chatchment) for each segment).
-  # message("Calculating reach contributing area (RCA)...\n")
-  # execGRASS("r.stream.basins",
-  #           flags = c("overwrite", "quiet"),
-  #           parameters = list(direction = "dirs",
-  #                             stream_rast = "streams_r",
-  #                             basins = "rca"))
-  
+
   if(!is.null(input_raster)){
     message("Intersecting raster attributes ...")
     rca_cell_count <- execGRASS("r.univar",
@@ -338,7 +326,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     colnames(dt.streams) <- dt.streams[1,]
     dt.streams <- data.table(dt.streams[-1,,drop = FALSE])
     dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
-    dt.streams <- merge(dt.streams, rca_cell_count, by.x = "cat", by.y = "zone", all.x = TRUE)
+    dt.streams <- merge(dt.streams, rca_cell_count, by.x = "stream", by.y = "zone", all.x = TRUE)
     dt.streams[, cumsum_cells := 0]
     ind <- which(!stat_rast %in% c("min", "max"))
     if(length(ind) > 0){
@@ -367,9 +355,9 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     execGRASS("v.db.join", flags = "quiet",
               parameters = list(
                 map = "edges",
-                column = "cat",
+                column = "stream",
                 other_table = "edge_attributes",
-                other_column = "cat_"
+                other_column = "stream"
               ))
   }
   
@@ -382,7 +370,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 input = "rca",
                 output = "rca_v",
                 type = "area",
-                column = "edge_cat"
+                column = "stream"
               ), ignore.stderr = T, intern = T)
     
     dt.streams <- do.call(rbind,strsplit(
@@ -425,16 +413,16 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         dt.dat <- do.call(rbind,strsplit(
           execGRASS("db.select",
                     parameters = list(
-                      sql = paste0('select a_edge_cat, area, ', cname, ' from temp_inters')
+                      sql = paste0('select a_stream, area, ', cname, ' from temp_inters')
                     ),intern = T),
           split = '\\|'))
         colnames(dt.dat) <- dt.dat[1,]
         dt.dat <- as.data.frame(dt.dat[-1,], stringsAsFactors = F)
         setDT(dt.dat)
-        setnames(dt.dat, "a_edge_cat", "edge_cat")
-        dt.dat[, c("edge_cat", "area") := lapply(.SD, as.numeric), .SDcols =  c("edge_cat", "area")]
-        dt.dat <- dt.dat[, .(area = sum(area)), c("edge_cat", cname)] 
-        dt.dat <- dcast(dt.dat, paste0("edge_cat  ~ b_", attr_name_vect[j]), value.var = "area")
+        setnames(dt.dat, "a_stream", "stream")
+        dt.dat[, c("stream", "area") := lapply(.SD, as.numeric), .SDcols =  c("stream", "area")]
+        dt.dat <- dt.dat[, .(area = sum(area)), c("stream", cname)] 
+        dt.dat <- dcast(dt.dat, paste0("stream  ~ b_", attr_name_vect[j]), value.var = "area")
         #setnames(dt.dat, names(dt.dat)[-1], paste0("p", names(dt.dat)[-1]))
       } else { # if point data
         execGRASS("v.vect.stats", flags = "quiet", 
@@ -446,20 +434,20 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         dt.dat <- do.call(rbind,strsplit(
           execGRASS("db.select",
                     parameters = list(
-                      sql = paste0('select edge_cat, ', attr_name_vect[j], ' from rca_v')
+                      sql = paste0('select stream, ', attr_name_vect[j], ' from rca_v')
                     ),intern = T),
           split = '\\|'))
         colnames(dt.dat) <- dt.dat[1,]
         dt.dat <- as.data.frame(dt.dat[-1,], stringsAsFactors = F)
         setDT(dt.dat)
         dt.dat[, names(dt.dat) := lapply(.SD, as.numeric)]
-        dt.dat <- dt.dat[, lapply(.SD, sum), by = edge_cat, .SDcols = attr_name_vect[j]]
+        dt.dat <- dt.dat[, lapply(.SD, sum), by = stream, .SDcols = attr_name_vect[j]]
         # MK 01.052018: Why did I set the names starting with "s"?
         #setnames(dt.dat, attr_name_vect[j], paste0("s", attr_name_vect[j]))
       }
       nanames[j] <- ncol(dt.dat) - 1
       anames <- c(anames, names(dt.dat)[-1])
-      dt.streams <- merge(dt.streams, dt.dat, by.x = "cat", by.y = "edge_cat", all.x = TRUE)
+      dt.streams <- merge(dt.streams, dt.dat, by = "stream", all.x = TRUE)
     }
     for (k in anames){
       set(dt.streams, which(is.na(dt.streams[[k]])),k , 0)
@@ -484,18 +472,12 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 output = "edge_attributes"
               ),ignore.stderr = T, intern = T)
     
-    # execGRASS("db.select",
-    #           sql = "SELECT * FROM edge_attributes WHERE cat_ < 10"
-    #           )
-    # execGRASS("db.select",
-    #           sql = "SELECT * FROM edges WHERE cat_ < 10"
-    #           )
     execGRASS("v.db.join", flags = "quiet",
               parameters = list(
                 map = "edges",
-                column = "cat",
+                column = "stream",
                 other_table = "edge_attributes",
-                other_column = "cat_"
+                other_column = "stream"
               ))
     
     # remove temporary files

@@ -11,12 +11,9 @@
 #' @param clean logical; should intermediate files be removed from 'GRASS'
 #'   session?
 #'   
-#' @return Nothing. The function changes features in \itemize{
-#'   \item{'streams_v':} {Updated streams with topology (vector)}
-#'   \item{'streams_r':} {Updated stream raster (new cat) (raster)} } and copies
-#'   the original to \itemize{ \item{'streams_v_o':} {Originally derived streams
-#'   with topology (vector)} \item{'streams_r_o':} {Originally derived stream
-#'   raster (raster).} }
+#' @return Nothing. The function changes features in 'streams_v'. Changed features are
+#' marked in the new column 'changed'.
+#
 #'
 #' @note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
 #'   \code{\link{derive_streams}} must be run before.
@@ -455,21 +452,21 @@ correct_compl_junctions <- function(clean = TRUE){
     rm("streams")
   }
 
-  message("Original stream raster moved to 'streams_r_o'.")
-  execGRASS("g.copy",
-            flags = c("overwrite", "quiet"),
-            parameters = list(
-              raster = "streams_r,streams_r_o"))
+  # message("Original stream raster moved to 'streams_r_o'.")
+  # execGRASS("g.copy",
+  #           flags = c("overwrite", "quiet"),
+  #           parameters = list(
+  #             raster = "streams_r,streams_r_o"))
   
-  # now use automatically assigned "cat"
-  execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
-            parameters = list(
-              input = "streams_v",
-              type = "line",
-              output = "streams_r",
-              use = "attr",
-              attribute_column = "cat"
-            ))
+  # # now use automatically assigned "cat"
+  # execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
+  #           parameters = list(
+  #             input = "streams_v",
+  #             type = "line",
+  #             output = "streams_r",
+  #             use = "attr",
+  #             attribute_column = "cat"
+  #           ))
   
   invisible(file.remove(file.path(temp_dir,"complex_points.txt")))
   invisible(file.remove(file.path(temp_dir,"cut_points.txt")))

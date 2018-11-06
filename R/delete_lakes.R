@@ -329,21 +329,21 @@ delete_lakes <- function(lakes, save = TRUE){
   writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
   sink()
   
-  message("Original stream raster moved to streams_r_prev_lakes.\n")
-  execGRASS("g.copy",
-            flags = c("overwrite", "quiet"),
-            parameters = list(
-              raster = "streams_r,streams_r_prev_lakes"))
-  
-  # use unique "cat" automatically assigned be writeVECT
-  execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
-            parameters = list(
-              input = "streams_v",
-              type = "line",
-              output = "streams_r",
-              use = "attr",
-              attribute_column = "cat"
-            ))
+  # message("Original stream raster moved to streams_r_prev_lakes.\n")
+  # execGRASS("g.copy",
+  #           flags = c("overwrite", "quiet"),
+  #           parameters = list(
+  #             raster = "streams_r,streams_r_prev_lakes"))
+  # 
+  # # use unique "cat" automatically assigned be writeVECT
+  # execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
+  #           parameters = list(
+  #             input = "streams_v",
+  #             type = "line",
+  #             output = "streams_r",
+  #             use = "attr",
+  #             attribute_column = "cat"
+  #           ))
 }
 
 

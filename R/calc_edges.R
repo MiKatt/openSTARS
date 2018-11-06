@@ -59,13 +59,12 @@
 #' 
 
 calc_edges <- function() {
-  rast <- execGRASS("g.list",
+  vect <- execGRASS("g.list",
                     parameters = list(
-                      type = "rast"
+                      type = "vector"
                     ),
                     intern = TRUE)
-  # MiKatt: streams_v (vector) is not needed in calculations but streams_r (raster)
-  if (!"streams_r" %in% rast)
+  if (!"streams_v" %in% vect)
     stop("Missing data. Did you run derive_streams()?")
   
   temp_dir <- tempdir()
@@ -93,6 +92,16 @@ calc_edges <- function() {
               type = "point",
               tool = "delete",
               cats = nocat), ignore.stderr = T)
+  
+  # create raster of streams based on "stream" in edges
+  execGRASS("v.to.rast", flags = c("overwrite", "quiet"),
+            parameters = list(
+              input = "streams_v",
+              type = "line",
+              output = "streams_r",
+              use = "attr",
+              attribute_column = "stream"
+            ))
 
   # calculate basins for streams segments --------
   message("Calculating reach contributing area (RCA) ...")
@@ -119,22 +128,22 @@ calc_edges <- function() {
   # last row is total and not needed
   areas <- as.data.frame(areas[-nrow(areas), ], stringsAsFactors = FALSE)
   setDT(areas)
-  setnames(areas, names(areas),c("cat","area"))
+  setnames(areas, names(areas),c("stream","area"))
   areas[, names(areas) := lapply(.SD, as.numeric)]
 
   # calculate upstream area per stream segment
   dt.streams <- do.call(rbind,strsplit(
     execGRASS("db.select",
               parameters = list(
-                sql = "select cat, stream, next_str, prev_str01,prev_str02 from edges"
+                sql = "select stream, next_str, prev_str01,prev_str02 from edges"
               ),intern = T),
     split = '\\|'))
   colnames(dt.streams) <- dt.streams[1,]
   dt.streams <- data.table(dt.streams[-1,, drop = FALSE], "total_area" = 0, "netID" = -1)
   dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
-  dt.streams<-merge(dt.streams, areas, by = "cat", all = T)  # MiKatt: must be 'cat' not 'stream' because stream_r is based on 'cat'!
+  dt.streams<-merge(dt.streams, areas, by = "stream", all = T)  # was: MiKatt: must be 'cat' not 'stream' because stream_r is based on 'cat'! Is now: 'stream'!
   setkey(dt.streams, stream)
-  # set catchment area of short segments that do not have a rca (NA) to zero (mainly resulting form correct_compl_junctions())
+  # set catchment area of short segments that do not have a rca (NA) to zero (mainly resulting from correct_compl_junctions())
   dt.streams[is.na(area), area := 0 ]
 
   # MiKatt: Segments without a next segment (= -1) are outlets of catchments
@@ -216,12 +225,12 @@ calc_edges <- function() {
   execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
-              column = "total_area,H2OArea"
+              column = "total_area,H2OAreaKm2"
             ))
   execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
-              column = "area,rcaArea"
+              column = "area,rcaAreaKm2"
             ))
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(

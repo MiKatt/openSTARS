@@ -11,12 +11,8 @@ correct_compl_junctions(clean = TRUE)
 session?}
 }
 \value{
-Nothing. The function changes features in \itemize{
-  \item{'streams_v':} {Updated streams with topology (vector)}
-  \item{'streams_r':} {Updated stream raster (new cat) (raster)} } and copies
-  the original to \itemize{ \item{'streams_v_o':} {Originally derived streams
-  with topology (vector)} \item{'streams_r_o':} {Originally derived stream
-  raster (raster).} }
+Nothing. The function changes features in 'streams_v'. Changed features are
+marked in the new column 'changed'.
 }
 \description{
 At complex junctions (i.e. more than two inflows to an outflow),the inflow

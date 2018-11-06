@@ -26,7 +26,6 @@
 #'   
 #' @return Nothing. The function produces the following maps:
 #' \itemize{
-#'  \item{'streams_r'} {derived streams (raster)}
 #'  \item{'streams_v'} {derived streams with topology (vector)}
 #'  \item{'dirs'} {flow directions (raster)}
 #'  \item{'accums'} {accumulation values (raster)}
@@ -227,6 +226,10 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
                                 accumulation = "accums",       # input
                                 stream_vect = "streams_v"),    # output
               ignore.stderr=T)
+    execGRASS("g.remove", flag = c("f", "quiet"),
+              type = "raster",
+              name = "streams_r"
+    )
 
     # MiKatt: ESRI shape files must not have column names with more than 10 characters
     execGRASS("v.db.renamecolumn", flags = "quiet",

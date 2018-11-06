@@ -12,7 +12,7 @@ import_data(dem, band = 1, sites, streams = NULL,
 \arguments{
 \item{dem}{character; path to DEM (digital elevation model) raster file.}
 
-\item{band}{integer (optional); defines which band is used}
+\item{band}{integer (optional); defines which band of the dem to use}
 
 \item{sites}{character string or object; path to sites vector file (ESRI shape) 
 or sp or sf data object.}
@@ -66,7 +66,7 @@ All vector data (sites, streams and potential predictors) is imported
 into the current location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
 Hence, if the projections does not match to the one of the DEM (which was used
 to specify the location in \code{\link{setup_grass_environment}}) the maps 
-are imported on the fly.
+are projected and imported on the fly.
 }
 \note{
 A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
@@ -122,6 +122,6 @@ points(ps, bg = "red", pch = 21, col = "grey", cex = 1.5)
 }
 }
 \author{
-Eduard Szoecs, \email{eduardszoecs@gmail.com},  Mira Kattwinkel
+Eduard Szoecs, \email{eduardszoecs@gmial.com},  Mira Kattwinkel
  \email{mira.kattwinkel@gmx.net}
 }

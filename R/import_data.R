@@ -6,7 +6,7 @@
 #' maps (raster or vector format) can be loaded.
 #'
 #' @param dem character; path to DEM (digital elevation model) raster file.
-#' @param band integer (optional); defines which band is used
+#' @param band integer (optional); defines which band of the dem to use
 #' @param sites character string or object; path to sites vector file (ESRI shape) 
 #' or sp or sf data object.
 #' @param streams character string or object (optional); path to network vector 
@@ -44,7 +44,7 @@
 #' into the current location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
 #' Hence, if the projections does not match to the one of the DEM (which was used
 #' to specify the location in \code{\link{setup_grass_environment}}) the maps 
-#' are imported on the fly.
+#' are projected and imported on the fly.
 #' 
 #' @note A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 #' 
@@ -54,7 +54,7 @@
 #' instead of proj4string = CRS("+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs"))
 #' when defining sp objects.
 #' 
-#' @author Eduard Szoecs, \email{eduardszoecs@@gmail.com},  Mira Kattwinkel
+#' @author Eduard Szoecs, \email{eduardszoecs@@gmial.com},  Mira Kattwinkel
 #'  \email{mira.kattwinkel@@gmx.net}
 #' @export
 #' 

@@ -36,7 +36,6 @@ conditioned and / or burnt in DEM raster from previous runs shall be used.}
 \value{
 Nothing. The function produces the following maps:
 \itemize{
- \item{'streams_r'} {derived streams (raster)}
  \item{'streams_v'} {derived streams with topology (vector)}
  \item{'dirs'} {flow directions (raster)}
  \item{'accums'} {accumulation values (raster)}
