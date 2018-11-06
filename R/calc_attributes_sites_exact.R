@@ -558,7 +558,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   }
   
   # change column names if there is just one raster class (and NULL)
-  cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] == "percent" & length(vals.rast[[x]]) > 1, 
+  cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] == "percent" & length(unlist(vals.rast[[x]])) > 1, 
                                                                      list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
                                                                      attr_name_rast[x]))
   colnames(dat.rast) <- unlist(cnames.rast)
