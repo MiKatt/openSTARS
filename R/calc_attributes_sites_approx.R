@@ -206,7 +206,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                   sql = sql_str
                 ))
       # correct for those segments that do not have previous streams
-      if(input_attr_name[i] == "H2OAreaKm2"){
+      if(input_attr_name[i] == "H2OAreKm2"){
         sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                           " = (1-ratio)*(SELECT rcaAreaKm2 FROM edges WHERE ",
                           sites_map,".stream = edges.stream) WHERE stream IN ",
