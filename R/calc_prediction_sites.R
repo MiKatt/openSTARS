@@ -151,7 +151,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   execGRASS("v.db.addtable", flags = c("quiet"),
             parameters = list(
               map = predictions,
-              columns = "cat_edge int,dist double precision,pid int,loc int,net int,rid int,out_dist double,distalong double precision,ratio double precision"
+              columns = "cat_edge int,stream int,dist double precision,pid int,loc int,net int,rid int,out_dist double,distalong double precision,ratio double precision"
            ))
 
   # MiKatt: Necessary to get upper and lower case column names
@@ -206,6 +206,12 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
             parameters = list(
               sql = sql_str
             ))
+  sql_str<- paste0("UPDATE ", predictions, " SET stream=(SELECT stream FROM edges WHERE ",
+                   predictions,".cat_edge=edges.cat)")
+  execGRASS("db.execute",
+            parameters = list(
+              sql = sql_str
+            ))
 
   # Calculate upDist ---------
   message("Calculating upDist ...")
@@ -255,6 +261,9 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
             parameters = list(
               sql=sql_str
             ))
+  execGRASS("v.db.dropcolumn",
+            map = predictions,
+            columns = "cat_edge")
 }
 
 #' Calculate offset

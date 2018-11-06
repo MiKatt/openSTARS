@@ -160,7 +160,7 @@ calc_edges <- function() {
   dt.streams[, total_area := round(total_area / 1000000, 6)]
   dt.streams[, rid := seq_len(nrow(dt.streams)) - 1]
   dt.streams[, OBJECTID := stream]
-  dt.streams[,  ":=" (cat = NULL, next_str = NULL, prev_str01 = NULL, prev_str02 = NULL)]
+  dt.streams[,  ":=" (next_str = NULL, prev_str01 = NULL, prev_str02 = NULL)]
   utils::write.csv(dt.streams, file.path(temp_dir, "stream_network.csv"), row.names = F)
   dtype <- t(gsub("numeric", "Integer", sapply(dt.streams, class)))
   dtype[,c("total_area","area")] <- c("Real", "Real")

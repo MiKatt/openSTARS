@@ -135,6 +135,9 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
   site_maps <- sub("_o$","", site_maps)
   s <- sapply(site_maps, prepare_sites, locid_c = locid_col, pid_c = pid_col)
   
+  execGRASS("v.db.dropcolumn",
+            map = "sites",
+            columns = "cat_edge")
 }
 
 #' Snap sites to streams and calculate attributes
@@ -164,7 +167,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   execGRASS("v.db.addcolumn",
             parameters = list(
               map = sites_map,
-              columns = "cat_edge int,dist double precision,xm double precision,ym double precision"
+              columns = "cat_edge int,stream int,dist double precision,xm double precision,ym double precision"
             ))
   # calc distance
   # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
@@ -228,6 +231,10 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   execGRASS("db.execute",
             parameters = list(
               sql=paste0('UPDATE ', sites_map, ' SET netID=(SELECT netID FROM edges WHERE ', sites_map, '.cat_edge=edges.cat)')
+            ))
+  execGRASS("db.execute",
+            parameters = list(
+              sql=paste0('UPDATE ', sites_map, ' SET stream=(SELECT stream FROM edges WHERE ', sites_map, '.cat_edge=edges.cat)')
             ))
   
   # Calculate upDist ---------

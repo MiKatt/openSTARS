@@ -320,7 +320,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     dt.streams <- do.call(rbind,strsplit(
       execGRASS("db.select",
                 parameters = list(
-                  sql = "select cat, stream, next_str, prev_str01, prev_str02, netID from edges"
+                  sql = "select stream, next_str, prev_str01, prev_str02, netID from edges"
                 ),intern = T),
       split = '\\|'))
     colnames(dt.streams) <- dt.streams[1,]
@@ -340,7 +340,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     calc_catchment_attributes_rast(dt.streams, stat_rast, attr_name_rast, round_dig)
     
     # Delete unneeded columns
-    dt.streams[, c("stream", "next_str", "prev_str01", "prev_str02", "netID", "non_null_cells","cumsum_cells") := NULL]
+    dt.streams[, c("next_str", "prev_str01", "prev_str02", "netID", "non_null_cells","cumsum_cells") := NULL]
     setnames(dt.streams, attr_name_rast, paste0(attr_name_rast, "_e"))
     
     # Join attributes to edges attribute table
@@ -376,7 +376,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     dt.streams <- do.call(rbind,strsplit(
       execGRASS("db.select",
                 parameters = list(
-                  sql = "select cat, stream, next_str, prev_str01, prev_str02, netID, rcaArea, H2OArea from edges"
+                  sql = "select stream, next_str, prev_str01, prev_str02, netID, rcaAreaKm2, H2OAreaKm2 from edges"
                 ),intern = T),
       split = '\\|'))
     colnames(dt.streams) <- dt.streams[1,]
@@ -459,7 +459,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     calc_catchment_attributes_vect(dt.streams, stat_vect2, anames, round_dig2)
     
     # Delete unneeded columns
-    dt.streams[, c("stream", "next_str", "prev_str01", "prev_str02", "netID", "H2OArea", "rcaArea") := NULL]
+    dt.streams[, c("next_str", "prev_str01", "prev_str02", "netID", "H2OAreaKm2", "rcaAreaKm2") := NULL]
     setnames(dt.streams, anames, paste0(anames, "_e"))
     
     # Join attributes to edges attribute table
@@ -623,10 +623,10 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
   }
   ind <- grep("percent", stat_vect)
   if(length(ind) > 0){
-    #dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000)]
+    #dt[H2OAreaKm2 > 0, paste0(attr_name_vect[ind], "_c") := dt[H2OAreaKm2 > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OAreaKm2 > 0, H2OAreaKm2] * 1000000)]
     #sapply(ind, function(x) round(dt[, paste0(attr_name_vect[x], "_c"), with = FALSE], round_dig[x]))
-    dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000), round_dig[ind])]
-    dt[rcaArea > 0, attr_name_vect[ind] := round(dt[rcaArea > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaArea > 0, rcaArea] * 1000000), round_dig[ind])]
+    dt[H2OAreaKm2 > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OAreaKm2 > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OAreaKm2 > 0, H2OAreaKm2] * 1000000), round_dig[ind])]
+    dt[rcaAreaKm2 > 0, attr_name_vect[ind] := round(dt[rcaAreaKm2 > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaAreaKm2 > 0, rcaAreaKm2] * 1000000), round_dig[ind])]
     # TODO: correct, check, why it did not work with this!!
     # for(j in 1:length(ind)){
     #   dt[paste0(attr_name_vect[ind[j]], "_c") > 1, paste0(attr_name_vect[ind[j]], "_c") := 1]

@@ -24,11 +24,11 @@
 #' @return Nothing. The function appends new columns to the \code{sites_map}
 #'   attribute table
 #' \itemize{
-#'  \item{'H2OAreaA':} {Total watershed area of the watershed upstream of each site.}
+#'  \item{'H2OAreAKm2':} {Total watershed area of the watershed upstream of each site.}
 #'  \item{attr_name:} {Additional optional attributes calculated based on \code{input_attr_name}.}
 #' }
 #'
-#' @details The approximate total catchment area (H2OAreaA) is always calculated
+#' @details The approximate total catchment area (H2OAreAKm2) is always calculated
 #' if \code{calc_basin_area} is TRUE. If \code{stat} is one of "min", "max", "mean" or "percent" the
 #'   function assigns the value of the edge the site lies on. Otherwise, the
 #'   value is calculated as the sum of all edges upstream of the previous
@@ -129,19 +129,19 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
   if(is.null(output_attr_name))
     output_attr_name <- input_attr_name
   if(calc_basin_area == TRUE){
-    output_attr_name <- c("H2OAreaA", output_attr_name)
-    input_attr_name <- c("H2OArea", input_attr_name)
+    output_attr_name <- c("H2OAreAKm2", output_attr_name)
+    input_attr_name <- c("H2OAreKm2", input_attr_name)
     stat <- c("totalArea", stat)
     
     cnames <- execGRASS("db.columns", 
                         parameters = list(
                           table = "sites"), 
                         intern = T)
-    if("H2OAreaA" %in% cnames){
+    if("H2OAreAKm2" %in% cnames){
       execGRASS("v.db.dropcolumn", flags = "quiet",
                 parameters = list(
                   map = "sites",
-                  columns = "H2OAreaA"
+                  columns = "H2OAreAKm2"
                 ))
     }
   }
@@ -179,43 +179,43 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                 parameters = list(
                   sql = paste0("UPDATE ", sites_map," SET ", output_attr_name[i], "=",
                                "(SELECT ", paste0(input_attr_name[i],"_c"),
-                               " FROM edges WHERE edges.cat=", sites_map,".cat_edge)")
+                               " FROM edges WHERE edges.stream=", sites_map,".stream)")
                 ))
     } else {
       # calculate site attribute as attribute of the two previous edges +
       # (1-ratio) * contribution of edge to total edge attribute
       # for H2O Area or e.g. for total numbers (no of WWTP per catchment)
       # e.g. calculated with stat = "sum" in calc_attributes_edges
-      ecat_prev1 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
-      ecat_prev2 <-  paste0("(SELECT cat FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.cat=",sites_map,".cat_edge))")
-      if(input_attr_name[i] == "H2OArea"){
+      stream_prev1 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.stream=",sites_map,".stream))")
+      stream_prev2 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.stream=",sites_map,".stream))")
+      if(input_attr_name[i] == "H2OAreKm2"){
         sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                          " = ROUND(((1-ratio)*",
-                         "(SELECT rcaArea FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
-                         "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev1,") +",
-                         "(SELECT H2OArea FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
+                         "(SELECT rcaAreaKm2 FROM edges WHERE ", sites_map,".stream = edges.stream) +",
+                         "(SELECT H2OAreaKm2 FROM edges WHERE edges.cat=",stream_prev1,") +",
+                         "(SELECT H2OAreaKm2 FROM edges WHERE edges.cat=",stream_prev2,")),",round_dig[i],")")
       } else {
         sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                          " = ROUND(((1-ratio)*",
-                         "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) +",
-                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev1,") +",
-                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",ecat_prev2,")),",round_dig[i],")")
+                         "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".stream = edges.stream) +",
+                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",stream_prev1,") +",
+                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",stream_prev2,")),",round_dig[i],")")
       }
       execGRASS("db.execute",
                 parameters = list(
                   sql = sql_str
                 ))
       # correct for those segments that do not have previous streams
-      if(input_attr_name[i] == "H2OArea"){
+      if(input_attr_name[i] == "H2OAreaKm2"){
         sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
-                          " = (1-ratio)*(SELECT rcaArea FROM edges WHERE ",
-                          sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
-                          "(SELECT cat FROM edges WHERE prev_str01=0)")
+                          " = (1-ratio)*(SELECT rcaAreaKm2 FROM edges WHERE ",
+                          sites_map,".stream = edges.stream) WHERE stream IN ",
+                          "(SELECT stream FROM edges WHERE prev_str01=0)")
       } else {
         sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                           " = (1-ratio)*(SELECT ", paste0(input_attr_name[i],"_e"),
-                          " FROM edges WHERE ", sites_map,".cat_edge = edges.cat) WHERE cat_edge IN ",
-                          "(SELECT cat FROM edges WHERE prev_str01=0)")
+                          " FROM edges WHERE ", sites_map,".stream = edges.stream) WHERE stream IN ",
+                          "(SELECT stream FROM edges WHERE prev_str01=0)")
       }
       execGRASS("db.execute",
                 parameters = list(
