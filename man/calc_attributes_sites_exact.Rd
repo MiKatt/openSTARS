@@ -17,7 +17,7 @@ attributes shall be calculated for. "sites" (default) refers to the observation 
 maps to calculate attributes from.}
 
 \item{stat_rast}{character vector (optional); statistics to be calculated, one of:
-min, max, mean, stddev, variance, sum, median or percentile_X (where X
+min, max, mean, stddev, variance, sum, median, percant, area or percentile_X (where X
 gives the desired percentile e.g. 25 for the first). Must be provided if 
 \code{input_raster} are given.}
 
@@ -29,7 +29,7 @@ Must be provided if \code{input_raster} are given.}
 maps to calculate attributes from.}
 
 \item{stat_vect}{character string vector (optional); statistics to be calculated, 
-one of: percentage or count. Must be provided if \code{input_vector} is given.}
+one of: percentage, area or count. Must be provided if \code{input_vector} is given.}
 
 \item{attr_name_vect}{character string vector (optional); column name(s) in 
 the vector file provided to calculate the attributes from (if \code{input_vector}

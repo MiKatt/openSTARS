@@ -15,7 +15,7 @@
 #' @param input_raster character vector (optional); name of additional raster
 #'   maps to calculate attributes from.
 #' @param stat_rast character vector (optional); statistics to be calculated, one of:
-#'   min, max, mean, stddev, variance, sum, median or percentile_X (where X
+#'   min, max, mean, stddev, variance, sum, median, percant, area or percentile_X (where X
 #'   gives the desired percentile e.g. 25 for the first). Must be provided if 
 #'   \code{input_raster} are given.
 #' @param attr_name_rast character vector (optional); column name for the attributes
@@ -24,7 +24,7 @@
 #' @param input_vector character string vector (optional); name of additional vector
 #'   maps to calculate attributes from.
 #' @param stat_vect character string vector (optional); statistics to be calculated, 
-#'  one of: percentage or count. Must be provided if \code{input_vector} is given.
+#'  one of: percentage, area or count. Must be provided if \code{input_vector} is given.
 #' @param attr_name_vect character string vector (optional); column name(s) in 
 #'  the vector file provided to calculate the attributes from (if \code{input_vector}
 #'  is a polygon map and stat_vect is 'percent') or giving the new name attributes
@@ -129,11 +129,11 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     stop(paste0("There must be the same number of input vector files (",length(input_vector), ")
                 and statistics to calculate (", length(stat_vect), ")."))
   
-  if(!is.null(stat_rast) & any(stat_rast %in% c("min","max", "mean", "stddev","variance","sum","median", "percent") + grepl("percentile", stat_rast)) == 0) # TRUE = 1, FALSE = 0
-    stop('Statistisc to calculate from raster data must be one of "min","max", "mean", "stddev","variance","sum", "median", "percentile_X" or "percent".')
+  if(!is.null(stat_rast) & any(stat_rast %in% c("min","max", "mean", "stddev","variance","sum","median", "percent","area") + grepl("percentile", stat_rast)) == 0) # TRUE = 1, FALSE = 0
+    stop('Statistisc to calculate from raster data must be one of "min","max", "mean", "stddev","variance","sum", "median", "percentile_X", "percent" or "area".')
 
-  if(any(!stat_vect %in% c("percent", "count")))
-    stop('statistics to calculate from vector data must be one of "count" or "percent".')
+  if(any(!stat_vect %in% c("percent", "count", "area")))
+    stop('statistics to calculate from vector data must be one of "count", "percent" or "area".')
   
   # 1 for area, 2 for points
   vtype <- rep(1, length(stat_vect))
@@ -224,7 +224,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     vals.rast <- lapply(1:length(input_raster), function(x) ifelse(stat_rast[x] == "percent", list(get_all_raster_values(input_raster[x])), 1))
     ndat <- length(unlist(vals.rast))
     dat.rast <- matrix(nrow = length(locID), ncol = ndat, data = 0)
-    cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] == "percent", 
+    cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] %in% c("percent", "area"),
                                                                        list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
                                                                        attr_name_rast[x]))
     colnames(dat.rast) <- unlist(cnames.rast)
@@ -255,6 +255,13 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     }
     dat.vect <- matrix(ncol = length(attribute_cats), nrow = length(locID), data = 0)
     colnames(dat.vect) <- c(attribute_cats)
+  }
+  
+  cellsize <- NULL
+  if(any(stat_rast == "area")){
+    cellsize <- execGRASS("g.region", flags = "p",intern=T)
+    cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2])
+    cellsize <- prod(cellsize)
   }
   
   cnames_sites <- execGRASS("db.columns", flags = "quiet",
@@ -382,7 +389,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
       non_null_cells <- as.numeric(st[2,which(st[1,] == "non_null_cells")])
       for(j in 1:length(stat_rast)){
-        if(stat_rast[j] == "percent"){
+        if(stat_rast[j] == "percent" | stat_rast[j] == "area"){
           st <- execGRASS("r.stats", flags = c("c"),
                           parameters = list(
                             input =   input_raster[j], #paste0("rca,", input_raster[j]),
@@ -404,8 +411,13 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           #stat_r <- c(stat_r, rep("percent_class", ncol(st) - 1))
           if(length(ind <- which(st$class == "*")) > 0)
             st <- st[-ind,, drop = FALSE]
-          if(nrow(st) > 0)
-            dat.rast[i, paste(attr_name_rast[j], st$class, sep = "_")] <- st$cellcount / non_null_cells
+          if(nrow(st) > 0){
+            if(stat_rast[j] == "percent"){
+              dat.rast[i, paste(attr_name_rast[j], st$class, sep = "_")] <- st$cellcount / non_null_cells
+            } else { #"area
+              dat.rast[i, paste(attr_name_rast[j], st$class, sep = "_")] <- st$cellcount * cellsize
+            }
+          }
         } else {
           if(stat_rast[j] == "median"){
             st <- execGRASS("r.univar",
@@ -507,7 +519,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           if(length(a) > 0){
             a <- do.call(rbind,strsplit(a,split = '\\|'))
             a <- data.frame(a,  stringsAsFactors = F)
-            a[,2] <- round(as.numeric(a[,2]) / carea, round_dig[j.count])
+            if(stat_v[j] == "percent")  # do not divide by area if calculating total area 
+              a[,2] <- round(as.numeric(a[,2]) / carea, round_dig[j.count])
             dat.vect[i, a[,1]] <- a[,2]
           }
         } else { # if this is a point vector
@@ -558,7 +571,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   }
   
   # change column names if there is just one raster class (and NULL)
-  cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] == "percent" & length(unlist(vals.rast[[x]])) > 1, 
+  cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] %in% c("percent", "area") & length(unlist(vals.rast[[x]])) > 1, 
                                                                      list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
                                                                      attr_name_rast[x]))
   colnames(dat.rast) <- unlist(cnames.rast)

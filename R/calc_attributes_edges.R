@@ -294,7 +294,11 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
           st[,  2:ncol(st) := lapply(.SD, function(x) x * cellsize), .SDcol  =  2:ncol(st)]
           stat_r <- c(stat_r, rep("area_class", ncol(st) - 1))
         }
-        colnames(st)[-1] <- paste(attr_name_rast[j], colnames(st)[-1], sep = "_")
+        if(length(colnames(st)) > 2){
+          colnames(st)[-1] <- paste(attr_name_rast[j], colnames(st)[-1], sep = "_")
+        } else{
+          colnames(st)[-1] <- attr_name_rast[j]
+        }
         rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
       } else {
         st <- execGRASS("r.univar",
@@ -474,7 +478,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     # Delete unneeded columns
     dt.streams[, c("next_str", "prev_str01", "prev_str02", "netID", "H2OArea", "rcaArea") := NULL]
     setnames(dt.streams, anames, paste0(anames, "_e"))
-    
+
     # Join attributes to edges attribute table
     message("Joining table vector attributes ...")
     utils::write.csv(dt.streams, file.path(temp_dir,"edge_attributes.csv"),row.names = F)

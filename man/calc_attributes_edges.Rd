@@ -12,7 +12,7 @@ calc_attributes_edges(input_raster = NULL, stat_rast = NULL,
 \item{input_raster}{name(s) of raster map(s) to calculate attributes from.}
 
 \item{stat_rast}{name(s) giving the statistics to be calculated,
-from the raster maps, must be one of: "min", "max", "mean", "sum", "percent".}
+from the raster maps, must be one of: "min", "max", "mean", "sum", "percent", "area".}
 
 \item{attr_name_rast}{name(s) of new column names for the attribute(s)
 to be calculated. Attribute names must not be longer than 8 characters.}
@@ -20,7 +20,7 @@ to be calculated. Attribute names must not be longer than 8 characters.}
 \item{input_vector}{name(s) of vector map(s) to calculate attributes from.}
 
 \item{stat_vect}{name(s) giving the statistics to be calculated
-from the vector maps, must be one of: "count" (for point data), "percent"
+from the vector maps, must be one of: "count" (for point data), "percent" or "area"
 (for polygon data).}
 
 \item{attr_name_vect}{name(s) of attribute column(s). For polygon data, this is
@@ -49,14 +49,14 @@ intersected with the given raster and/or vector maps and the desired statistics 
 This function must be run before computing approximate attribute values for 
 sites \code{\link{calc_attributes_sites_approx}}.
 
-For \code{stat_rast} = "percent" the \code{input_raster} can be either coded as 1 and 0
+For \code{stat_rast} = "percent" or "area" the \code{input_raster} can be either coded as 1 and 0
  (e.g., cells occupied by the land use under consideration and not) or as different classes. 
- In the latter case, the percentage of each class in the catchment is calculated. If
+ The percentage or area of each class in the catchment is calculated. If
  the \code{input_raster} consists of percentages per cell (e.g., proportional land
  use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
  of this land use in the catchment.
 
-For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
+For \code{stat_vect} = "percent" or "area" \code{input_vector} must contain polygons of
 e.g. different land use types. The column \code{attr_name_vect} would then 
 give the code for the different land uses. Then, the percentage for each land
 use type in the catchment of the edge is calculated and given in separate columns
