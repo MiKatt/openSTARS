@@ -282,9 +282,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         j <- which(dt.edges[, "rid"] == d.sites@data$rid[ii])
         # use $ here to get single value from data.table to match dimensions of dat
         dat.h2o[i,"H2OArea"] <- round(dt.edges$H2OArea[j], round_dig[1])
-        cats <- get_cats_edges_in_catchment(dt.edges, dt.edges$stream[j])
+        streams <- get_streams_edges_in_catchment(dt.edges, dt.edges$stream[j])
         ## new, simpler approach
-        m <- paste0("if(", paste0("rca == ", cats, collapse =  " || "), ", 1, 0)")
+        m <- paste0("if(", paste0("rca == ", streams, collapse =  " || "), ", 1, 0)")
         execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                   parameters = list(
                     expression = paste0(sites_map, "_catchm_", id,  " = ", m)

@@ -5,12 +5,12 @@
 #'
 #' @param input_raster name(s) of raster map(s) to calculate attributes from.
 #' @param stat_rast name(s) giving the statistics to be calculated,
-#'   from the raster maps, must be one of: "min", "max", "mean", "sum", "percent".
+#'   from the raster maps, must be one of: "min", "max", "mean", "sum", "percent", "area".
 #' @param attr_name_rast name(s) of new column names for the attribute(s)
 #'   to be calculated. Attribute names must not be longer than 8 characters.
 #' @param input_vector name(s) of vector map(s) to calculate attributes from.
 #' @param stat_vect name(s) giving the statistics to be calculated
-#'   from the vector maps, must be one of: "count" (for point data), "percent"
+#'   from the vector maps, must be one of: "count" (for point data), "percent" or "area"
 #'   (for polygon data).
 #' @param attr_name_vect name(s) of attribute column(s). For polygon data, this is
 #'   the column to calculate the statistics from; the results column names are 
@@ -31,14 +31,14 @@
 #' This function must be run before computing approximate attribute values for 
 #' sites \code{\link{calc_attributes_sites_approx}}.
 #'
-#'For \code{stat_rast} = "percent" the \code{input_raster} can be either coded as 1 and 0
+#'For \code{stat_rast} = "percent" or "area" the \code{input_raster} can be either coded as 1 and 0
 #'  (e.g., cells occupied by the land use under consideration and not) or as different classes. 
-#'  In the latter case, the percentage of each class in the catchment is calculated. If
+#'  The percentage or area of each class in the catchment is calculated. If
 #'  the \code{input_raster} consists of percentages per cell (e.g., proportional land
 #'  use of a certain type per cell) \code{stat_rast} = "mean" gives the overall proportion
 #'  of this land use in the catchment.
 #'
-#' For \code{stat_vect} = "percent" \code{input_vector} must contain polygons of
+#' For \code{stat_vect} = "percent" or "area" \code{input_vector} must contain polygons of
 #' e.g. different land use types. The column \code{attr_name_vect} would then 
 #' give the code for the different land uses. Then, the percentage for each land
 #' use type in the catchment of the edge is calculated and given in separate columns
@@ -141,8 +141,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
                 length(stat_rast), ") and attribute names (", length(attr_name_rast),")."))
   
-  if(any(!stat_rast %in% c("min","max", "mean", "sum", "percent")))
-    stop('statistics to calculate must be one of "min","max", "mean", "sum" or "percent".')
+  if(any(!stat_rast %in% c("min","max", "mean", "sum", "percent", "area")))
+    stop('statistics to calculate must be one of "min","max", "mean", "sum", "percent" or "area".')
   
   if(any(sapply(attr_name_rast, nchar) > 8))
     stop("Attribute names must not be longer than eight characters.")
@@ -152,7 +152,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 length(stat_vect), ") and attribute names (", length(attr_name_vect),")."))
   
   if(any(!stat_vect %in% c("percent", "count")))
-    stop('statistics to calculate must be one of "count" or "percent".')
+    stop('statistics to calculate must be one of "count", "percent" or "area".')
   
   i <- which(stat_vect == "count")
   if(length(i) > 0){
@@ -242,6 +242,13 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat_rast) + length(stat_vect))
   
+  cellsize <- NULL
+  if(any(stat_rast == "area")){
+    cellsize <- execGRASS("g.region", flags = "p",intern=T)
+    cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2])
+    cellsize <- prod(cellsize)
+  }
+  
   temp_dir <- tempdir()
 
   if(!is.null(input_raster)){
@@ -262,8 +269,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     stat_r <- NULL
     
     for(j in 1:length(stat_rast)){
-      # TODO: check what happens with 0/1 coded
-      if(stat_rast[j] == "percent" & get_n_val_raster(input_raster[j]) > 2){
+      # TODO: check what happens with 0/1 or NA/1 coded
+      if(stat_rast[j] == "percent" | stat_rast[j] == "area"){#} & get_n_val_raster(input_raster[j]) > 2){
         st <- execGRASS("r.stats", flags = c("c"),
                         parameters = list(
                           input =  paste0("rca,", input_raster[j]),
@@ -276,13 +283,19 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         setDT(st)
         #st[, `:=`(names(st), lapply(.SD, as.numeric))]
         st <- dcast(st, "zone  ~ class", value.var = "cellcount")
-        st[, all_cells := rowSums(.SD, na.rm = TRUE), .SDcols = 2:ncol(st)]
-        st[, "*" := NULL]
-        st[, 2:(ncol(st)-1) := lapply(.SD, function(x) x / st$all_cells), .SDcols = 2:(ncol(st)-1)]
-        st[, all_cells := NULL]
+        if(stat_rast[j] == "percent"){
+          st[, all_cells := rowSums(.SD, na.rm = TRUE), .SDcols = 2:ncol(st)]
+          st[, "*" := NULL]
+          st[, 2:(ncol(st)-1) := lapply(.SD, function(x) x / st$all_cells), .SDcols = 2:(ncol(st)-1)]
+          st[, all_cells := NULL]
+          stat_r <- c(stat_r, rep("percent_class", ncol(st) - 1))
+        } else {
+          st[, "*" := NULL]
+          st[,  2:ncol(st) := lapply(.SD, function(x) x * cellsize), .SDcol  =  2:ncol(st)]
+          stat_r <- c(stat_r, rep("area_class", ncol(st) - 1))
+        }
         colnames(st)[-1] <- paste(attr_name_rast[j], colnames(st)[-1], sep = "_")
         rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
-        stat_r <- c(stat_r, rep("percent_class", ncol(st) - 1))
       } else {
         st <- execGRASS("r.univar",
                         flags = c("overwrite", "quiet","t"),
@@ -376,7 +389,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     dt.streams <- do.call(rbind,strsplit(
       execGRASS("db.select",
                 parameters = list(
-                  sql = "select stream, next_str, prev_str01, prev_str02, netID, rcaAreaKm2, H2OAreaKm2 from edges"
+                  sql = "select stream, next_str, prev_str01, prev_str02, netID, rcaArea, H2OArea from edges"
                 ),intern = T),
       split = '\\|'))
     colnames(dt.streams) <- dt.streams[1,]
@@ -459,7 +472,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     calc_catchment_attributes_vect(dt.streams, stat_vect2, anames, round_dig2)
     
     # Delete unneeded columns
-    dt.streams[, c("next_str", "prev_str01", "prev_str02", "netID", "H2OAreaKm2", "rcaAreaKm2") := NULL]
+    dt.streams[, c("next_str", "prev_str01", "prev_str02", "netID", "H2OArea", "rcaArea") := NULL]
     setnames(dt.streams, anames, paste0(anames, "_e"))
     
     # Join attributes to edges attribute table
@@ -533,7 +546,7 @@ calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_
   for(i in outlets){
     calc_catchment_attributes_rast_rec(dt, id=i, stat_rast, paste0(attr_name_rast,"_c"))
   }
-  # for "mean" and "percent", calc_catchment_attributes_rast_rec gives the cmmulative sum of mean value * non_null_cells
+  # for "mean" and "percent", calc_catchment_attributes_rast_rec gives the cummulative sum of mean value * non_null_cells
   # => divide here by total number of cells
   ind <-  which(stat_rast %in% c("mean", "percent", "percent_class"))# c(grep("mean", stat_rast), grep("percent", stat_rast))
   if(length(ind) > 0){
@@ -567,6 +580,8 @@ calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_
 #'  number of cells of the total catchment in a subsequent step.
 
 calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
+  #print("vor")
+  #print(dt[stream == id,])
   if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, cumsum_cells := non_null_cells]
     for(j in 1:length(stat)){
@@ -583,12 +598,17 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
              eval(call(stat[j],unlist(c(d1[,attr_name[j], with = FALSE],
                                         d2[,attr_name[j], with = FALSE],
                                         dt[stream == id, attr_name[j], with = FALSE])), na.rm = TRUE))]
-      } else{# for percent and mean sum values (relative to cell number)
+      } else if(stat[j] %in% c("percent", "mean", "percent_class")){# for percent and mean sum values (relative to cell number)
         dt[stream == id, attr_name[j] := dt[stream == id, attr_name[j], with = FALSE] * dt[stream == id, non_null_cells] +
+             d1[, attr_name[j], with = FALSE] + d2[, attr_name[j], with = FALSE]]
+      } else { # for area sum values
+        dt[stream == id, attr_name[j] := dt[stream == id, attr_name[j], with = FALSE] +
              d1[, attr_name[j], with = FALSE] + d2[, attr_name[j], with = FALSE]]
       }
     }
   }
+  #print("nach")
+  #print(dt[stream == id,])
   return(dt[stream == id,c("cumsum_cells", attr_name), with = FALSE])
 }
 
@@ -623,10 +643,10 @@ calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_
   }
   ind <- grep("percent", stat_vect)
   if(length(ind) > 0){
-    #dt[H2OAreaKm2 > 0, paste0(attr_name_vect[ind], "_c") := dt[H2OAreaKm2 > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OAreaKm2 > 0, H2OAreaKm2] * 1000000)]
+    #dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000)]
     #sapply(ind, function(x) round(dt[, paste0(attr_name_vect[x], "_c"), with = FALSE], round_dig[x]))
-    dt[H2OAreaKm2 > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OAreaKm2 > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OAreaKm2 > 0, H2OAreaKm2] * 1000000), round_dig[ind])]
-    dt[rcaAreaKm2 > 0, attr_name_vect[ind] := round(dt[rcaAreaKm2 > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaAreaKm2 > 0, rcaAreaKm2] * 1000000), round_dig[ind])]
+    dt[H2OArea > 0, paste0(attr_name_vect[ind], "_c") := round(dt[H2OArea > 0,paste0(attr_name_vect[ind],"_c"), with = FALSE] / (dt[H2OArea > 0, H2OArea] * 1000000), round_dig[ind])]
+    dt[rcaArea > 0, attr_name_vect[ind] := round(dt[rcaArea > 0,attr_name_vect[ind], with = FALSE] / (dt[rcaArea > 0, rcaArea] * 1000000), round_dig[ind])]
     # TODO: correct, check, why it did not work with this!!
     # for(j in 1:length(ind)){
     #   dt[paste0(attr_name_vect[ind[j]], "_c") > 1, paste0(attr_name_vect[ind[j]], "_c") := 1]

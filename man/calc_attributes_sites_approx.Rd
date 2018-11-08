@@ -32,7 +32,7 @@ to set to FALSE if the function has been called before.)}
 Nothing. The function appends new columns to the \code{sites_map}
   attribute table
 \itemize{
- \item{'H2OAreaA':} {Total watershed area of the watershed upstream of each site.}
+ \item{'H2OAreAKm2':} {Total watershed area of the watershed upstream of each site.}
  \item{attr_name:} {Additional optional attributes calculated based on \code{input_attr_name}.}
 }
 }
@@ -45,7 +45,7 @@ Spatial Information Needed to Fit Spatial Statistical Models to Stream
 Network Data. J. Stat. Softw., 56 (2).
 }
 \details{
-The approximate total catchment area (H2OAreaA) is always calculated
+The approximate total catchment area (H2OAreAKm2) is always calculated
 if \code{calc_basin_area} is TRUE. If \code{stat} is one of "min", "max", "mean" or "percent" the
   function assigns the value of the edge the site lies on. Otherwise, the
   value is calculated as the sum of all edges upstream of the previous

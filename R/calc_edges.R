@@ -225,12 +225,12 @@ calc_edges <- function() {
   execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
-              column = "total_area,H2OAreaKm2"
+              column = "total_area,H2OArea"
             ))
   execGRASS("v.db.renamecolumn", flags = "quiet",
             parameters = list(
               map = "edges",
-              column = "area,rcaAreaKm2"
+              column = "area,rcaArea"
             ))
   execGRASS("db.droptable", flags = c("quiet","f"),
             parameters = list(
@@ -298,6 +298,28 @@ get_cats_edges_in_catchment<-function(dt, str_id){
     a1 <- get_cats_edges_in_catchment(dt = dt, dt[stream == str_id, prev_str01])
     a2 <- get_cats_edges_in_catchment(dt = dt, dt[stream == str_id, prev_str02])
     return(c(dt[stream == str_id, cat], a1, a2))
+  }
+}
+
+#' get_streams_edges_in_catchment
+#' Returns the stream values of this and all upstream edges
+#' 
+#' @description Recursive function to get the stream from one segment upstream.
+#' This function is used internally and is not intended to be called by the user.
+#' 
+#' @param dt data.table containing the attributes of the stream segments
+#' @param str_id integer giving the stream_id ('stream') of the starting edge
+#' @keywords internal 
+#' @return vector of cat values of all upstream edges and the calling one.
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+#' 
+get_streams_edges_in_catchment<-function(dt, str_id){
+  if(dt[stream == str_id, prev_str01] == 0){
+    return(dt[stream == str_id, stream])
+  } else {
+    a1 <- get_streams_edges_in_catchment(dt = dt, dt[stream == str_id, prev_str01])
+    a2 <- get_streams_edges_in_catchment(dt = dt, dt[stream == str_id, prev_str02])
+    return(c(dt[stream == str_id, stream], a1, a2))
   }
 }
 
