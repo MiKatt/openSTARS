@@ -105,7 +105,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
             flags = "quiet",
             parameters = list(
               map = "edges2",
-              columns = "stream,next_str,prev_str01,prev_str02"
+              columns = "next_str,prev_str01,prev_str02"
             ))
   # 20180219: ESRI_Shapefile is no longer the default format
   execGRASS("v.out.ogr",

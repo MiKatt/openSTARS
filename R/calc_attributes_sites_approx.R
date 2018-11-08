@@ -179,25 +179,25 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
                 parameters = list(
                   sql = paste0("UPDATE ", sites_map," SET ", output_attr_name[i], "=",
                                "(SELECT ", paste0(input_attr_name[i],"_c"),
-                               " FROM edges WHERE edges.stream=", sites_map,".stream)")
+                               " FROM edges WHERE edges.stream=", sites_map,".stream_edge)")
                 ))
     } else {
       # calculate site attribute as attribute of the two previous edges +
       # (1-ratio) * contribution of edge to total edge attribute
       # for H2O Area or e.g. for total numbers (no of WWTP per catchment)
       # e.g. calculated with stat = "sum" in calc_attributes_edges
-      stream_prev1 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.stream=",sites_map,".stream))")
-      stream_prev2 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.stream=",sites_map,".stream))")
+      stream_prev1 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.stream=",sites_map,".stream_edge))")
+      stream_prev2 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.stream=",sites_map,".stream_edge))")
       if(input_attr_name[i] == "H2OArea"){
         sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                          " = ROUND(((1-ratio)*",
-                         "(SELECT rcaArea FROM edges WHERE ", sites_map,".stream = edges.stream) +",
+                         "(SELECT rcaArea FROM edges WHERE ", sites_map,".stream_edge = edges.stream) +",
                          "(SELECT H2OArea FROM edges WHERE edges.cat=",stream_prev1,") +",
                          "(SELECT H2OArea FROM edges WHERE edges.cat=",stream_prev2,")),",round_dig[i],")")
       } else {
         sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                          " = ROUND(((1-ratio)*",
-                         "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".stream = edges.stream) +",
+                         "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".stream_edge = edges.stream) +",
                          "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",stream_prev1,") +",
                          "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",stream_prev2,")),",round_dig[i],")")
       }
@@ -209,12 +209,12 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
       if(input_attr_name[i] == "H2OArea"){
         sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                           " = (1-ratio)*(SELECT rcaArea FROM edges WHERE ",
-                          sites_map,".stream = edges.stream) WHERE stream IN ",
+                          sites_map,".stream_edge = edges.stream) WHERE stream_edge IN ",
                           "(SELECT stream FROM edges WHERE prev_str01=0)")
       } else {
         sql_str <- paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                           " = (1-ratio)*(SELECT ", paste0(input_attr_name[i],"_e"),
-                          " FROM edges WHERE ", sites_map,".stream = edges.stream) WHERE stream IN ",
+                          " FROM edges WHERE ", sites_map,".stream_edge = edges.stream) WHERE stream_edge IN ",
                           "(SELECT stream FROM edges WHERE prev_str01=0)")
       }
       execGRASS("db.execute",

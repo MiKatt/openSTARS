@@ -163,11 +163,11 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   message(paste0("Preparing sites '", sites_map, "' ..."))
   # Snap sites to streams --------
   message("Snapping sites to streams ...")
-  # add 4 columns holding: stream, distance and coordinates of nearest streams
+  # add 5 columns holding: stream, distance and coordinates of nearest streams
   execGRASS("v.db.addcolumn",
             parameters = list(
               map = sites_map,
-              columns = "cat_edge int,stream int,dist double precision,xm double precision,ym double precision"
+              columns = "cat_edge int,stream_edge int,dist double precision,xm double precision,ym double precision"
             ))
   # calc distance
   # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
@@ -234,7 +234,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
             ))
   execGRASS("db.execute",
             parameters = list(
-              sql=paste0('UPDATE ', sites_map, ' SET stream=(SELECT stream FROM edges WHERE ', sites_map, '.cat_edge=edges.cat)')
+              sql=paste0('UPDATE ', sites_map, ' SET stream_edge=(SELECT stream FROM edges WHERE ', sites_map, '.cat_edge=edges.cat)')
             ))
   
   # Calculate upDist ---------
