@@ -13,7 +13,7 @@ get_streams_edges_in_catchment(dt, str_id)
 \item{str_id}{integer giving the stream_id ('stream') of the starting edge}
 }
 \value{
-vector of cat values of all upstream edges and the calling one.
+vector of strean values of all upstream edges and the calling one.
 }
 \description{
 Recursive function to get the stream from one segment upstream.

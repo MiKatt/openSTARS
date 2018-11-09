@@ -117,7 +117,6 @@
 #' legend("topright", col = cols[c(1, length(cols))], lwd = 2, 
 #'   legend = paste("precent agri", c(min(sites$agriA), max(sites$agriA))), pch = 19)
 #'}
-#'
 
 calc_attributes_sites_approx <- function(sites_map = "sites",
                                          input_attr_name = NULL,
@@ -135,12 +134,12 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
     
     cnames <- execGRASS("db.columns", 
                         parameters = list(
-                          table = "sites"), 
+                          table = sites_map), 
                         intern = T)
     if("H2OAreaA" %in% cnames){
       execGRASS("v.db.dropcolumn", flags = "quiet",
                 parameters = list(
-                  map = "sites",
+                  map = sites_map,
                   columns = "H2OAreaA"
                 ))
     }
@@ -186,20 +185,20 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
       # (1-ratio) * contribution of edge to total edge attribute
       # for H2O Area or e.g. for total numbers (no of WWTP per catchment)
       # e.g. calculated with stat = "sum" in calc_attributes_edges
-      stream_prev1 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str01 FROM edges WHERE edges.stream=",sites_map,".str_edge))")
-      stream_prev2 <-  paste0("(SELECT stream FROM edges WHERE edges.stream=(SELECT prev_str02 FROM edges WHERE edges.stream=",sites_map,".str_edge))")
+      stream_prev1 <-  paste0("(SELECT prev_str01 FROM edges WHERE edges.stream=",sites_map,".str_edge)")
+      stream_prev2 <-  paste0("(SELECT prev_str02 FROM edges WHERE edges.stream=",sites_map,".str_edge)")
       if(input_attr_name[i] == "H2OArea"){
         sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                          " = ROUND(((1-ratio)*",
                          "(SELECT rcaArea FROM edges WHERE ", sites_map,".str_edge = edges.stream) +",
-                         "(SELECT H2OArea FROM edges WHERE edges.cat=",stream_prev1,") +",
-                         "(SELECT H2OArea FROM edges WHERE edges.cat=",stream_prev2,")),",round_dig[i],")")
+                         "(SELECT H2OArea FROM edges WHERE edges.stream=",stream_prev1,") +",
+                         "(SELECT H2OArea FROM edges WHERE edges.stream=",stream_prev2,")),",round_dig[i],")")
       } else {
         sql_str <-paste0("UPDATE ", sites_map," SET ",output_attr_name[i],
                          " = ROUND(((1-ratio)*",
                          "(SELECT ", paste0(input_attr_name[i],"_e"), " FROM edges WHERE ", sites_map,".str_edge = edges.stream) +",
-                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",stream_prev1,") +",
-                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.cat=",stream_prev2,")),",round_dig[i],")")
+                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.stream=",stream_prev1,") +",
+                         "(SELECT ", paste0(input_attr_name[i],"_c"), " FROM edges WHERE edges.stream=",stream_prev2,")),",round_dig[i],")")
       }
       execGRASS("db.execute",
                 parameters = list(
@@ -231,7 +230,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
   }
   cnames2 <- execGRASS("db.columns", flags = "quiet",
                              parameters = list(
-                               table = "sites"
+                               table = sites_map
                              ), intern = T)
   cnames2 <- cnames2[-(which(cnames2 %in% cnames))]
   message(paste0("\nNew attributes values are stored as ", paste("'", cnames2, "'", sep = "", collapse = ", "), " in 'sites'."))

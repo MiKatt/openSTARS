@@ -132,7 +132,6 @@ legend("topleft", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse
 legend("topright", col = cols[c(1, length(cols))], lwd = 2, 
   legend = paste("precent agri", c(min(sites$agriA), max(sites$agriA))), pch = 19)
 }
-
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}

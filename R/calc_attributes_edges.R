@@ -584,8 +584,6 @@ calc_catchment_attributes_rast <- function(dt, stat_rast, attr_name_rast, round_
 #'  number of cells of the total catchment in a subsequent step.
 
 calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
-  #print("vor")
-  #print(dt[stream == id,])
   if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, cumsum_cells := non_null_cells]
     for(j in 1:length(stat)){
@@ -611,8 +609,6 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
       }
     }
   }
-  #print("nach")
-  #print(dt[stream == id,])
   return(dt[stream == id,c("cumsum_cells", attr_name), with = FALSE])
 }
 
@@ -632,11 +628,6 @@ calc_catchment_attributes_rast_rec <- function(dt, id, stat, attr_name){
 #'   of different values or just one value for all attributes.
 #'
 #' @return Nothing. The function changes the values of the columns attr_name_vect in dt.
-
-# dt <- copy(dt.streams)
-# stat_vect <- stat_vect2
-# attr_name_vect <- anames
-# round_dig <- round_dig2
 
 
 calc_catchment_attributes_vect <- function(dt, stat_vect, attr_name_vect, round_dig){
