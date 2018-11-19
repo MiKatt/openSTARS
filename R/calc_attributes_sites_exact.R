@@ -242,11 +242,11 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       ". Please give a valid column name. \nAvailable columns are ",  
                       paste0("'", cnames, "'", collapse = ", ")))
         attribute_cats <- c(attribute_cats, 
-                           unique(execGRASS("db.select", flags = c("c"),
+                            paste0(unique(execGRASS("db.select", flags = c("c"),
                                             parameters = list(
                                               sql = paste0("select ", attr_name_vect[i], " from ",input_vector[i])
-                                            ), intern = T))
-        )
+                                            ), intern = T)), substr(stat_vect[i], 1, 1))
+                            )
       } else {
         attribute_cats <- c(attribute_cats, attr_name_vect[i])
       }
@@ -519,8 +519,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           if(length(a) > 0){
             a <- do.call(rbind,strsplit(a,split = '\\|'))
             a <- data.frame(a,  stringsAsFactors = F)
-            if(stat_v[j] == "percent")  # do not divide by area if calculating total area 
+            if(stat_vect[j] == "percent"){  # do not divide by area if calculating total area 
               a[,2] <- round(as.numeric(a[,2]) / carea, round_dig[j.count])
+            } else {
+              a[,2] <- round(as.numeric(a[,2]), round_dig[j.count])
+            }
+            a[,1] <- paste0(a[,1], substr(stat_vect[j], 1, 1))
             dat.vect[i, a[,1]] <- a[,2]
           }
         } else { # if this is a point vector
@@ -571,10 +575,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   }
   
   # change column names if there is just one raster class (and NULL)
-  cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] %in% c("percent", "area") & length(unlist(vals.rast[[x]])) > 1, 
+  if(!is.null(input_raster)){
+    cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] %in% c("percent", "area") & length(unlist(vals.rast[[x]])) > 1, 
                                                                      list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
                                                                      attr_name_rast[x]))
-  colnames(dat.rast) <- unlist(cnames.rast)
+    colnames(dat.rast) <- unlist(cnames.rast)
+  }
   
   dat <- cbind(dat.h2o, dat.rast, dat.vect, locID)
   

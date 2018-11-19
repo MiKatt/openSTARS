@@ -9,11 +9,11 @@
 #' segments in the lake, breaks those the cross its borders and 
 #' assigns a new, updated topology.
 #' 
-#' @param lakes character string or object; path to lake vector file (ESRI shape) 
-#' or sp or sf data object.
-#' @param save boolean; should the original 'streams_v' be saved? Default is TRUE.
+#' @param lakes character string or object; path to lake vector file (ESRI shape), 
+#' name of vector map in the GRASS data base or sp or sf data object.
+#' @param keep boolean; should the original 'streams_v' be saved? Default is TRUE.
 #' 
-#' @return Nothing. The function updates 'streams_v' and (if save = TRUE) saves 
+#' @return Nothing. The function updates 'streams_v' and (if keep = TRUE) saves 
 #' the original file to streams_v_prev_lakes.
 #' 
 #' @note The column 'out_dist' (flow length from the upstream node of the 
@@ -71,9 +71,8 @@
 #' legend("topright", col = c("red", "blue"), lty = c(1,4), lwd = c(2,2), 
 #'   legend = c("though lakes", "lakes cut out"))
 #' }
-#' 
-#' lakes <- lakes_path
-delete_lakes <- function(lakes, save = TRUE){
+
+delete_lakes <- function(lakes, keep = TRUE){
   
   vect <- execGRASS("g.list",
                     parameters = list(
@@ -90,9 +89,7 @@ delete_lakes <- function(lakes, save = TRUE){
     }
   } else {
     message("Importing lakes ...")
-    proj_dem <- execGRASS("g.proj", flags = c("j", "f"),
-                        intern = TRUE, ignore.stderr = TRUE)
-    import_vector_data(data = lakes, name = "lakes", proj_dem = proj_dem)
+    import_vector_data(data = lakes, name = "lakes")
   }
   
   vect <- execGRASS("g.list",
@@ -107,11 +104,15 @@ delete_lakes <- function(lakes, save = TRUE){
                                                     map = "streams_v",
                                                     columns = "stream"
                                                   ), intern = T)[-1]))
-  if(save == TRUE){
+  if(keep == TRUE){
     execGRASS("g.copy", flags = c("quiet", "overwrite"),
               parameters = list(
                 vector = "streams_v,streams_v_prev_lakes"
               ))
+    # execGRASS("g.copy", flags = c("quiet", "overwrite"),
+    #           parameters = list(
+    #             vector = "streams_v_prev_lakes,streams_v,"
+    #           ))
   }
   
   message("Deleting streams intersecting with lakes ...")
@@ -194,7 +195,7 @@ delete_lakes <- function(lakes, save = TRUE){
   new_str <- seq(mstream, by = 1, length.out = length(dup_streams))
   dt.streams$str_new_lake <- dt.streams$stream
   dt.streams[dup_streams, str_new_lake := as.integer(new_str)]
-  # stream of cut  streams
+  # stream of cut streams (= original start or end lies within lake)
   dup_streams <- unique(dt.streams[dup_streams, stream, ])
   cut_streams <- dt.streams[new_length < length & !(stream %in% dup_streams), stream ]
   i0 <- which(dt.streams$stream %in% cut_streams)
@@ -244,8 +245,6 @@ delete_lakes <- function(lakes, save = TRUE){
   }
   
   # 2. duplicate stream segments
-  i_dup <- which(dt.streams$stream %in% dup_streams)
-  
   for(i in dup_streams){
     print(i)
     i0 <- which(dt.streams$stream == i)
@@ -261,6 +260,19 @@ delete_lakes <- function(lakes, save = TRUE){
         dt.streams[i_next, c("prev_str01","prev_str02")[i_p] := dt.streams[i0[i_wnext], str_new_lake]]
         dt.streams[i_next, changed := 1]
       } else {
+        
+        ## find, where end_coor = start_coor of next_str
+        iii <- which(unlist(lapply(i_next, function(x) dt.streams$start_xy[x] == dt.streams[i0[i_wnext], end_xy])))
+        ### if not set prev_str of next_str to 0 and next_str of cut_str to -1
+        if(length(iii) > 0){
+          dt.streams[i0[i_wnext], next_str := i_next[iii]] 
+          i_p <- which(dt.streams[i_next[iii], c("prev_str01","prev_str02")] == i)
+          dt.streams[i_next, c("prev_str01","prev_str02")[i_p] := dt.streams[i0[i_wnext], str_new_lake]]
+          dt.streams[i_next, changed := 1]
+          
+          ### NOT FINISHED!!!
+        }
+        
         i_p0 <- unlist(lapply(i_next, function(x) which(dt.streams[x, c("prev_str01","prev_str02")] == i)))
         i_p1 <- which(dt.streams[i_next, start_xy] == dt.streams[i0[i_wnext], end_xy])
         dt.streams[i_next[i_p1], c("prev_str01","prev_str02")[i_p0[i_p1]] := dt.streams[i0[i_wnext], str_new_lake]]
@@ -279,6 +291,8 @@ delete_lakes <- function(lakes, save = TRUE){
       }
       dt.streams[i_p1, next_str := dt.streams[i0[i_wp1], str_new_lake]]
       dt.streams[i_p1, changed := 1]
+    } else {
+      dt.streams[i0, prev_str01 := 0]
     }
     # not '==' but '%in% because prev_str could be cut into pieces, too, and therefore there are more than one start_xy
     i_wp2 <- which(dt.streams[i0, start_xy] %in% dt.streams[stream %in% unique(dt.streams[stream == i, prev_str02]), end_xy])
@@ -292,9 +306,13 @@ delete_lakes <- function(lakes, save = TRUE){
       }
       dt.streams[i_p2, next_str := dt.streams[i0[i_wp1], str_new_lake]]
       dt.streams[i_p2, changed := 1]
+    } else {
+      dt.streams[i0, prev_str02 := 0]
     }
+    
     dt.streams[i0, stream := str_new_lake]  
     dt.streams[i0, changed := 1] 
+    print(colnames(dt.streams))
   }
   
   next_str <- sort(unique(dt.streams[, next_str]))[-1]
