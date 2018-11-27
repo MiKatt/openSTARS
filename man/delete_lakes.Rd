@@ -4,16 +4,16 @@
 \alias{delete_lakes}
 \title{Delete lakes from stream network}
 \usage{
-delete_lakes(lakes, save = TRUE)
+delete_lakes(lakes, keep = TRUE)
 }
 \arguments{
-\item{lakes}{character string or object; path to lake vector file (ESRI shape) 
-or sp or sf data object.}
+\item{lakes}{character string or object; path to lake vector file (ESRI shape), 
+name of vector map in the GRASS data base or sp or sf data object.}
 
-\item{save}{boolean; should the original 'streams_v' be saved? Default is TRUE.}
+\item{keep}{boolean; should the original 'streams_v' be saved? Default is TRUE.}
 }
 \value{
-Nothing. The function updates 'streams_v' and (if save = TRUE) saves 
+Nothing. The function updates 'streams_v' and (if keep = TRUE) saves 
 the original file to streams_v_prev_lakes.
 }
 \description{
@@ -78,8 +78,6 @@ lines(streams, col = 'blue', lty = 4, lwd = 2)
 legend("topright", col = c("red", "blue"), lty = c(1,4), lwd = c(2,2), 
   legend = c("though lakes", "lakes cut out"))
 }
-
-lakes <- lakes_path
 }
 \author{
 Mira Kattwinkel  \email{mira.kattwinkel@gmx.net}
