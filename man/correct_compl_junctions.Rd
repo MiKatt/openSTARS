@@ -42,12 +42,13 @@ initGRASS(gisBase = gisbase,
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path)
-import_data(dem = dem_path, sites = sites_path)
+import_data(dem = dem_path, sites = sites_path, streams = streams_path)
 gmeta()
 
 # Derive streams from DEM
-derive_streams(burn = 0, accum_threshold = 100, condition = TRUE, clean = TRUE)
+derive_streams(burn = 10, accum_threshold = 100, condition = TRUE, clean = TRUE)
 
 # Check and correct complex junctions (there are complex juctions in the 
 # example date set if the accumulation threshold is low)
@@ -59,7 +60,7 @@ if(cj){
 # plot
 dem <- readRAST('dem', ignore.stderr = TRUE)
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
-streams_orig <- readVECT('streams_v_o', ignore.stderr = TRUE)
+streams_orig <- readVECT('streams_v_o3', ignore.stderr = TRUE)
 # zoom to a relevant part of the dem
 plot(dem, col = terrain.colors(20), axes = TRUE, 
   xlim = c(640050,640200), ylim = c(219700,219850))

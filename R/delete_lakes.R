@@ -382,17 +382,6 @@ delete_lakes <- function(lakes, keep = TRUE){
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #'
-#'@examples
-#'\dontrun{
-#'  outlets <- dt.streams[next_str == -1, stream]
-#'  netID <- 1
-#'  for(i in outlets){
-#'    calc_outdist(dt.streams, id = i)
-#'  }
-#'}
-#'
-#'calcCumLength(dt <- dt.streams, id=i)
-
 calc_outdist <- function(dt, id){
   #print(id)
   dt[stream == id, out_dist := out_dist + length]

@@ -24,17 +24,6 @@ outlet and should not be called by the user.
 \details{
 calc_outdist
 }
-\examples{
-\dontrun{
- outlets <- dt.streams[next_str == -1, stream]
- netID <- 1
- for(i in outlets){
-   calc_outdist(dt.streams, id = i)
- }
-}
-
-calcCumLength(dt <- dt.streams, id=i)
-}
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }

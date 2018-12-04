@@ -92,7 +92,7 @@ initGRASS(gisBase = gisbase,
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-preds_path <- system.file("extdata", "nc", "landuse.shp", package = "openSTARS")
+preds_path <- system.file("extdata", "nc", "landuse_v.shp", package = "openSTARS")
 setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path)
 

@@ -26,7 +26,7 @@
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-#' preds_path <- c(system.file("extdata", "nc", "landuse.shp", package = "openSTARS"),
+#' preds_path <- c(system.file("extdata", "nc", "landuse_v.shp", package = "openSTARS"),
 #'                 system.file("extdata", "nc", "pointsources.shp", package = "openSTARS"))
 #' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path)
@@ -95,14 +95,15 @@
 # define column names of data.tables as global variables to prevent a NOTE in
 # R CMD check 'no visible binding for global variable'.
 if(getRversion() >= "2.15.1")
-  utils::globalVariables(c(".", "area", "binaryID", "cat_", "cat_large",
-                           "cat_small", "cumsum_cells", "cut_stream", "cut_stream_prev", 
-                           "cut_x", "cut_y", "dif",
-                           "edge_cat", "end_x", "end_y", "H2OArea", "len", 
-                           "Length", "move_stream", "netID", "newlen","next_str", 
-                           "non_null_cells", "OBJECTID", "offset", "pcat", 
+  utils::globalVariables(c(".", "all_cells", "area", "binaryID", "cat_", "cat_large",
+                           "cat_small", "changed", "cumsum_cells", "cut_stream", "cut_stream_prev", 
+                           "cut_x", "cut_y", "dif", "edge_cat", "end_x", "end_xy", "end_y",
+                           "H2OArea", "len", "Length", "move_stream", "move_stream_prev",
+                           "netID", "newlen", "new_length","next_str", 
+                           "non_null_cells", "OBJECTID", "offset", "out_dist", "pcat", 
                            "prev_str01", "prev_str02", "prev_str03", "prev_str04", "rcaArea","rid", 
-                           "stream", "total_area", "variable", "X1", "X2"))
+                           "start_x", "start_xy", "start_y", "str_new_lake","str_new_small", "str_new_large",
+                           "stream", "total_area", "value","variable", "X1", "X2"))
 
   
 
@@ -118,8 +119,10 @@ if(getRversion() >= "2.15.1")
 #' Artificial lakes (not at topologically correct locations).
 #' @section sites_nc.shp:
 #' Arbitrary sites along rivers in North Carolina.
-#' @section landuse.shp
-#' #' Artificial landuse data.
+#' @section landuse_r.tif
+#' landuse data.
+#' @section landuse_v.shp
+#' Artificial landuse data.
 #' @section pointsources.shp
-#' #' Artificial point sources.
+#' Artificial point sources.
 NULL

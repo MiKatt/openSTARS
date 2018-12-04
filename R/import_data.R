@@ -73,7 +73,7 @@
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-#' preds_path <- system.file("extdata", "nc", "landuse.shp", package = "openSTARS")
+#' preds_path <- system.file("extdata", "nc", "landuse_v.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path)
 #' 
@@ -248,10 +248,11 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #'  
 #'@examples 
 #'# import data from Postgis
+#'\dontrun{
 #' import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890', 
 #' 'port='1234', 'user=username', 'password=password'",
 #'  name = "forest", layer = "landuse_schema.forest")
-#'
+#'}
 #' @export
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}

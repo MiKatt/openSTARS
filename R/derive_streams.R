@@ -226,7 +226,7 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
                                 accumulation = "accums",       # input
                                 stream_vect = "streams_v"),    # output
               ignore.stderr=T)
-    execGRASS("g.remove", flag = c("f", "quiet"),
+    execGRASS("g.remove", flags = c("f", "quiet"),
               type = "raster",
               name = "streams_r"
     )

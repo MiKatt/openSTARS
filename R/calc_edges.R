@@ -254,18 +254,6 @@ calc_edges <- function() {
 #'
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #'
-#'@examples
-#'\dontrun{
-#'  outlets <- dt.streams[next_str == -1, stream]
-#'  netID <- 1
-#'  for(i in outlets){
-#'    calcCatchmArea_assignNetID(dt.streams, id = i, netID)
-#'    netID <- netID + 1
-#'  }
-#'}
-#'
-#'calcCatchmArea_assignNetID(dt <- dt.streams, id=i, netID)
-
 calcCatchmArea_assignNetID <- function(dt, id, net_ID){
   if(dt[stream == id, prev_str01,] == 0){  # check only one of prev01 and prev02 because they are always both 0
     dt[stream == id, total_area := area]
@@ -310,7 +298,7 @@ get_cats_edges_in_catchment<-function(dt, str_id){
 #' @param dt data.table containing the attributes of the stream segments
 #' @param str_id integer giving the stream_id ('stream') of the starting edge
 #' @keywords internal 
-#' @return vector of strean values of all upstream edges and the calling one.
+#' @return vector of stream values of all upstream edges and the calling one.
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' 
 get_streams_edges_in_catchment<-function(dt, str_id){
