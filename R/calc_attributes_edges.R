@@ -463,7 +463,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         #setnames(dt.dat, attr_name_vect[j], paste0("s", attr_name_vect[j]))
       }
       nanames[j] <- ncol(dt.dat) - 1
-      names(dt.dat)[-1] <- paste0(names(dt.dat)[-1], substr(stat_vect[j],1,1))
+      #names(dt.dat)[-1] <- paste0(names(dt.dat)[-1], substr(stat_vect[j],1,1))
       anames <- c(anames, names(dt.dat)[-1])
       dt.streams <- merge(dt.streams, dt.dat, by = "stream", all.x = TRUE)
     }

@@ -245,7 +245,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                             paste0(unique(execGRASS("db.select", flags = c("c"),
                                             parameters = list(
                                               sql = paste0("select ", attr_name_vect[i], " from ",input_vector[i])
-                                            ), intern = T)), substr(stat_vect[i], 1, 1))
+                                            ), intern = T)))#, substr(stat_vect[i], 1, 1))
                             )
       } else {
         attribute_cats <- c(attribute_cats, attr_name_vect[i])
@@ -524,7 +524,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
             } else {
               a[,2] <- round(as.numeric(a[,2]), round_dig[j.count])
             }
-            a[,1] <- paste0(a[,1], substr(stat_vect[j], 1, 1))
+            #a[,1] <- paste0(a[,1], substr(stat_vect[j], 1, 1))
             dat.vect[i, a[,1]] <- a[,2]
           }
         } else { # if this is a point vector
