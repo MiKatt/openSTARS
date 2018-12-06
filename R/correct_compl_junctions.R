@@ -57,10 +57,10 @@
 #' streams_orig <- readVECT('streams_v_o3', ignore.stderr = TRUE)
 #' # zoom to a relevant part of the dem
 #' plot(dem, col = terrain.colors(20), axes = TRUE, 
-#'   xlim = c(640050,640200), ylim = c(219700,219850))
+#'   xlim = c(640100,640150), ylim = c(219735,219785))
 #' lines(streams_orig, col = 'red', lwd = 4)
 #' lines(streams, col = 'blue', lty = 2, lwd = 2)
-#' legend("topright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2), 
+#' legend("bottomright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2), 
 #'   legend = c("original", "corrected"))
 #' }
 

@@ -62,17 +62,20 @@
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
+#' streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path)
-#' import_data(dem = dem_path, sites = sites_path)
+#' import_data(dem = dem_path, sites = sites_path, streams = streams_path)
 #' gmeta()
 #'
 #' # Derive streams from DEM
-#' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+#' derive_streams(burn = 10, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' sites <- readVECT('sites_o', ignore.stderr = TRUE)
+#' streams_o <- readVECT('streams_o', ignore.stderr = TRUE)
 #' streams <- readVECT('streams_v', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
 #' lines(streams, col = 'blue', lwd = 2)
+#' lines(streams_o, col = 'lightblue', lwd = 1)
 #' points(sites, pch = 4)
 #' }
 #' 

@@ -46,7 +46,9 @@
 #'
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
-#'
+#' 
+#' check_compl_junctions()
+#' 
 #' # Prepare edges
 #' calc_edges()
 #' 
