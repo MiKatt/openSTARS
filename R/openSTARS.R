@@ -104,28 +104,13 @@
 #' ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 #' print(ssn_obj)
 #' }
-
-# define column names of data.tables as global variables to prevent a NOTE in
-# R CMD check 'no visible binding for global variable'.
-if(getRversion() >= "2.15.1")
-  utils::globalVariables(c(".", "all_cells", "area", "binaryID", "cat_", "cat_large",
-                           "cat_small", "changed", "cumsum_cells", "cut_stream", "cut_stream_prev", 
-                           "cut_x", "cut_y", "dif", "edge_cat", "end_x", "end_xy", "end_y",
-                           "H2OArea", "len", "Length", "move_stream", "move_stream_prev",
-                           "netID", "newlen", "new_length","next_str", 
-                           "non_null_cells", "OBJECTID", "offset", "out_dist", "pcat", 
-                           "prev_str01", "prev_str02", "prev_str03", "prev_str04", "rcaArea","rid", 
-                           "start_x", "start_xy", "start_y", "str_new_lake","str_new_small", "str_new_large",
-                           "stream", "total_area", "value","variable", "X1", "X2"))
-
-  
-
-#' Datasets shipped with openSTARS
+#' 
+#' #Datasets shipped with openSTARS
 #'
 #' @name openSTARS_data
 #' All data has been taken from the GRASS GIS North Carolina data set.
 #' Source \url{https://grass.osgeo.org/download/sample-data/} or artificially
-#' created
+#' created.
 #' 
 #' @section elev_ned30m.tif:
 #' South-West Wake county National Elevation Data 30m.
@@ -133,13 +118,12 @@ if(getRversion() >= "2.15.1")
 #' Arbitrary sites along rivers in North Carolina. 
 #' @section streams.shp:
 #' Rivers in North Carolina.
-#' @section geology.shp
-#' Geologiy data.
+#' @section geology.shp:
+#' Geological data.
 #' @section landuse_r.tif:
-#' Land use date in North Carolina.#' 
+#' Land use date in North Carolina.
 #' @section  lakes.shp:
-#' Artificial lakes (not at topologically correct locations).#'
+#' Artificial lakes (not at topologically correct locations)
 #' @section pointsources.shp:
 #' Artificial point sources.
-#'
 NULL

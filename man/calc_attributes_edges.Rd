@@ -77,7 +77,6 @@ v.in.ogr (see examples).
 }
 \examples{
 \donttest{
-# Initiate GRASS session
 if(.Platform$OS.type == "windows"){
   gisbase = "c:/Program Files/GRASS GIS 7.4.0"
   } else {
@@ -90,45 +89,44 @@ initGRASS(gisBase = gisbase,
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-pred_path <- system.file("extdata", "nc", "landuse_v.shp", package = "openSTARS")
+streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS")
+preds_v_path <- system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
+preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
+                 
+
 setup_grass_environment(dem = dem_path)
-import_data(dem = dem_path, sites = sites_path, 
-  predictor_vector = pred_path, predictor_v_names = "landuse")
+import_data(dem = dem_path, sites = sites_path, streams = streams_path,
+            predictor_vector = preds_v_path, predictor_raster = preds_r_path)
 gmeta()
 
 # Derive streams from DEM
-derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
+# burn in 'streams' 10 meters
+derive_streams(burn = 10, accum_threshold = 700, condition = TRUE, clean = TRUE)
 
-# Check and correct complex junctions (there are no complex juctions in this 
-# example date set)
+# Check and correct complex junctions (there are no complex juctions in this
+# example date set; set accum_threshold in derive_streams to a smaller value
+# to create complex juctions)
 cj <- check_compl_junctions()
 if(cj){
   correct_compl_junctions()
 }
 
-# Prepare edges
-calc_edges()
-
-# Derive slope from the DEM as an example raster map to calculate attributes from
+# calculate slope as potential predictor
 execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
 parameters = list(
   elevation = "dem",
     slope = "slope"
     ))
-    
-# import additional vector data
-fp <-  system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
-execGRASS("v.import", flags = c("overwrite", "quiet"),
-parameters = list(
-  input = fp,
-  output =  "psources",
-  extent = "region"),  # to import into current regien
-  intern = TRUE, ignore.stderr = TRUE)
-  
-calc_attributes_edges(input_raster = "slope", stat_rast = "max", attr_name_rast = "maxSlo",
-                     input_vector = c("landuse", "psources"), 
-                     stat_vect = c("percent", "count"), attr_name_vect = c("landuse", "nps"))
 
+
+# Prepare edges
+calc_edges()
+calc_attributes_edges(input_raster = c("slope", "landuse_r"), 
+                      stat_rast = c("max", "percent"), 
+                      attr_name_rast = c("maxSlo", "luse"),
+                      input_vector = "pointsources", stat_vect = "count",
+                      attr_name_vect = "psource")
+                      
 # Plot data with maximum slope per edge as color ramp (steep slopes in red)
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)

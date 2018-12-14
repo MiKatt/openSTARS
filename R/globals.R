@@ -1,0 +1,4 @@
+# define column names of data.tables as global variables to prevent a NOTE in
+# R CMD check 'no visible binding for global variable'.
+if(getRversion() >= "2.15.1")
+  utils::globalVariables(c(".", "all_cells", "area", "binaryID", "cat_", "cat_large", "cat_small", "changed", "cumsum_cells", "cut_stream", "cut_stream_prev", "cut_x", "cut_y", "dif", "edge_cat", "end_x", "end_xy", "end_y", "H2OArea", "len", "Length", "move_stream", "move_stream_prev", "netID", "newlen", "new_length","next_str", "non_null_cells", "OBJECTID", "offset", "out_dist", "pcat", "prev_str01", "prev_str02", "prev_str03", "prev_str04", "rcaArea","rid", "start_x", "start_xy", "start_y", "str_new_lake","str_new_small", "str_new_large", "stream", "total_area", "value","variable", "X1", "X2"))

@@ -103,7 +103,6 @@
 #'     slope = "slope"
 #'     ))
 #' 
-#' #### HIER STIMMT ES NOCH NICHT!!
 #' 
 #' # Prepare edges
 #' calc_edges()
