@@ -123,7 +123,8 @@ plot(sites, pch = 19, col = cols, cex = 2, add = TRUE)
 cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right = FALSE))]
 plot(sites, pch = 21, bg = cols, cex = 1.1, add = TRUE)
 # Some points in the lower centre of the map indicate a difference in max slope between
-# approximate and exact calculation (different colors for inner and outer points)
+# approximate and exact calculation (different colors for inner and outer points). However,
+# for most points the values are similar
 }
 }
 \author{

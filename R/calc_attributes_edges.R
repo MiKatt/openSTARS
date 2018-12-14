@@ -112,23 +112,25 @@
 #'                       input_vector = "pointsources", stat_vect = "count",
 #'                       attr_name_vect = "psource")
 #'                       
-#' # Plot data with maximum slope per edge as color ramp (steep slopes in red)
-#' dem <- readRAST('dem', ignore.stderr = TRUE)
+#' # Plot eges with percentage of forest in the catchment (luse_5) as line width
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' head(edges@data)
-#' lu <- readVECT("landuse", ignore.stderr = TRUE)
-#' plot(dem, col = gray(seq(0,1,length.out=20))) 
-#' col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
-#' plot(lu, add = TRUE, col = col[as.numeric(as.factor(lu$landuse))])
-#' legend("topleft", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
-#'   title = "landuse", ncol = 4)
-#' mm <- range(c(edges$agri_c), na.rm = TRUE) 
-#' b <- seq(from=mm[1],to=mm[2]+diff(mm)*0.01,length.out=10)
-#' c_ramp <- colorRampPalette(c("blue", "red"))
-#' cols <- c_ramp(length(b))[as.numeric(cut(edges$agri_c,breaks = b,right= FALSE))]
-#' plot(edges, col = cols, add = TRUE, lwd = 2)
-#' legend("topright", col = cols[c(1,length(cols))], lwd = 2, 
-#'   legend = paste("precent agri", c(min(edges$agri_c), max(edges$agri_c))))
+#' lu <- readRAST("landuse_r", ignore.stderr = TRUE)
+#' 
+#'  # plot landuse data
+#' library(raster)
+#' op <- par()
+#' par(xpd = FALSE)
+#' plot(raster(lu), legend = FALSE, xaxt = "n", yaxt = "n", bty = "n",
+#' col = adjustcolor(c("red", "goldenrod", "green", "forestgreen",
+#' "darkgreen", "blue", "lightblue"), alpha.f = 0.7))
+#' par(xpd = TRUE)
+#' legend("bottom", cex = 0.75,
+#'   legend = c("developed", "agriculture", "herbaceous", "shrubland", "forest", "water", "sediment"),
+#'   fill = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"),
+#'   horiz = TRUE, inset = -0.175)
+#' plot(edges, lwd = edges$luse_5_c * 10, add = TRUE)    
+#' par <- op
 #' }
 
 calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_name_rast = NULL,
