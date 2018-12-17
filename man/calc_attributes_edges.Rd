@@ -15,7 +15,8 @@ calc_attributes_edges(input_raster = NULL, stat_rast = NULL,
 from the raster maps, must be one of: "min", "max", "mean", "sum", "percent", "area".}
 
 \item{attr_name_rast}{name(s) of new column names for the attribute(s)
-to be calculated. Attribute names must not be longer than 8 characters.}
+to be calculated. Attribute names must not be longer than 8 characters as ESRI shapefiles
+cannot have columnams with more than 10 characters. See notes.}
 
 \item{input_vector}{name(s) of vector map(s) to calculate attributes from.}
 
@@ -26,7 +27,7 @@ from the vector maps, must be one of: "count" (for point data), "percent" or "ar
 \item{attr_name_vect}{name(s) of attribute column(s). For polygon data, this is
 the column to calculate the statistics from; the results column names are 
 created by the content of this column. For point data, a column will be created
-with this name to hold the counts.}
+with this name to hold the counts. See notes.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
   of different values or just one value for all attributes.
@@ -72,6 +73,16 @@ either in \code{\link{import_data}} or using the GRASS function r.in.rast or
 v.in.ogr (see examples).
 }
 \note{
+Column names for the results are created as follows:
+Raster data - the column names given in \code{attr_name_rast} are used. The user should
+take care to use unique, clear names.
+For vector data, column names are constructed from the entries in in the column 
+\code{attr_name_vect}. For counts of points, the new column name containing the counts,
+it is just the given name. For 'percentage' or 'area', the names are constructed using
+the unique entries of the column with a concated 'p' or 'a', repectively. If, for intance, 
+for a landuse vector containing the classes 'urban' and 'arable' percentages would be calculated,
+edges would contain two new columns 'urbanp' and 'arablep'.
+
 \code{\link{setup_grass_environment}}, \code{\link{import_data}},
 \code{\link{derive_streams}} and \code{\link{calc_edges}} must be run before.
 }

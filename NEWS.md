@@ -9,6 +9,8 @@
 * New functionality in calc_attributes_edges and calc_attributes_sites_exact: 
   It is now possible to calculate percentages from raster maps with multiple values
   (e.g. land cover classes). 
+* sites has now the column 'str_edge' (for 'stream') instead of 'cat_edge' 
+  to relate the site to its edge.  
 
 # openSTARS 1.1.0
 

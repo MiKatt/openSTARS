@@ -42,6 +42,22 @@ knitr::opts_chunk$set(
 GRASS 7 does not run on Mac with system integrity check (<http://grassmac.wikidot.com>) and it needs to be disbaled. Additionally, GRASS addons (r.hydrodem etc.) need to be installed system-wide (see below how to install them using GRASS GUI).
 
 
+# Errors when installing from github
+When using the folliwing command in RStudio, this may result in an error:
+```{r github_install, eval = FALSE}
+  devtools::install_github("MiKatt/openSTARS", ref = "dev")
+```
+
+```text
+Error: (converted from warning) Setting LC_CTYPE failed, using "C"
+Execution halted
+Error in i.p(...) :
+(converted from warning) installation of package ‘/tmp/RtmpMsIim5/file65bc33ff2831/openSTARS_1.1.0.tar.gz’ had non-zero exit status
+```
+  
+Try the follwing: Quit RStudio, start R from a console and run the command there. It should install without error. Close R in the console (using q()), restart RStudio and continue.
+
+
 # Errors and warnings on WINDOWS systems
 Most problems occur because GRASS, which is called by the openSTARS package functions via package rgrass7, cannot find certain files, i.e. because some path and system variables are not set. The easiest solution is to install a stand-alone version of GRASS, i.e. not within QGIS or OSGeo.
 
