@@ -1,4 +1,4 @@
-#' Restict edges to certain stream networks
+#' Restrict edges to certain stream networks
 #' 
 #' When the stream network is derived from a DEM, the network will cover the whole
 #' extent of the DEM input. However, the obervation sites might be restricted
@@ -16,7 +16,7 @@
 #' @author Mira Kattwinkel  \email{mira.kattwinkel@@gmx.net}
 #' @export
 #' 
-#' #' @examples
+#' @examples
 #' \donttest{
 #' # Initiate GRASS session
 #' if(.Platform$OS.type == "windows"){
@@ -62,7 +62,7 @@
 #'   legend = c("though lakes", "lakes cut out"))
 #' }
 
-restict_network <- function(sites, keep = TRUE){
+restrict_network <- function(sites, keep = TRUE){
   
   vect <- execGRASS("g.list",
                     parameters = list(
