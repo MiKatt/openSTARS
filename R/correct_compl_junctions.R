@@ -243,7 +243,7 @@ correct_compl_junctions <- function(clean = TRUE){
     df.move_streams <- df.move_streams[order(df.move_streams$cut_stream),]
     df.move_streams$cut_stream_cat <- dt.all_inflows[stream %in% df.move_streams[, "cut_stream"], cat]
 
-    # Create file of point positions  prev_str0X * 1/(2*5) cellsize upstream of end of outflow to cut outflow
+    # Create file of point positions (2 - prev_str0X) * 1/12 cellsize upstream of end of outflow to cut outflow
     # P <point id>   <line cat> <offset> [<side offset>]
     points <- file.path(temp_dir, "cut_points.txt")
     # same as -cellsize/(2 * 6) * (5-(i+3)) but shorter

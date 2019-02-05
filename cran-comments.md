@@ -1,15 +1,14 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "May 11, 2018"
+date: "Jan 07, 2019"
 output: html_document
 ---
 
 ## Submission review comments
-This is the first submission of this version.
 
 ## Test environments
-* Linux Mint 18.2 Sonya, R 3.4.1
+* Linux Mint 19.0 Tara, R 3.5.1
 * Windows 7, R 3.5.0
 * win-builder (devel and release)
 
@@ -17,10 +16,14 @@ This is the first submission of this version.
 There were no ERRORs or WARNINGs.
 
 There was one NOTE:
-* checking examples ... NOTE
-Examples with CPU or elapsed time > 5s
+* checking installed package size ...
+     installed size is  9.3Mb
+     sub-directories of 1Mb or more:
+       extdata   9.0Mb
 
-Some examples take quite a while to run (> 5s) because they all contain the full
+The external data consists of GIS data file (shapes and raster) to enable helpful examples. 
+
+Some examples (within donttest) take quite a while to run (> 5s) because they all contain the full
 workflow of loading and processing GIS files to be stand-alone examples.
 
 ## Downstream dependencies
