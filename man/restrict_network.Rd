@@ -52,19 +52,18 @@ if(cj){
   correct_compl_junctions()
 }
 
-delete_lakes(lakes = lakes_path)
+calc_edges()
+calc_sites()
 
 # plot
-dem <- readRAST('dem', ignore.stderr = TRUE)
-streams <- readVECT('streams_v', ignore.stderr = TRUE)
-streams_with_lakes <- readVECT('streams_v_prev_lakes', ignore.stderr = TRUE)
-lakes <- readVECT('lakes', ignore.stderr = TRUE)
-# zoom to a relevant part of the dem
-plot(dem, col = terrain.colors(20), axes = TRUE)
-lines(streams_with_lakes, col = 'red', lty = 2, lwd = 2)
-lines(streams, col = 'blue', lty = 4, lwd = 2)
-legend("topright", col = c("red", "blue"), lty = c(1,4), lwd = c(2,2), 
-  legend = c("though lakes", "lakes cut out"))
+edges <- readVECT('edges', ignore.stderr = TRUE)
+edges_o <- readVECT('edges_o', ignore.stderr = TRUE)
+sites <- readVECT('sites', ignore.stderr = TRUE)
+plot(edges_o, col = "lightblue", lwd = 2)
+lines(edges, col = "blue4")
+points(sites, pch = 16, col = "red")
+legend("topright", col = c("red", "lightblue", "blue4"), lty = c(NA, 1,1), lwd = c(NA,2,1), pch = c(16,NA,NA),
+legend = c("sites", "edges orig", "edges restricted"))
 }
 }
 \author{

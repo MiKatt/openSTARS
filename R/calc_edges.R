@@ -76,24 +76,24 @@ calc_edges <- function() {
             parameters = list(
               vector = "streams_v,edges"))
 
-  # Remove points from edges (only lines are needed).
-  # Only needed if correct_compl_junctions was not run.
-  # get maximum category value plus 1
-  nocat<-as.character(max(as.numeric(
-                                     execGRASS("v.db.select",
-                                               parameters = list(
-                                                 map= "edges",
-                                                 columns= "cat"),
-                                               intern =T )[-1]
-                                     ))+1)
-  # delete all points
-  execGRASS("v.edit",
-            flags = c("r", "quiet"),    # r: reverse selection = all
-            parameters = list(
-              map = "edges",
-              type = "point",
-              tool = "delete",
-              cats = nocat), ignore.stderr = T)
+  # # Remove points from edges (only lines are needed).
+  # # Only needed if correct_compl_junctions was not run.
+  # # get maximum category value plus 1
+  # nocat<-as.character(max(as.numeric(
+  #                                    execGRASS("v.db.select",
+  #                                              parameters = list(
+  #                                                map= "edges",
+  #                                                columns= "cat"),
+  #                                              intern =T )[-1]
+  #                                    ))+1)
+  # # delete all points
+  # execGRASS("v.edit",
+  #           flags = c("r", "quiet"),    # r: reverse selection = all
+  #           parameters = list(
+  #             map = "edges",
+  #             type = "point",
+  #             tool = "delete",
+  #             cats = nocat), ignore.stderr = T)
   
   # create raster of streams based on "stream" in edges
   execGRASS("v.to.rast", flags = c("overwrite", "quiet"),

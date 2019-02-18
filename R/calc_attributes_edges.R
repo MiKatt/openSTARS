@@ -265,7 +265,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   temp_dir <- tempdir()
 
   if(!is.null(input_raster)){
-    message("Intersecting raster attributes ...")
+    message("Intersecting raster maps ...")
     rca_cell_count <- execGRASS("r.univar",
                                 flags = c("overwrite", "quiet","t"),
                                 parameters = list(
@@ -392,7 +392,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   }
   
   if(!is.null(input_vector)){
-    message("Intersecting vector attributes ...")
+    message("Intersecting vector maps ...")
     
     # convert raster rca to vector
     execGRASS("r.to.vect", flags = c("overwrite", "quiet"),

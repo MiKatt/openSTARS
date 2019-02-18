@@ -46,20 +46,18 @@
 #'   correct_compl_junctions()
 #' }
 #' 
-#' delete_lakes(lakes = lakes_path)
+#' calc_edges()
+#' calc_sites()
 #' 
 #' # plot
-#' dem <- readRAST('dem', ignore.stderr = TRUE)
-#' streams <- readVECT('streams_v', ignore.stderr = TRUE)
-#' streams_with_lakes <- readVECT('streams_v_prev_lakes', ignore.stderr = TRUE)
-#' lakes <- readVECT('lakes', ignore.stderr = TRUE)
-#' # zoom to a relevant part of the dem
-#' plot(dem, col = terrain.colors(20), axes = TRUE)
-#' lines(streams_with_lakes, col = 'red', lty = 2, lwd = 2)
-#' lines(streams, col = 'blue', lty = 4, lwd = 2)
-
-#' legend("topright", col = c("red", "blue"), lty = c(1,4), lwd = c(2,2), 
-#'   legend = c("though lakes", "lakes cut out"))
+#' edges <- readVECT('edges', ignore.stderr = TRUE)
+#' edges_o <- readVECT('edges_o', ignore.stderr = TRUE)
+#' sites <- readVECT('sites', ignore.stderr = TRUE)
+#' plot(edges_o, col = "lightblue", lwd = 2)
+#' lines(edges, col = "blue4")
+#' points(sites, pch = 16, col = "red")
+#' legend("topright", col = c("red", "lightblue", "blue4"), lty = c(NA, 1,1), lwd = c(NA,2,1), pch = c(16,NA,NA),
+#' legend = c("sites", "edges orig", "edges restricted"))
 #' }
 
 restrict_network <- function(sites, keep = TRUE){
@@ -69,7 +67,7 @@ restrict_network <- function(sites, keep = TRUE){
                       type = "vector"
                     ), intern = T)
 
-  if(!any(sites) %in% vect){
+  if(!any(sites %in% vect)){
     stop(ifelse(length(sites) == 1, paste(sites, "does not exist."), paste(paste(sites, collapse = ", "), "do not exist.")))
   }
   
@@ -88,16 +86,17 @@ restrict_network <- function(sites, keep = TRUE){
     execGRASS("g.copy", flags = c("quiet", "overwrite"),
               parameters = list(
                 vector = "edges,edges_o"
-              ))
+              ), intern = TRUE, ignore.stderr = TRUE)
+    message("Original edges moved to edges_o.")
   }
   
-  message(paste("Deleting edges with netIDs", paste(netIDs, collapse = ", "), "..."))
+  message(paste("Deleting edges with netIDs other than", paste(netIDs, collapse = ", "), "..."))
   execGRASS("v.edit", flags = c("overwrite", "quiet"),
             parameters = list(
               map = "edges", 
               type = "line",
               tool = "delete", 
-              where = paste("netID IN (", paste(netIDs, collapse = "," ), ")")
+              where = paste0("netID NOT IN (", paste0(netIDs, collapse = "," ), ")")
             ))
 }
 

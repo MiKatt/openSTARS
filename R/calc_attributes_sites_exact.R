@@ -270,7 +270,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                table = "sites"
                              ), intern = T)
   
-  message("Intersecting attributes for ", nrow(d.sites@data)," sites ...")
+  message("Intersecting maps for ", nrow(d.sites@data)," sites ...")
   # progress bar
   pb <- progress::progress_bar$new(total = nrow(d.sites@data))
   
