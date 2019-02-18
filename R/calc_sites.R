@@ -105,7 +105,7 @@
 #'}
 
 
-calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
+calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL, maxdist = NULL) {
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vect"
@@ -151,10 +151,9 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL) {
 #' @details 
 #' This function is called by \code{calc_sites} and should not be called directly.
 #' Sites are snapped to the streams and upstream distance is calculated.
-#' Sites are snapped to the streams and upstream distance is calculated.
 #'
 
-prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
+prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NULL){
   execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
             parameters = list(
@@ -200,6 +199,16 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL){
   proj4string(sites) <- proj4
   names(sites)[names(sites) %in% c( "coords.x1", "coords.x2")] <- c("xm", "ym")
   sites$cat_ <- NULL
+  
+  # get actual maximum snapping distance
+  mdist <- max(sites@data$dist)
+  message(paste("Maximum sapping distance found:", mdist, "m"))
+  # compare to given one
+  if(!is.null(maxdist) & mdist > maxdist){
+    i <- which(sites@data$dist >= maxdist)
+    sites <- sites[-i]
+    message(paste0(length(i), "sites with snapping distance > maxdist (", maxdist," m). Sites were deleted."))
+  }
   
   ### Setting pid -----------
   # MiKatt: pid is for "repeated measurements at a singel location" 
