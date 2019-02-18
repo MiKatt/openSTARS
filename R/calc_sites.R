@@ -14,6 +14,8 @@
 #' date. If not provided, it is created automatically.
 #'@param pred_sites character vector (optional); names for prediction sites 
 #'(loaded with \code{import_data}).
+#'@param maxdist integer (optional); maximum snapping distance. Sites farther away
+#'from edges will be deleted.
 #'
 #'@details Steps include:
 #'\itemize{
@@ -133,7 +135,7 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL, maxd
   
   site_maps <- c("sites", pred_sites)
   site_maps <- sub("_o$","", site_maps)
-  s <- sapply(site_maps, prepare_sites, locid_c = locid_col, pid_c = pid_col)
+  s <- sapply(site_maps, prepare_sites, locid_c = locid_col, pid_c = pid_col, maxdist = maxdist)
   
   execGRASS("v.db.dropcolumn",
             map = "sites",
@@ -147,6 +149,8 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL, maxd
 #'  table giving a unique site identifier. 
 #'@param pid_c character (optional); column name in the sites attribute table 
 #' that distinguishes between repeated measurements at a sampling site.
+#'@param maxdist integer (optional); maximum snapping distance. Sites farther away
+#'from edges will be deleted.
 #' 
 #' @details 
 #' This function is called by \code{calc_sites} and should not be called directly.

@@ -4,7 +4,8 @@
 \alias{prepare_sites}
 \title{Snap sites to streams and calculate attributes}
 \usage{
-prepare_sites(sites_map, locid_c = NULL, pid_c = NULL)
+prepare_sites(sites_map, locid_c = NULL, pid_c = NULL,
+  maxdist = NULL)
 }
 \arguments{
 \item{sites_map}{character; name of sites map (observation or prediction sites)
@@ -15,12 +16,14 @@ table giving a unique site identifier.}
 
 \item{pid_c}{character (optional); column name in the sites attribute table 
 that distinguishes between repeated measurements at a sampling site.}
+
+\item{maxdist}{integer (optional); maximum snapping distance. Sites farther away
+from edges will be deleted.}
 }
 \description{
 Snap sites to streams and calculate attributes
 }
 \details{
 This function is called by \code{calc_sites} and should not be called directly.
-Sites are snapped to the streams and upstream distance is calculated.
 Sites are snapped to the streams and upstream distance is calculated.
 }

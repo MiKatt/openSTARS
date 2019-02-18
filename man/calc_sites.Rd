@@ -4,7 +4,8 @@
 \alias{calc_sites}
 \title{Calculate sites for SSN object.}
 \usage{
-calc_sites(locid_col = NULL, pid_col = NULL, pred_sites = NULL)
+calc_sites(locid_col = NULL, pid_col = NULL, pred_sites = NULL,
+  maxdist = NULL)
 }
 \arguments{
 \item{locid_col}{character (optional); column name in the sites attribute 
@@ -17,6 +18,9 @@ date. If not provided, it is created automatically.}
 
 \item{pred_sites}{character vector (optional); names for prediction sites 
 (loaded with \code{import_data}).}
+
+\item{maxdist}{integer (optional); maximum snapping distance. Sites farther away
+from edges will be deleted.}
 }
 \description{
 A vector (points) map 'sites' is derived and several attributes
