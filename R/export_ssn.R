@@ -108,7 +108,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
               columns = "next_str,prev_str01,prev_str02"
             ))
   # 20180219: ESRI_Shapefile is no longer the default format
-  execGRASS("v.out.ogr",
+  a <- execGRASS("v.out.ogr",
             flags = c("overwrite", "quiet"),
             parameters = list(
               input = "edges2",
@@ -116,7 +116,8 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
               output = path,
               format = "ESRI_Shapefile",
               output_layer = "edges"
-            ))
+              #dsco = "RESIZE=YES" does not help to prevent warning
+            ), intern = TRUE, ignore.stderr = TRUE)
   execGRASS("g.remove",
             flags = c("quiet", "f"),
             parameters = list(
@@ -125,7 +126,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
             ))
 
   # write sites
-  execGRASS("v.out.ogr",
+  a <- execGRASS("v.out.ogr",
             c("overwrite", "quiet"),
             parameters = list(
               input = "sites",
@@ -133,12 +134,12 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
               output = path,
               format = "ESRI_Shapefile",
               output_layer = "sites"
-            ))
+            ), intern = TRUE, ignore.stderr = TRUE)
 
   # write preds
   if(!is.null(predictions)){
     for(i in seq_along(predictions))
-      execGRASS("v.out.ogr",
+     a <- execGRASS("v.out.ogr",
                 c("overwrite", "quiet"),
                 parameters = list(
                   input = predictions[i],
@@ -146,7 +147,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
                   output = path,
                   format = "ESRI_Shapefile",
                   output_layer = predictions[i]
-                ))
+                ), intern = TRUE, ignore.stderr = TRUE)
   }
 
   # create binary

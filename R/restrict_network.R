@@ -92,12 +92,20 @@ restrict_network <- function(sites, keep = TRUE){
   }
   
   message(paste("Deleting edges with netIDs other than", paste(netIDs, collapse = ", "), "..."))
-  execGRASS("v.edit", flags = c("overwrite", "quiet"),
+  # This deletes the features but keeps them in the attribute table
+  # execGRASS("v.edit", flags = c("overwrite", "quiet"),
+  #           parameters = list(
+  #             map = "edges", 
+  #             type = "line",
+  #             tool = "delete", 
+  #             where = paste0("netID NOT IN (", paste0(netIDs, collapse = "," ), ")")
+  #           ))
+  a <- execGRASS("v.extract", flags = c("overwrite", "quiet"),
             parameters = list(
-              map = "edges", 
+              input = "edges_o", 
+              output = "edges",
               type = "line",
-              tool = "delete", 
-              where = paste0("netID NOT IN (", paste0(netIDs, collapse = "," ), ")")
-            ))
+              where = paste0("netID IN (", paste0(netIDs, collapse = "," ), ")")
+            ), intern = TRUE, ignore.stderr = TRUE)
 }
 

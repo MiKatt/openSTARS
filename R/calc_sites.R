@@ -211,7 +211,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
   if(!is.null(maxdist)){
     if(mdist > maxdist){
       i <- which(sites@data$dist >= maxdist)
-      sites <- sites[-i]
+      sites <- sites[-i,]
       message(paste0("There were ", length(i), " sites with snapping distance > maxdist (", maxdist," m). Sites were deleted."))
     }
   }

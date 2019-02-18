@@ -296,7 +296,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         execGRASS("r.mapcalc", flags = c("overwrite","quiet"),
                   parameters = list(
                     expression = paste0(sites_map, "_catchm_", id,  " = ", m)
-                  ))
+                  ), intern = TRUE, ignore.stderr = TRUE)
         
         ## old approach
         # ## more than 106 categories in r.mask crashes (i.e. no MASK is created)
