@@ -173,8 +173,8 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_raster)) {
     if(is.null(predictor_r_names))
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(strwrap(paste0("Loading raster predictor varibales into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."),
-            width = 80))
+    message(writeLines(strwrap(paste0("Loading raster predictor varibales into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."),
+            width = 80)))
     for(i in 1:length(predictor_r_names)){
       if(.Platform$OS.type == "windows"){
         execGRASS("r.in.gdal",

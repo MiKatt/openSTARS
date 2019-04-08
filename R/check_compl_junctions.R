@@ -47,7 +47,7 @@ check_compl_junctions <- function(){
                       table = "streams_v"
                     ), intern=T)
   if(any(c("prev_str03","prev_str04","prev_str05") %in% cnames)){
-    message(strwrap("There are complex confluences in the stream network. Please run correct_compl_junctions for correction.", width = 80))
+    message(writeLines(strwrap("There are complex confluences in the stream network. Please run correct_compl_junctions for correction.", width = 80)))
     ret <- TRUE
   }
   return(ret)

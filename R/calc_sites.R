@@ -206,14 +206,14 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
   
   # get actual maximum snapping distance
   mdist <- max(sites@data$dist)
-  message(strwrap(paste("Maximum snapping distance found:", round(mdist,3), "m"), width = 80))
+  message(writeLines(strwrap(paste("Maximum snapping distance found:", round(mdist,3), "m"), width = 80)))
   # compare to given one
   if(!is.null(maxdist)){
     if(mdist > maxdist){
       i <- which(sites@data$dist >= maxdist)
       sites <- sites[-i,]
-      message(strwrap(paste0("There were ", length(i), " sites with snapping distance > maxdist (", maxdist," m). Sites were deleted."),
-              width = 80))
+      message(writeLines(strwrap(paste0("There were ", length(i), " sites with snapping distance > maxdist (", maxdist," m). Sites were deleted."),
+              width = 80)))
     }
   }
   
