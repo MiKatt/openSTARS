@@ -6,11 +6,14 @@
   might have occured.
 * New function to delete lakes from the network ('delete_lakes'). Added "lakes.shp"
   to example data.
+* New function to restrict edges to certain networks that have sites (obeservation
+  or prediction) and delete the rest ('restict_network').
 * New functionality in calc_attributes_edges and calc_attributes_sites_exact: 
   It is now possible to calculate percentages from raster maps with multiple values
   (e.g. land cover classes). 
 * sites has now the column 'str_edge' (for 'stream') instead of 'cat_edge' 
-  to relate the site to its edge.  
+  to relate the site to its edge.
+
 
 # openSTARS 1.1.0
 

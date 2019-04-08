@@ -39,8 +39,8 @@ setup_grass_environment <- function(dem, epsg = NULL, sites = NULL) {
   message("Setting up GRASS Environment ...\n")
   
   if(!is.null(sites))
-    message(strwrap("'sites' is no longer a parameter of setup_grass_environment (see help). \nThe function will still execute normally. Please update your code."),
-            width = 80)
+    message(strwrap("'sites' is no longer a parameter of setup_grass_environment (see help). \nThe function will still execute normally. Please update your code.",
+            width = 80))
   
   dem_raster <- raster::raster(dem)
   #dem_proj <- raster::projection(dem_raster)
