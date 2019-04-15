@@ -1,8 +1,9 @@
 #' Check if there are more than two inflows to an outflow.
 #'
-#' It is checked, if there are more than two inflows to an outflow.
+#' It is checked, if more than two line segments flow into a node, i.e.
+#' if there are more than two inflows to an outflow.
 #'
-#' @return TRUE if there are complex junctions.
+#' @return TRUE if there are complex confluences.
 #' 
 #' @details It is checked, if there are columns named 'prev_str03', 'prev_str04' and
 #' 'prev_str05' in the attribute table of streams_v derived with \code{derive_streams}
@@ -37,17 +38,17 @@
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #' 
-#' check_compl_junctions()
+#' check_compl_confluences()
 #' }
 
-check_compl_junctions <- function(){
+check_compl_confluences <- function(){
   ret <- FALSE
   cnames<-execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
                     ), intern=T)
   if(any(c("prev_str03","prev_str04","prev_str05") %in% cnames)){
-    message(writeLines(strwrap("There are complex confluences in the stream network. Please run correct_compl_junctions for correction.", width = 80)))
+    message(writeLines(strwrap("There are complex confluences in the stream network. Please run correct_compl_confluences for correction.", width = 80)))
     ret <- TRUE
   }
   return(ret)

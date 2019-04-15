@@ -14,8 +14,8 @@
 #' @param min_stream_length integer: minimum stream length in number of DEM
 #'   raster cells; shorter first order stream segments are deleted; default: 0. 
 #'   See details below.
-#' @param condition logical; should the DEM be conditioned using
-#'   \href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem}'
+#' @param condition logical; should the DEM be conditioned using the GRASS function
+#'   \href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem}
 #' @param dem_name character vector, optional; default: 'dem'; useful if
 #'   conditioned and / or burnt in DEM raster from previous runs shall be used.
 #' @param clean logical; should intermediate raster layer of imported streams

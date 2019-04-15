@@ -16,8 +16,8 @@ DEM? Only applicable if a mapped stream network is provided in \code{\link{impor
 flow accumulation value in cells that will initiate a new stream). See 
 details below.}
 
-\item{condition}{logical; should the DEM be conditioned using
-\href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem}'}
+\item{condition}{logical; should the DEM be conditioned using the GRASS function
+\href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem}}
 
 \item{min_stream_length}{integer: minimum stream length in number of DEM
 raster cells; shorter first order stream segments are deleted; default: 0. 

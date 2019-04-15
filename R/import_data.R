@@ -173,7 +173,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_raster)) {
     if(is.null(predictor_r_names))
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(writeLines(strwrap(paste0("Loading raster predictor varibales into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."),
+    message(writeLines(strwrap(paste0("Loading raster predictor variables into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."),
             width = 80)))
     for(i in 1:length(predictor_r_names)){
       if(.Platform$OS.type == "windows"){
@@ -196,7 +196,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(predictor_vector)) {
     if(is.null(predictor_v_names))
       predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
-    message(strwrap(paste0("Loading vector predictor varibales into GRASS as ",paste("'", predictor_v_names, "'", collapse = ", ", sep=""), " ..."),
+    message(strwrap(paste0("Loading vector predictor variables into GRASS as ",paste("'", predictor_v_names, "'", collapse = ", ", sep=""), " ..."),
             width = 80))
     for(i in 1:length(predictor_v_names)){
       import_vector_data(data = predictor_vector[i], name = predictor_v_names[i], proj_ref_obj = dem)

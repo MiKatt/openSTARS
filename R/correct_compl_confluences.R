@@ -1,7 +1,8 @@
-#' Correct junctions with three inflows.
+#' Correct confluences with three or more inflows.
 #'
-#' At complex junctions (i.e. more than two inflows to an outflow),the inflow
-#' with the smalles angle to the shortes inflow is broken into two segments 
+#' At complex confluences (when more than two line segments flow into a node,
+#' i.e. more than two inflows to an outflow), the inflow
+#' with the smallest angle to the shortest inflow is broken into two segments 
 #' close to the juntion using the GRASS function
 #' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
 #' break). Then, the shortes inflow is moved to this new junction using
@@ -44,11 +45,11 @@
 #' # Derive streams from DEM
 #' derive_streams(burn = 10, accum_threshold = 100, condition = TRUE, clean = TRUE)
 #' 
-#' # Check and correct complex junctions (there are complex juctions in the 
+#' # Check and correct complex confluences (there are complex confluences in the 
 #' # example date set if the accumulation threshold is low)
-#' cj <- check_compl_junctions()
+#' cj <- check_compl_confluences()
 #' if(cj){
-#'   correct_compl_junctions()
+#'   correct_compl_confluences()
 #' }
 #' 
 #' # plot
@@ -64,7 +65,7 @@
 #'   legend = c("original", "corrected"))
 #' }
 
-correct_compl_junctions <- function(clean = TRUE){
+correct_compl_confluences <- function(clean = TRUE){
   cnames<-execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
@@ -110,7 +111,8 @@ correct_compl_junctions <- function(clean = TRUE){
    dt.junctions[, `:=`(names(dt.junctions), lapply(.SD, as.numeric))]
    n <- nrow(dt.junctions)
    dt.junctions <- melt(dt.junctions, measure.vars = colnames(dt.junctions))
-   message(paste0("Removing ",n , " ", i, "-fold junctions."))
+   #message(paste0("Removing ",n , " ", i, "-fold confluences."))
+   message(paste0("Fixing ",n , " complex confluences with ", i, " upstream segments each"))
    
    # all previous streams
    prev_str <- unique(dt.junctions[, value])
