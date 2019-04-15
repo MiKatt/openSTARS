@@ -68,16 +68,16 @@
 #'}
 
 
-merge_sites_measurements <- function(dat, site_id, all_sites = FALSE, ...) {
+merge_sites_measurements <- function(measurements, site_id, all_sites = FALSE, ...) {
   
-  if(!is.data.frame(dat) & !is.data.table()){
-    d <- try(dat <- read.table(dat, header = T, stringAsFactor = FALSE, ...))
+  if(!is.data.frame(measurements) & !is.data.table(measurements)){
+    d <- try(measurements <- read.table(measurements, header = T, stringAsFactor = FALSE, ...))
     if(class(d) == "try-error")
-      stop("'dat' must contain a valid path name to table data.")
+      stop("'measurements' must contain a valid path name to table data.")
   } 
   
-  if(!site_id %in% colnames(dat)){
-    stop(writeLines(strwrap(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'dat'. Options are: ", 
+  if(!site_id %in% colnames(measurements)){
+    stop(writeLines(strwrap(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'measurements'. Options are: ", 
                                    paste0(colnames(dat), collapse = ", ")), width = 80)))
   }
   
@@ -87,7 +87,7 @@ merge_sites_measurements <- function(dat, site_id, all_sites = FALSE, ...) {
                                    paste0(colnames(sites@data), collapse = ", ")), width = 80)))
   }
   
-  sites <- sp::merge(sites, dat, by = site_id, duplicateGeoms = TRUE, all.x = all_sites)
+  sites <- sp::merge(sites, measurements, by = site_id, duplicateGeoms = TRUE, all.x = all_sites)
   d <- sites@data
   d$pid <- 1:nrow(d)
   row.names(d) <- 1:nrow(d)

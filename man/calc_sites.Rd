@@ -33,6 +33,7 @@ Steps include:
 gives the distance of the original position to the closest streams segment. 
 If this is a too large value consider running \code{\link{derive_streams}} again with
 smaller value for \code{accum_threshold} and/or \code{min_stream_length}.}
+\item{Save the new point coordinates in NEAR_X and NEAR_Y.}
 \item{Assign unique 'pid' and 'locID' (needed by the 'SSN' package).}
 \item{Get 'rid' and 'netID' of the
 stream segment the site intersects with (from map "edges").}
@@ -48,9 +49,10 @@ closest stream segment (snapped) using the GRASS function
 
 If \code{locid_col} and \code{pid_col} are not provided, 'pid' and 'locID' 
 are identical, unique numbers. If they are provided, they are created based
-on these columns (as numbers, not as text). Note that repeated measurements
-can be joined to the sites at a later step. Then, 'pid' needs to be updated 
-accordingly (NOT YET IMPLEMENTED). 
+on these columns (as numbers, not as text). Note that measurements
+can be joined to the sites at a later step (including multiple parameters and
+multiple measurements) using \code{\link{merge_sites_measurements}}. 
+Then, 'pid' is updated accordingly. 
 
 'upDist' is calculated using
 \href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance} with 

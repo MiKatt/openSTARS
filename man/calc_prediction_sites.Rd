@@ -31,6 +31,7 @@ smaller than \code{nsites}.
 Steps include: 
 \itemize{ 
 \item{Place points on edges with given distance from each other} 
+\item{Save the point coordinates in NEAR_X and NEAR_Y.}
 \item{Assign unique identifiers (needed by the 'SSN' package) 'pid'
 and 'locID'.} 
 \item{Get 'rid' and 'netID' of the stream segment the site

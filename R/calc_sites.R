@@ -23,6 +23,7 @@
 #'gives the distance of the original position to the closest streams segment. 
 #'If this is a too large value consider running \code{\link{derive_streams}} again with
 #'smaller value for \code{accum_threshold} and/or \code{min_stream_length}.}
+#'\item{Save the new point coordinates in NEAR_X and NEAR_Y.}
 #'\item{Assign unique 'pid' and 'locID' (needed by the 'SSN' package).}
 #'\item{Get 'rid' and 'netID' of the
 #'stream segment the site intersects with (from map "edges").}
@@ -38,9 +39,10 @@
 #'
 #' If \code{locid_col} and \code{pid_col} are not provided, 'pid' and 'locID' 
 #' are identical, unique numbers. If they are provided, they are created based
-#' on these columns (as numbers, not as text). Note that repeated measurements
-#' can be joined to the sites at a later step. Then, 'pid' needs to be updated 
-#' accordingly (NOT YET IMPLEMENTED). 
+#' on these columns (as numbers, not as text). Note that measurements
+#' can be joined to the sites at a later step (including multiple parameters and
+#' multiple measurements) using \code{\link{merge_sites_measurements}}. 
+#' Then, 'pid' is updated accordingly. 
 #' 
 #' 'upDist' is calculated using
 #'\href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance} with 
@@ -174,16 +176,16 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
                       parameters = list(
                         table = "sites"
                       ), intern = T)
-  if(any(i <- which(c("cat_edge","str_edge","dist","xm", "ym") %in% cnames))){
+  if(any(i <- which(c("cat_edge","str_edge","dist","NEAR_X", "NEAR_Y") %in% cnames))){
     execGRASS("v.db.dropcolumn", flags = "quiet",
               map = "sites",
-              columns = paste0(c("cat_edge","str_edge","dist","xm", "ym")[i], collapse = ","))
+              columns = paste0(c("cat_edge","str_edge","dist","NEAR_X", "NEAR_Y")[i], collapse = ","))
   }
   
   execGRASS("v.db.addcolumn",
             parameters = list(
               map = sites_map,
-              columns = "cat_edge int,str_edge int,dist double precision,xm double precision,ym double precision"
+              columns = "cat_edge int,str_edge int,dist double precision,NEAR_X double precision,NEAR_Y double precision"
             ))
   # calc distance
   # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
@@ -193,16 +195,16 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
                               to = "edges",
                               #output = "connectors",
                               upload = "cat,dist,to_x,to_y",
-                              column = "cat_edge,dist,xm,ym"))
+                              column = "cat_edge,dist,NEAR_X,NEAR_Y"))
   #! This is in R faster than in GRASS!? (which has to write to hard-drive)
   #! Other possibilities in GRASS to change coordinates?
   #! use r.stream.snap alternatively?
   sites <- readVECT(sites_map, type = "point", ignore.stderr = TRUE)
   proj4 <- proj4string(sites)
   sites <-  as(sites, "data.frame")
-  coordinates(sites) <-  ~ xm + ym
+  coordinates(sites) <-  ~ NEAR_X + NEAR_Y
   proj4string(sites) <- proj4
-  names(sites)[names(sites) %in% c( "coords.x1", "coords.x2")] <- c("xm", "ym")
+  names(sites)[names(sites) %in% c( "coords.x1", "coords.x2")] <- c("NEAR_X", "NEAR_Y")
   sites$cat_ <- NULL
   
   # get actual maximum snapping distance

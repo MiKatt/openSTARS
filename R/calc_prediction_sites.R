@@ -18,6 +18,7 @@
 #'Steps include: 
 #'\itemize{ 
 #'\item{Place points on edges with given distance from each other} 
+#'\item{Save the point coordinates in NEAR_X and NEAR_Y.}
 #'\item{Assign unique identifiers (needed by the 'SSN' package) 'pid'
 #'and 'locID'.} 
 #'\item{Get 'rid' and 'netID' of the stream segment the site
@@ -152,7 +153,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   execGRASS("v.db.addtable", flags = c("quiet"),
             parameters = list(
               map = predictions,
-              columns = "cat_edge int,str_edge int,dist double precision,pid int,loc int,net int,rid int,out_dist double,distalong double precision,ratio double precision"
+              columns = "cat_edge int,str_edge int,dist double precision,nx double precision,ny double precision,pid int,loc int,net int,rid int,out_dist double,distalong double precision,ratio double precision"
            ))
 
   # MiKatt: Necessary to get upper and lower case column names
@@ -171,16 +172,25 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
               map = predictions,
               column = "out_dist,upDist"
             ))
+  execGRASS("v.db.renamecolumn", flags = "quiet",
+            parameters = list(
+              map = predictions,
+              column = "nx,NEAR_X"
+            ))
+  execGRASS("v.db.renamecolumn", flags = "quiet",
+            parameters = list(
+              map = predictions,
+              column = "ny,NEAR_Y"
+            ))
   
   message("Setting cat_edge ...")
-  # MiKatt: additionally get cat of nearest edge for later joining of netID and rid
+  # MiKatt: additionally get x and y coordinate
   execGRASS("v.distance",
             flags = c("overwrite", "quiet"),
-            parameters = list(from = predictions,
+            parameters = list(from = sites_map,
                               to = "edges",
-                              #output = "connectors",
-                              upload = "cat,dist",
-                              column = "cat_edge,dist"))
+                              upload = "cat,dist,to_x,to_y",
+                              column = "cat_edge,dist,NEAR_X,NEAR_Y"))
 
   message("Setting pid and locID ...")
   execGRASS("v.db.update",
