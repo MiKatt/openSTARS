@@ -254,6 +254,8 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
                 columns = c("strahler","horton","shreve","hack","topo_dim","scheidegger","drwal_old","stright",
                             "sinosoid","source_elev","outlet_elev","elev_drop","out_drop","gradient")
               ))
+    
+    message("Derived streams saved as 'sterams_v'.")
 }
 
 #' Calculate RAM needed for deriving the stream network from DEM

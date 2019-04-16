@@ -4,9 +4,12 @@
 \alias{merge_sites_measurements}
 \title{Merge a table with measurements to the sites.}
 \usage{
-merge_sites_measurements(dat, site_id, all_sites = FALSE, ...)
+merge_sites_measurements(measurements, site_id, all_sites = FALSE, ...)
 }
 \arguments{
+\item{measurements}{character string, data.table or data.frame object; 
+path to table data containing the data or a data.table or data.frame object}
+
 \item{site_id}{character string; columns name that gives the unique name of the
 site. Must be identical in both the sites vector object and the table of 
 measurements}
@@ -15,9 +18,6 @@ measurements}
 
 \item{...}{additional agruments to read.table in case \code{measuremtes} is a file path
 to table data}
-
-\item{measurements}{character string, data.table or data.frame object; 
-path to table data containing the data or a data.table or data.frame object}
 }
 \description{
 After all processing steps are done and before exporting as an SSN object

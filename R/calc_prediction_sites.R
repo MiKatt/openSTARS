@@ -187,7 +187,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
   # MiKatt: additionally get x and y coordinate
   execGRASS("v.distance",
             flags = c("overwrite", "quiet"),
-            parameters = list(from = sites_map,
+            parameters = list(from = predictions,
                               to = "edges",
                               upload = "cat,dist,to_x,to_y",
                               column = "cat_edge,dist,NEAR_X,NEAR_Y"))

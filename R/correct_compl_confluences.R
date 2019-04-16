@@ -308,8 +308,9 @@ correct_compl_confluences <- function(clean = TRUE){
     streams <- readVECT(vname = "streams_v", remove.duplicates = FALSE, 
                         ignore.stderr = TRUE, type = "line")
     sink()
-    streams@data <- data.frame(streams@data, streams$cat)
-    colnames(streams@data)[ncol(streams@data)] <- paste0("cat_old", i) 
+    # MiKatt 20190416: not needed any more, only for debugging
+    #streams@data <- data.frame(streams@data, streams$cat)
+    #colnames(streams@data)[ncol(streams@data)] <- paste0("cat_old", i) 
 
     nstream <- max(streams$stream) + 1
     streams$str_new <- streams$stream
@@ -484,5 +485,5 @@ correct_compl_confluences <- function(clean = TRUE){
               ))
     try(unlink("temp.txt"), silent = TRUE)
   }
-  message("Complex junctions were removed. Please check changed features in 'streams_v'.")
+  message("Complex confluences were removed. Please check changed features in 'streams_v'.")
 }
