@@ -71,14 +71,14 @@
 merge_sites_measurements <- function(measurements, site_id, all_sites = FALSE, ...) {
   
   if(!is.data.frame(measurements) & !is.data.table(measurements)){
-    d <- try(measurements <- read.table(measurements, header = T, stringAsFactor = FALSE, ...))
+    d <- try(measurements <- utils::read.table(measurements, header = T, stringAsFactor = FALSE, ...))
     if(class(d) == "try-error")
       stop("'measurements' must contain a valid path name to table data.")
   } 
   
   if(!site_id %in% colnames(measurements)){
     stop(writeLines(strwrap(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'measurements'. Options are: ", 
-                                   paste0(colnames(dat), collapse = ", ")), width = 80)))
+                                   paste0(colnames(measurements), collapse = ", ")), width = 80)))
   }
   
   sites <- readVECT("sites", ignore.stderr = TRUE)
