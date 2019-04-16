@@ -209,7 +209,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
   
   # get actual maximum snapping distance
   mdist <- max(sites@data$dist)
-  message(writeLines(strwrap(paste("Maximum snapping distance found:", round(mdist,3), "m"), width = 80)))
+  message(writeLines(strwrap(paste("Maximum snapping distance found:", round(mdist,3), "m"), width = 80)), appendLF = FALSE)
   # compare to given one
   if(!is.null(maxdist)){
     if(mdist > maxdist){

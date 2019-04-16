@@ -255,7 +255,7 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
                             "sinosoid","source_elev","outlet_elev","elev_drop","out_drop","gradient")
               ))
     
-    message("Derived streams saved as 'sterams_v'.")
+    message("Derived streams saved as 'streams_v'.")
 }
 
 #' Calculate RAM needed for deriving the stream network from DEM

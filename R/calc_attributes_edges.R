@@ -294,6 +294,16 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         st$cellcount <- as.numeric(st$cellcount)
         suppressWarnings(st$zone <- as.numeric(st$zone))
         setDT(st)
+        
+        # MiKatt 20190416: to catch strange %-row on Windows
+        i <- which(!sapply(st, is.numeric))
+        if(length(i) > 0){
+          k <- unlist(sapply(i, function(x) which(grepl("%", unlist(st[,..x])))))
+          k <- k[is.numeric(k)]
+          if(length(k) > 0 & ! is.na(k))
+            st <- st[-k,]
+        }
+        
         #st[, `:=`(names(st), lapply(.SD, as.numeric))]
         st <- dcast(st, "zone  ~ class", value.var = "cellcount")
         if(stat_rast[j] == "percent"){
