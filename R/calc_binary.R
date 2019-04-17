@@ -73,7 +73,9 @@ calc_binary <- function(){
                parameters = list(
                sql = 'select rid,stream,next_str,prev_str01,prev_str02,netID from edges',
                separator = ','
-               ), intern = TRUE)
+               ), 
+               ignore.stderr = TRUE,
+               intern = TRUE)
 
   dt.streams<-do.call(rbind,strsplit(dt.streams,split=","))
   dt.streams<-apply(dt.streams,2,as.numeric)

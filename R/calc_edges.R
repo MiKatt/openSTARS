@@ -132,6 +132,10 @@ calc_edges <- function() {
   setDT(areas)
   setnames(areas, names(areas),c("stream","area"))
   areas[, names(areas) := lapply(.SD, as.numeric)]
+  # # MiKatt 20190417: in case Windows adds any rows with additional info
+  # if(any(is.na(areas)))
+  #   areas <- areas[- c(which(is.na(areas), arr.ind = TRUE)[,"row"]),]
+  # not possible becaus is.na is used below
 
   # calculate upstream area per stream segment
   dt.streams <- do.call(rbind,strsplit(
@@ -143,6 +147,12 @@ calc_edges <- function() {
   colnames(dt.streams) <- dt.streams[1,]
   dt.streams <- data.table(dt.streams[-1,, drop = FALSE], "total_area" = 0, "netID" = -1)
   dt.streams[, names(dt.streams) := lapply(.SD, as.numeric)]
+  
+  # # MiKatt 20190417: in case Windows adds any rows with additional info
+  # if(any(is.na(dt.streams)))
+  #   dt.streams <- dt.streams[- c(which(is.na(dt.streams), arr.ind = TRUE)[,"row"]),]
+  # not possible becaus is.na is used below
+  
   dt.streams<-merge(dt.streams, areas, by = "stream", all = T)  # was: MiKatt: must be 'cat' not 'stream' because stream_r is based on 'cat'! Is now: 'stream'!
   setkey(dt.streams, stream)
   # set catchment area of short segments that do not have a rca (NA) to zero (mainly resulting from correct_compl_junctions())

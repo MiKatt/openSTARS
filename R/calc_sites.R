@@ -175,7 +175,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
   cnames <- execGRASS("db.columns", flags = "quiet",
                       parameters = list(
                         table = "sites"
-                      ), intern = T)
+                      ), intern = TRUE)
   if(any(i <- which(c("cat_edge","str_edge","dist","NEAR_X", "NEAR_Y") %in% cnames))){
     execGRASS("v.db.dropcolumn", flags = "quiet",
               map = "sites",

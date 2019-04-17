@@ -164,7 +164,8 @@ correct_compl_confluences <- function(clean = TRUE){
    execGRASS("v.db.addtable", flags = c("quiet"), 
              parameters = list(
                map = "complex_flows_p", 
-               columns = "dir int")
+               columns = "dir int"),
+             ignore.stderr = TRUE
    )
    execGRASS("v.what.rast", flags = c("quiet"), 
              parameters = list(
@@ -340,7 +341,7 @@ correct_compl_confluences <- function(clean = TRUE){
                 option = "length",
                 type = "line",
                 columns = "length"
-              ))
+              ), ignore.stderr = TRUE)
     # Find new cat_ and new_str of short and long pieces of cut streams
     cut.str <- paste(df.move_streams[, "cut_stream"], collapse = ",")
     cut.str<-paste0("(", cut.str, ")",sep="")

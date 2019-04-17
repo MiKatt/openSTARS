@@ -173,7 +173,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
       a <- execGRASS("v.info", flags = "t",
                      parameters = list(
                        map = input_vector[j]
-                     ), intern = T)
+                     ), ignore.stderr = TRUE, intern = TRUE)
       a <- do.call(rbind,strsplit(a, "="))
       k <- which(a[,1] == "points")
       if(as.numeric(a[k,2]) == 0)
@@ -188,7 +188,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
       a <- execGRASS("v.info", flags = "t",
                      parameters = list(
                        map = input_vector[i]
-                     ), intern = T)
+                     ), ignore.stderr = TRUE, intern = TRUE)
       a <- do.call(rbind,strsplit(a, "="))
       k <- which(a[,1] == "points")
       if(as.numeric(a[k,2]) != 0){
@@ -209,7 +209,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   cnames_edges <- execGRASS("db.columns", flags = "quiet",
                             parameters = list(
                               table = "edges"
-                            ), intern = T)
+                            ), ignore.stderr = TRUE, intern = TRUE)
   
   rast <- execGRASS("g.list",
                     parameters = list(
@@ -257,7 +257,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   
   cellsize <- NULL
   if(any(stat_rast == "area")){
-    cellsize <- execGRASS("g.region", flags = "p",intern=T)
+    cellsize <- execGRASS("g.region", flags = "p", ignore.stderr = TRUE, intern=T)
     cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2])
     cellsize <- prod(cellsize)
   }
@@ -272,6 +272,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                                   map = "rca",
                                   zones = "rca",
                                   separator = "comma"),
+                                ignore.stderr = TRUE,
                                 intern = TRUE)
     rca_cell_count <- do.call(rbind,strsplit(rca_cell_count, ","))
     colnames(rca_cell_count) <- rca_cell_count[1,]
@@ -284,25 +285,27 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     for(j in 1:length(stat_rast)){
       # TODO: check what happens with 0/1 or NA/1 coded
       if(stat_rast[j] == "percent" | stat_rast[j] == "area"){#} & get_n_val_raster(input_raster[j]) > 2){
+        # MiKatt 20190417: ignore.stderr = T prevents output of "100%" at the end on Windows!
+        # solves problem with strange column names
         st <- execGRASS("r.stats", flags = c("c"),
                         parameters = list(
                           input =  paste0("rca,", input_raster[j]),
                           separator = "comma"
-                        ), intern = TRUE)
+                        ), ignore.stderr = TRUE, intern = TRUE)
         st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
         colnames(st) <- c("zone", "class", "cellcount")
         st$cellcount <- as.numeric(st$cellcount)
         suppressWarnings(st$zone <- as.numeric(st$zone))
         setDT(st)
         
-        # MiKatt 20190416: to catch strange %-row on Windows
-        i <- which(!sapply(st, is.numeric))
-        if(length(i) > 0){
-          k <- unlist(sapply(i, function(x) which(grepl("%", unlist(st[,..x])))))
-          k <- k[is.numeric(k)]
-          if(length(k) > 0 & ! is.na(k))
-            st <- st[-k,]
-        }
+        # # MiKatt 20190416: to catch strange %-row on Windows
+        # i <- which(!sapply(st, is.numeric))
+        # if(length(i) > 0){
+        #   k <- unlist(sapply(i, function(x) which(grepl("%", unlist(st[,..x])))))
+        #   k <- k[is.numeric(k)]
+        #   if(length(k) > 0 & ! is.na(k))
+        #     st <- st[-k,]
+        # }
         
         #st[, `:=`(names(st), lapply(.SD, as.numeric))]
         st <- dcast(st, "zone  ~ class", value.var = "cellcount")
@@ -330,6 +333,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                           map = input_raster[j],
                           zones = "rca",
                           separator = "comma"),
+                        ignore.stderr = TRUE,
                         intern = TRUE)
         st <- do.call(rbind,strsplit(st,","))
         colnames(st) <- st[1,]
@@ -361,7 +365,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
       execGRASS("db.select",
                 parameters = list(
                   sql = "select stream, next_str, prev_str01, prev_str02, netID from edges"
-                ),intern = T),
+                ), ignore.stderr = TRUE, intern = TRUE),
       split = '\\|'))
     colnames(dt.streams) <- dt.streams[1,]
     dt.streams <- data.table(dt.streams[-1,,drop = FALSE])
@@ -411,13 +415,13 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 output = "rca_v",
                 type = "area",
                 column = "stream"
-              ), ignore.stderr = T, intern = T)
+              ), ignore.stderr = TRUE, intern = TRUE)
     
     dt.streams <- do.call(rbind,strsplit(
       execGRASS("db.select",
                 parameters = list(
                   sql = "select stream, next_str, prev_str01, prev_str02, netID, rcaArea, H2OArea from edges"
-                ),intern = T),
+                ), ignore.stderr = TRUE, intern = TRUE),
       split = '\\|'))
     colnames(dt.streams) <- dt.streams[1,]
     dt.streams <- data.table(dt.streams[-1,,drop = FALSE])
@@ -437,27 +441,27 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                     btype = "area",
                     operator = "and",
                     output = "temp_inters"
-                  ), ignore.stderr = T, intern = T)
+                  ), ignore.stderr = T)
         execGRASS("v.db.addcolumn", flags = "quiet",
                   parameters = list(
                     map =  "temp_inters",
                     columns = "area double"
-                  ))
+                  ), ignore.stderr = TRUE)
         execGRASS("v.to.db", flags = c("quiet"),
                   parameters = list(
                     map =  "temp_inters",
                     option = "area",
                     columns = "area"
-                  ))
+                  ), ignore.stderr = TRUE)
         cname <- paste0("b_", attr_name_vect[j])
         dt.dat <- do.call(rbind,strsplit(
           execGRASS("db.select",
                     parameters = list(
                       sql = paste0('select a_stream, area, ', cname, ' from temp_inters')
-                    ),intern = T),
+                    ), ignore.stderr = TRUE, intern = TRUE),
           split = '\\|'))
         colnames(dt.dat) <- dt.dat[1,]
-        dt.dat <- as.data.frame(dt.dat[-1,], stringsAsFactors = F)
+        dt.dat <- as.data.frame(dt.dat[-1,], stringsAsFactors = FALSE)
         setDT(dt.dat)
         setnames(dt.dat, "a_stream", "stream")
         dt.dat[, c("stream", "area") := lapply(.SD, as.numeric), .SDcols =  c("stream", "area")]
@@ -475,17 +479,17 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
           execGRASS("db.select",
                     parameters = list(
                       sql = paste0('select stream, ', attr_name_vect[j], ' from rca_v')
-                    ),intern = T),
+                    ), ignore.stderr = TRUE, intern = TRUE),
           split = '\\|'))
         colnames(dt.dat) <- dt.dat[1,]
-        dt.dat <- as.data.frame(dt.dat[-1,], stringsAsFactors = F)
+        dt.dat <- as.data.frame(dt.dat[-1,], stringsAsFactors = FALSE)
         setDT(dt.dat)
         dt.dat[, names(dt.dat) := lapply(.SD, as.numeric)]
         dt.dat <- dt.dat[, lapply(.SD, sum), by = stream, .SDcols = attr_name_vect[j]]
         # MK 01.052018: Why did I set the names starting with "s"?
         #setnames(dt.dat, attr_name_vect[j], paste0("s", attr_name_vect[j]))
       }
-      names(dt.dat)[-1] <- paste0(names(dt.dat)[-1], substr(stat_vect[j],1,1))
+      #names(dt.dat)[-1] <- paste0(names(dt.dat)[-1], substr(stat_vect[j],1,1))
       anames <- c(anames, names(dt.dat)[-1])
       nanames[j] <- ncol(dt.dat) - 1
       dt.streams <- merge(dt.streams, dt.dat, by = "stream", all.x = TRUE)
@@ -511,7 +515,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
               parameters = list(
                 input = file.path(temp_dir,"edge_attributes.csv"),
                 output = "edge_attributes"
-              ),ignore.stderr = T, intern = T)
+              ),ignore.stderr = TRUE, intern = TRUE)
     
     execGRASS("v.db.join", flags = "quiet",
               parameters = list(
@@ -533,7 +537,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   cnames_edges2 <- execGRASS("db.columns", flags = "quiet",
                              parameters = list(
                                table = "edges"
-                             ), intern = T)
+                             ), ignore.stderr = TRUE, intern = TRUE)
   cnames_edges2 <- cnames_edges2[-(which(cnames_edges2 %in% cnames_edges))]
   cnames_edges2 <- unique(gsub("_c|_e$", "", cnames_edges2))
   i <- which(cnames_edges2 == "cat_")
@@ -746,7 +750,8 @@ get_all_raster_values <- function(raster_name){
   r <- execGRASS("r.stats", flags = c("l","n"),
                  parameters = list(
                    input = raster_name
-                 ), intern = T)
+                 ), ignore.stderr = TRUE,
+                 intern = TRUE)
   r <- gsub(" $", "", r)
   return(r)
 }

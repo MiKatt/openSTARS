@@ -143,7 +143,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       a <- execGRASS("v.info", flags = "t",
                      parameters = list(
                        map = input_vector[i]
-                     ), intern = T)
+                     ), intern = TRUE)
       a <- do.call(rbind,strsplit(a, "="))
       k <- which(a[,1] == "points")
       if(as.numeric(a[k,2]) != 0){
@@ -237,7 +237,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         cnames <- execGRASS("db.columns", flags = "quiet",
                             parameters = list(
                               table = input_vector[i]
-                            ), intern = T)
+                            ), intern = TRUE)
         if(!attr_name_vect[i] %in% cnames)
           stop(paste0("Invalid vector attribute name ", paste0("'", attr_name_vect[i], "'", collapse = ", "), 
                       ". Please give a valid column name. \nAvailable columns are ",  
@@ -246,7 +246,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                             paste0(unique(execGRASS("db.select", flags = c("c"),
                                             parameters = list(
                                               sql = paste0("select ", attr_name_vect[i], " from ",input_vector[i])
-                                            ), intern = T)), substr(stat_vect[i], 1, 1))
+                                            ), ignore.stderr = TRUE, intern = TRUE)), substr(stat_vect[i], 1, 1))
                             )
       } else {
         attribute_cats <- c(attribute_cats, attr_name_vect[i])
@@ -268,7 +268,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   cnames_sites <- execGRASS("db.columns", flags = "quiet",
                              parameters = list(
                                table = "sites"
-                             ), intern = T)
+                             ), intern = TRUE)
   
   message("Intersecting maps for ", nrow(d.sites@data)," sites ...")
   # progress bar
@@ -386,6 +386,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       parameters = list(
                         map = "MASK",
                         separator = ","),
+                      ignore.stderr = TRUE,
                       intern = TRUE)
       st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
       non_null_cells <- as.numeric(st[2,which(st[1,] == "non_null_cells")])
@@ -395,7 +396,9 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                           parameters = list(
                             input =   input_raster[j], #paste0("rca,", input_raster[j]),
                             separator = "comma"
-                          ), intern = TRUE)
+                          ), 
+                          ignore.stderr = TRUE,
+                          intern = TRUE)
           st <- data.frame(do.call(rbind,strsplit(st,",")), stringsAsFactors = FALSE)
           colnames(st) <- c("class", "cellcount")
           st$cellcount <- as.numeric(st$cellcount)
@@ -481,12 +484,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                   map = vname,
                   option = "area",
                   columns = "area"
-                ))
+                ), ignore.stderr = TRUE)
       carea <- sum(as.numeric(execGRASS("v.db.select",flags = "quiet",
                                         parameters = list(
                                           map = vname,
                                           columns = "area"
-                                        ), intern = T)[-1]))
+                                        ), intern = TRUE)[-1]))
       j.count <- 1 + calc_basin_area * length(input_raster)
       for(j in 1:length(input_vector)){
         # if this is no point vector
@@ -499,7 +502,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       operator = "and",
                       output = "intersect_out",
                       olayer = "1,0,0"
-                    ), ignore.stderr = T, intern = T)
+                    ), ignore.stderr = TRUE, intern = TRUE)
           # calculate area of all features
           execGRASS("v.db.addcolumn",
                     parameters = list(
@@ -516,7 +519,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           a <- execGRASS("db.select",flags = "c",
                          parameters = list(
                            sql = paste0("select a_", attr_name_vect[j],",sum(area) from intersect_out group by a_", attr_name_vect[j])
-                         ), intern = T)
+                         ), intern = TRUE)
           if(length(a) > 0){
             a <- do.call(rbind,strsplit(a,split = '\\|'))
             a <- data.frame(a,  stringsAsFactors = F)
@@ -535,7 +538,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       points = input_vector[j],
                       areas = vname,
                       separator = ","
-                    ), intern = T)[2], split = ","))[2])
+                    ), intern = TRUE)[2], split = ","))[2])
           
         }
         j.count <- j.count + 1
@@ -611,7 +614,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   cnames_sites2 <- execGRASS("db.columns", flags = "quiet",
                              parameters = list(
                                table = sites_map
-                             ), intern = T)
+                             ), intern = TRUE)
   cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
   message(writeLines(strwrap(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", "), " in 'sites'."),
           width = 80)))

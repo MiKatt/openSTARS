@@ -73,12 +73,12 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
   cnames<-execGRASS("db.columns",
                     parameters = list(
                       table = "edges"
-                    ), intern=T)
+                    ), intern = TRUE)
 
   cnames<-c(cnames,execGRASS("db.columns",
                     parameters = list(
                       table = "sites"
-                    ), intern=T))
+                    ), intern = TRUE))
 
   if(!is.null(predictions)){
     cnames <- NULL
@@ -86,7 +86,7 @@ export_ssn <- function(path, predictions = NULL, delete_directory = FALSE){
     cnames<-c(cnames,c(cnames,execGRASS("db.columns",
                                parameters = list(
                                  table = predictions[i]
-                               ), intern=T)))
+                               ), intern = TRUE)))
     }
   }
 

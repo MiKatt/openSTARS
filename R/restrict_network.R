@@ -67,7 +67,7 @@ restrict_network <- function(sites, keep = TRUE){
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vector"
-                    ), intern = T)
+                    ), intern = TRUE)
 
   if(!any(sites %in% vect)){
     stop(ifelse(length(sites) == 1, paste(sites, "does not exist."), paste(paste(sites, collapse = ", "), "do not exist.")))
@@ -80,7 +80,9 @@ restrict_network <- function(sites, keep = TRUE){
                                                      map = sites[i], 
                                                      columns = "netID",
                                                      separator = ","
-                                                   ), intern = T)[-1])))
+                                                   ), 
+                                                   ignore.stderr = TRUE,
+                                                   intern = TRUE)[-1])))
   }
   netIDs <- unique(netIDs)
   

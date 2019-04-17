@@ -126,7 +126,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
     cnames <- execGRASS("db.columns", 
                         parameters = list(
                           table = sites_map), 
-                        intern = T)
+                        intern = TRUE)
     if("H2OAreaA" %in% cnames){
       execGRASS("v.db.dropcolumn", flags = "quiet",
                 parameters = list(
@@ -145,7 +145,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
   if(any(nchar(output_attr_name)) > 10)
     stop("Attribute names must not be longer than ten characters.")
 
-   if(length(round_dig) == 1)
+  if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(output_attr_name))
 
   if(length(round_dig) < length(output_attr_name))
@@ -222,7 +222,7 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
   cnames2 <- execGRASS("db.columns", flags = "quiet",
                              parameters = list(
                                table = sites_map
-                             ), intern = T)
+                             ), intern = TRUE)
   cnames2 <- cnames2[-(which(cnames2 %in% cnames))]
   message(writeLines(strwrap(paste0("\nNew attributes values are stored as ", paste("'", cnames2, "'", sep = "", collapse = ", "), " in 'sites'."),
           width = 80)))

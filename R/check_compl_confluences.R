@@ -46,7 +46,7 @@ check_compl_confluences <- function(){
   cnames<-execGRASS("db.columns",
                     parameters = list(
                       table = "streams_v"
-                    ), intern=T)
+                    ), intern = TRUE)
   if(any(c("prev_str03","prev_str04","prev_str05") %in% cnames)){
     message(writeLines(strwrap("There are complex confluences in the stream network. Please run correct_compl_confluences for correction.", width = 80)))
     ret <- TRUE

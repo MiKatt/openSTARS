@@ -78,7 +78,7 @@ delete_lakes <- function(lakes, keep = TRUE){
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vector"
-                    ), intern = T)
+                    ), intern = TRUE)
   
   if(lakes %in% vect){
     if(lakes != "lakes"){
@@ -96,7 +96,7 @@ delete_lakes <- function(lakes, keep = TRUE){
   vect <- execGRASS("g.list",
              parameters = list(
                type = "vector"
-             ), intern = T)
+             ), intern = TRUE)
   if(!("lakes" %in% vect))
     stop("Import of lakes vector map failed. Please check.")
   
@@ -104,7 +104,9 @@ delete_lakes <- function(lakes, keep = TRUE){
                                                   parameters = list(
                                                     map = "streams_v",
                                                     columns = "stream"
-                                                  ), intern = T)[-1]))
+                                                  ), 
+                                                  ignore.stderr = TRUE, 
+                                                  intern = TRUE)[-1]))
   if(keep == TRUE){
     execGRASS("g.copy", flags = c("quiet", "overwrite"),
               parameters = list(
