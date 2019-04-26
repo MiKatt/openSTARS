@@ -19,8 +19,8 @@ date. If not provided, it is created automatically.}
 \item{pred_sites}{character vector (optional); names for prediction sites 
 (loaded with \code{import_data}).}
 
-\item{maxdist}{integer (optional); maximum snapping distance. Sites farther away
-from edges will be deleted.}
+\item{maxdist}{integer (optional); maximum snapping distance in map units (see details).
+Sites farther away from edges will be deleted.}
 }
 \description{
 A vector (points) map 'sites' is derived and several attributes
@@ -55,10 +55,13 @@ multiple measurements) using \code{\link{merge_sites_measurements}}.
 Then, 'pid' is updated accordingly. 
 
 'upDist' is calculated using
-\href{https://grass.osgeo.org/grass73/manuals/v.distance.html}{v.distance} with 
+\href{https://grass.osgeo.org/grass74/manuals/v.distance.html}{v.distance} with 
 upload = "to_along" which gives the distance along the stream segment to the next
 upstream node ('distalong'). 'upDist' is the difference between the 'upDist' 
 of the edge the point lies on and 'distalong'.
+
+The unit for distances (= map units) can be found out using 
+execGRASS("g.proj", flags = "p").
 
 If prediction sites have been created outside of this package they can be 
 processed here as well. They must have been imported with \code{\link{import_data}}

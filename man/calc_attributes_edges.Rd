@@ -45,8 +45,9 @@ For each edge (i.e. stream segment) additional attributes (potential predictor
 variables) are derived based on given raster or vector maps.
 }
 \details{
-First, the subcatchments for all edges are calculated. Then these are
-intersected with the given raster and/or vector maps and the desired statistics are computed.
+First, the reach contributing areas (= subcatchments) for all edges are calculated. 
+Then these are intersected with the given raster and/or vector maps and the desired 
+statistics are computed. 
 This function must be run before computing approximate attribute values for 
 sites \code{\link{calc_attributes_sites_approx}}.
 
