@@ -11,7 +11,7 @@
 #'  measurements
 #'@param all_sites locical; should sites without measurments be preserved (default FALSE)
 #'@param ... additional agruments to read.table in case \code{measuremtes} is a file path
-#' to table data
+#' to table data; see \code{\link{read.table}} for details.
 #'  
 #'@details Measurements are merged to the sites objects based on \code{site_id}. If
 #'  there are repeated measurements, point features are dublicated and the 'pid' of the 
@@ -71,7 +71,7 @@
 merge_sites_measurements <- function(measurements, site_id, all_sites = FALSE, ...) {
   
   if(!is.data.frame(measurements) & !is.data.table(measurements)){
-    d <- try(measurements <- utils::read.table(measurements, header = T, stringAsFactor = FALSE, ...))
+    d <- try(measurements <- utils::read.table(measurements, header = T, stringsAsFactors = FALSE, ...))
     if(class(d) == "try-error")
       stop("'measurements' must contain a valid path name to table data.")
   } 
@@ -91,6 +91,8 @@ merge_sites_measurements <- function(measurements, site_id, all_sites = FALSE, .
   d <- sites@data
   d$pid <- 1:nrow(d)
   row.names(d) <- 1:nrow(d)
+  i <- which(colnames(d) %in% c("cat", "cat_"))
+  d <- d[,-i]
   sites@data <- d
-  writeVECT(sites, "sites", v.in.ogr_flags = "overwrite", ignore.stderr = TRUE)
+  writeVECT(sites, "sites", v.in.ogr_flags = c("overwrite", "quiet"), ignore.stderr = TRUE)
 }
