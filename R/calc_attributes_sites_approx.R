@@ -29,12 +29,15 @@
 #' }
 #'
 #' @details The approximate total catchment area (H2OAreaA) is always calculated
-#' if \code{calc_basin_area} is TRUE. If \code{stat} is one of "min", "max", "mean" or "percent" the
-#'   function assigns the value of the edge the site lies on. Otherwise, the
-#'   value is calculated as the sum of all edges upstream of the previous
+#'   if \code{calc_basin_area} is TRUE. If \code{stat} is one of 
+#'   "min", "max", "mean" or "percent" the function assigns the value of the edge the site lies on. 
+#'   Otherwise, the value is calculated as the sum of all edges upstream of the previous
 #'   junction and the proportional value of the edge the site lies on (based on
 #'   the distance ratio 'ratio'); this is useful e.g. for counts of dams or waste water
 #'   treatment plant or total catchment area.
+#'   
+#'   \code{input_attr_name} must give the column names of the edges attribute table
+#'   for that the statistics should be calculated. 
 #'
 #' @note \code{\link{import_data}}, \code{\link{derive_streams}},
 #'   \code{\link{calc_edges}}, \code{\link{calc_sites}} or
