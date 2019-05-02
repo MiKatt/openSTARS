@@ -545,7 +545,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
   if(length(i) > 0)
     cnames_edges2 <- cnames_edges2[-i]
   message(writeLines(strwrap(paste0("\nNew attributes values are stored as ", paste("'", cnames_edges2, "'", collapse = ", ", sep = ""), " in 'edges'."),
-          width = 80), con = stderr()))
+          width = 80)))
   
   # remove temporary files
   execGRASS("db.droptable", flags = c("quiet","f"),

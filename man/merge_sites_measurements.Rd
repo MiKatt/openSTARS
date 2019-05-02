@@ -17,7 +17,7 @@ measurements}
 \item{all_sites}{locical; should sites without measurments be preserved (default FALSE)}
 
 \item{...}{additional agruments to read.table in case \code{measuremtes} is a file path
-to table data}
+to table data; see \code{\link{read.table}} for details.}
 }
 \description{
 After all processing steps are done and before exporting as an SSN object

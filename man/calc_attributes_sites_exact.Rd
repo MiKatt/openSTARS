@@ -56,7 +56,6 @@ Please note that for sampling points that lie in the same DEM raster cell
  are derived.
 }
 \description{
-For each site (observation or prediction) the total catchment area is
 calculated ('H2OArea'). Additionally, other attributes (predictor variables)
 can be derived based on given raster or vector maps. This function calculates
 exact values for catchments derived with

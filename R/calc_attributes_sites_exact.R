@@ -616,5 +616,5 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                              ), intern = TRUE)
   cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
   message(writeLines(strwrap(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", "), " in 'sites'."),
-          width = 80), con = stderr()))
+          width = 80)))
 }
