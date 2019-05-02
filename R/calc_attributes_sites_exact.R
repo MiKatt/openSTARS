@@ -1,6 +1,5 @@
 #' Calculate attributes of the sites.
 #'
-#' For each site (observation or prediction) the total catchment area is
 #' calculated ('H2OArea'). Additionally, other attributes (predictor variables)
 #' can be derived based on given raster or vector maps. This function calculates
 #' exact values for catchments derived with
@@ -617,5 +616,5 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                              ), intern = TRUE)
   cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
   message(writeLines(strwrap(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", "), " in 'sites'."),
-          width = 80)))
+          width = 80), con = stderr()))
 }

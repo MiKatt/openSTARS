@@ -200,7 +200,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
       predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
     # MiKatt 20190502: con = stderr() preserves message formating
     message(writeLines(strwrap(paste0("Loading vector predictor variables into GRASS as ",paste("'", predictor_v_names, "'", collapse = ", ", sep=""), " ..."),
-            width = 80) con = stderr()), appendLF = FALSE)
+            width = 80), con = stderr()), appendLF = FALSE)
     for(i in 1:length(predictor_v_names)){
       import_vector_data(data = predictor_vector[i], name = predictor_v_names[i], proj_ref_obj = dem)
     }

@@ -40,7 +40,7 @@ setup_grass_environment <- function(dem, epsg = NULL, sites = NULL) {
   
   if(!is.null(sites))
     message(writeLines(strwrap("'sites' is no longer a parameter of setup_grass_environment (see help). \nThe function will still execute normally. Please update your code.",
-            width = 80)))
+            width = 80), con = stderr()))
   
   dem_raster <- raster::raster(dem)
   #dem_proj <- raster::projection(dem_raster)
