@@ -244,11 +244,15 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
     sites@data$pid <- sites@data$locID
   }
   
+  i <- which(colnames(sites@data) %in% c("cat", "cat_"))
+  sites@data <- sites@data[,-i]
+  sink("temp.txt")
   # 20180219: override projection check
   writeVECT(sites, vname = sites_map,
             v.in.ogr_flags = c("overwrite", "quiet", "o"),
             ignore.stderr = TRUE)
   rm(sites)
+  sink() 
   
   # Set netID and rid from network ---------
   message("Assigning netID and rid ...")
