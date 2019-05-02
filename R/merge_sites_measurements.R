@@ -94,5 +94,7 @@ merge_sites_measurements <- function(measurements, site_id, all_sites = FALSE, .
   i <- which(colnames(d) %in% c("cat", "cat_"))
   d <- d[,-i]
   sites@data <- d
+  sink("temp.txt")
   writeVECT(sites, "sites", v.in.ogr_flags = c("overwrite", "quiet"), ignore.stderr = TRUE)
+  sink() 
 }
