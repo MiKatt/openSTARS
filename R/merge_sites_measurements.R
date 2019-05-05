@@ -77,14 +77,18 @@ merge_sites_measurements <- function(measurements, site_id, all_sites = FALSE, .
   } 
   
   if(!site_id %in% colnames(measurements)){
-    stop(writeLines(strwrap(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'measurements'. Options are: ", 
-                                   paste0(colnames(measurements), collapse = ", ")), width = 80)))
+    #stop(writeLines(strwrap(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'measurements'. Options are: ", 
+    #                               paste0(colnames(measurements), collapse = ", ")), width = 80)))
+    stop(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'measurements'. Options are: ", 
+                                   paste0(colnames(measurements), collapse = ", ")))
   }
   
   sites <- readVECT("sites", ignore.stderr = TRUE)
   if(!site_id %in% colnames(sites@data)){
-    stop(writeLines(strwrap(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'sites'. Options are: ", 
-                                   paste0(colnames(sites@data), collapse = ", ")), width = 80)))
+    #stop(writeLines(strwrap(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'sites'. Options are: ", 
+    #                               paste0(colnames(sites@data), collapse = ", ")), width = 80)))
+    stop(paste0("'site_id' (", site_id, ") must contain a valid colum name in 'sites'. Options are: ", 
+                                   paste0(colnames(sites@data), collapse = ", ")))
   }
   
   sites <- sp::merge(sites, measurements, by = site_id, duplicateGeoms = TRUE, all.x = all_sites)
@@ -95,6 +99,6 @@ merge_sites_measurements <- function(measurements, site_id, all_sites = FALSE, .
   d <- d[,-i]
   sites@data <- d
   sink("temp.txt")
-  writeVECT(sites, "sites", v.in.ogr_flags = c("overwrite", "quiet"), ignore.stderr = TRUE)
+  writeVECT(sites, "sites", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
   sink() 
 }
