@@ -513,7 +513,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       map = "intersect_out",
                       option = "area",
                       columns = "area"
-                    ))
+                    ), ignore.stderr = TRUE)
           # get the areas per value of the attribute
           a <- execGRASS("db.select",flags = "c",
                          parameters = list(
