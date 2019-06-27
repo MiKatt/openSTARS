@@ -16,13 +16,30 @@ marked in the new column 'changed'.
 }
 \description{
 At complex confluences (when more than two line segments flow into a node,
-i.e. more than two inflows to an outflow), the inflow
-with the smallest angle to the shortest inflow is broken into two segments 
-close to the juntion using the GRASS function
+i.e. more than two inflows to an outflow), the end of one of the inflows is moved a 
+tiny bit upstream to one of the other inflows to create a new confluence of
+two streams (see details below).
+}
+\details{
+At complex confluences (when more than two line segments flow into a node,
+i.e. more than two inflows to an outflow), new confluences of only two streams 
+are created:
+1. complex confluences are found based on the fact that the outflow has more than
+two previous streams
+2. the inflow with the shortest cummulative length from its source  is found; 
+the end of this segment will be moved
+3. the inflow with the smallest angle to this inflow is found;
+this segment will be cut into tow segments close to the juntion using the GRASS function
 \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-break). Then, the shortes inflow is moved to this new junction using
+break) creating a new confluence
+4. the shortest inflow found in 2 is moved to the newly created confluence using
 \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-vertexmove).
+vertexmove)
+5. all lengths are updated (segment length, cumulative length, i.e. length of the stream
+from the source, distance to the outlet).
+The distance the shortest confluence is moved depends on the number of inflows. For three 
+inflows, it is moved 1/12 time the DEM cellsize upstream, for seven (the extremly rare maximum)
+5/12 * cellsize.
 }
 \note{
 \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
@@ -69,6 +86,8 @@ lines(streams_orig, col = 'red', lwd = 4)
 lines(streams, col = 'blue', lty = 2, lwd = 2)
 legend("bottomright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2), 
   legend = c("original", "corrected"))
+  
+plot(streams, col = c("blue", "red")[streams@data$changed+1], lty = 1, lwd = 2)   
 }
 }
 \author{

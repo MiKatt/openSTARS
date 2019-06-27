@@ -27,6 +27,9 @@
 #' vertexmove)
 #' 5. all lengths are updated (segment length, cumulative length, i.e. length of the stream
 #' from the source, distance to the outlet).
+#' The distance the shortest confluence is moved depends on the number of inflows. For three 
+#' inflows, it is moved 1/12 time the DEM cellsize upstream, for seven (the extremly rare maximum)
+#' 5/12 * cellsize.
 #'
 #' @note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
 #'   \code{\link{derive_streams}} must be run before.

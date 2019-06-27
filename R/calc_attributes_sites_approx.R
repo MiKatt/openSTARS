@@ -7,11 +7,11 @@
 #' Spatial Information Needed to Fit Spatial Statistical Models to Stream
 #' Network Data. J. Stat. Softw., 56 (2).
 #'
-#' @param sites_map character; name of the sites the attributes shall be
-#'   calculated for. "sites" refers to the observation sites.
-#' @param input_attr_name character vector; input column name in the edges
-#'   attribute table.
-#' @param output_attr_name character vector (optional); output column name
+#' @param sites_map character; name of the sites (observation or prediction) 
+#'  attributes shall be calculated for. "sites" (default) refers to the observation sites.
+#' @param input_attr_name character vector; input column name(s) in the
+#'   attribute table of the vector map "edges".
+#' @param output_attr_name character vector (optional); output column name(s)
 #'   appended to the site attribute data table. If not provided it is set to
 #'   \code{input_attr_name}. Attribute names must not be longer than 10
 #'   characters.
@@ -32,9 +32,9 @@
 #'   if \code{calc_basin_area} is TRUE. If \code{stat} is one of 
 #'   "min", "max", "mean" or "percent" the function assigns the value of the edge the site lies on. 
 #'   Otherwise, the value is calculated as the sum of all edges upstream of the previous
-#'   junction and the proportional value of the edge the site lies on (based on
+#'   confluence and the proportional value of the edge the site lies on (based on
 #'   the distance ratio 'ratio'); this is useful e.g. for counts of dams or waste water
-#'   treatment plant or total catchment area.
+#'   treatment plants or total catchment area.
 #'   
 #'   \code{input_attr_name} must give the column names of the edges attribute table
 #'   for that the statistics should be calculated. 

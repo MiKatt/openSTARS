@@ -10,28 +10,33 @@ derive_streams(burn = 0, accum_threshold = 700, condition = TRUE,
 }
 \arguments{
 \item{burn}{numeric; how many meters should the streams be burned into the
-DEM? Only applicable if a mapped stream network is provided in \code{\link{import_data}}.}
+DEM? Only applicable if a mapped stream network is provided in \code{\link{import_data}}.
+Defaults to 0.}
 
 \item{accum_threshold}{integer; accumulation threshold to use (i.e. minimum
-flow accumulation value in cells that will initiate a new stream). See 
-details below.}
+flow accumulation value in cells that will initiate a new stream). A small value
+results in many small streams. Defaults to 700 but a reasonable value 
+strongly depends on the raster resolution. See details below.}
 
 \item{condition}{logical; should the DEM be conditioned using the GRASS function
-\href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem}}
+\href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem};
+ default: TRUE.}
 
 \item{min_stream_length}{integer: minimum stream length in number of DEM
-raster cells; shorter first order stream segments are deleted; default: 0. 
-See details below.}
+raster cells; shorter first order stream segments are deleted. Defaults to 0
+but a reasonable value strongly depends on the raster resolution. See details below.}
 
 \item{dem_name}{character vector, optional; default: 'dem'; useful if
 conditioned and / or burnt in DEM raster from previous runs shall be used.}
 
 \item{clean}{logical; should intermediate raster layer of imported streams
-('streams_or') be removed from the GRASS session?}
+('streams_or') be removed from the GRASS session? Defaults to TRUE.}
 
 \item{mem}{logical; should -m flag in the GRASS function 
 \href{https://grass.osgeo.org/grass74/manuals/r.watershed.html}{r.watershed} 
- be used (for data preparation)?}
+ be used (for data preparation)? Defaults to FALSE; if set to TRUE the calculation
+ uses disk swap mode, i.e. it is not carried out in the RAM but also using disk space.
+ Useful for large data sets but also slower.}
 }
 \value{
 Nothing. The function produces the following maps:

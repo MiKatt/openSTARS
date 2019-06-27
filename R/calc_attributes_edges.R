@@ -5,15 +5,16 @@
 #'
 #' @param input_raster name(s) of raster map(s) to calculate attributes from.
 #' @param stat_rast name(s) giving the statistics to be calculated,
-#'   from the raster maps, must be one of: "min", "max", "mean", "sum", "percent", "area".
-#' @param attr_name_rast name(s) of new column names for the attribute(s)
+#'   from the raster maps, must be one of: "min", "max", "mean", "sum", "percent", "area"
+#'   for each \code{input_raster}.
+#' @param attr_name_rast of new column name(s) for the attribute(s)
 #'   to be calculated. Attribute names must not be longer than 8 characters as ESRI shapefiles
-#'   cannot have columnams with more than 10 characters. See notes.
+#'   cannot have colum names with more than 10 characters. See notes.
 #' @param input_vector name(s) of vector map(s) to calculate attributes from.
 #' @param stat_vect name(s) giving the statistics to be calculated
 #'   from the vector maps, must be one of: "count" (for point data), "percent" or "area"
-#'   (for polygon data).
-#' @param attr_name_vect name(s) of attribute column(s). For polygon data, this is
+#'   (for polygon data) for each \code{input_vector}.
+#' @param attr_name_vect name(s) of attribute column(s), case sensitive. For polygon data, this is
 #'   the column to calculate the statistics from; the results column names are 
 #'   created by the content of this column. For point data, a column will be created
 #'   with this name to hold the counts. See notes.
@@ -22,8 +23,8 @@
 #' #@param clean logical; should intermediate files be deleted
 
 #' @return Nothing. The function appends new columns to the 'edges' attribute
-#'   table with column names given in \code{attr_name_rast}. For each attribute, two
-#'   columns are appended: one giving the attribute for the rca of the edge
+#'   table with column names given in \code{attr_name_rast} and derived from the attribute classes for 
+#'   vector data. For each attribute, two columns are appended: one giving the attribute for the rca of the edge
 #'   ("attribute_name_e") and one for the attribute of the total catchment of
 #'   the edge ("attribute_name_c").
 #'
@@ -31,8 +32,8 @@
 #' Raster data - the column names given in \code{attr_name_rast} are used. The user should
 #' take care to use unique, clear names.
 #' For vector data, column names are constructed from the entries in in the column 
-#' \code{attr_name_vect}. For counts of points, the new column name containing the counts,
-#' it is just the given name. For 'percentage' or 'area', the names are constructed using
+#' \code{attr_name_vect}. For counts of points, the new column name containing the counts
+#' is just the given name. For polygon data ('percentage' or 'area'), the names are constructed using
 #' the unique entries of the column with a concated 'p' or 'a', repectively. If, for intance, 
 #' for a landuse vector containing the classes 'urban' and 'arable' percentages would be calculated,
 #' edges would contain two new columns 'urbanp' and 'arablep'.
@@ -490,7 +491,8 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         # MK 01.052018: Why did I set the names starting with "s"?
         #setnames(dt.dat, attr_name_vect[j], paste0("s", attr_name_vect[j]))
       }
-      #names(dt.dat)[-1] <- paste0(names(dt.dat)[-1], substr(stat_vect[j],1,1))
+      # MiKatt 20190627 switch on 
+      names(dt.dat)[-1] <- paste0(names(dt.dat)[-1], substr(stat_vect[j],1,1))
       anames <- c(anames, names(dt.dat)[-1])
       nanames[j] <- ncol(dt.dat) - 1
       dt.streams <- merge(dt.streams, dt.dat, by = "stream", all.x = TRUE)

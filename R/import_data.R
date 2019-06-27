@@ -163,7 +163,6 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
                      paste("'", pred_sites_names, "'", collapse=", ", sep=""), " ..."))
       for(i in 1:length(pred_sites)){
         import_vector_data(data = pred_sites[i], name = pred_sites_names[i], proj_ref_obj = dem)
-        
       }
     }
   }

@@ -4,16 +4,24 @@
 \alias{restrict_network}
 \title{Restrict edges to certain stream networks}
 \usage{
-restrict_network(sites, keep = TRUE)
+restrict_network(sites = NULL, keep_netIDs = NULL,
+  delete_netIDs = NULL, keep = TRUE, filename = "edges_o")
 }
 \arguments{
 \item{sites}{name(s) of sites.}
 
-\item{keep}{boolean; should the original 'edges' be saved as 'edges_o'? Default is TRUE.}
+\item{keep_netIDs}{numeric (optional); vector of netIDs to keep}
+
+\item{delete_netIDs}{numeric (optional); vector of netIDs to delete}
+
+\item{keep}{boolean; should the original 'edges' be saved? Default is TRUE.}
+
+\item{filename}{character string; file name to save the original edges vector file; 
+defaults to 'edges_o'.}
 }
 \value{
 Nothing. The function updates 'edges' and (if keep = TRUE) saves 
-the original file to 'edges_o'.
+the original file to the file name provided.
 }
 \description{
 When the stream network is derived from a DEM, the network will cover the whole
