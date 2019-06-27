@@ -1,17 +1,22 @@
 # openSTARS 1.1.0.999
 
-* correct_complex_junction now works for three and four inflows to one outflow
-* Correct an error in correct_complex_juntions: If there were outflows form a 
-  complex junction that were also inflows to complex junctions a wrong assignment
+* Renamed check_compl_junctions and correct_compl_junctions to 
+  check_compl_confluences and correct_compl_confluences, respectively,
+  to be in line with the STARS publications.
+* correct_compl_confluences now works for three and four inflows to one outflow
+* Correct an error in correct_compl_confluences: If there were outflows from a 
+  complex junction that were also inflows to complex confluences a wrong assignment
   might have occured.
+* Update all lengths in correct_complex_confluences 
+  (segement length, cum_length, out_dist)
 * New function to delete lakes from the network ('delete_lakes'). Added "lakes.shp"
   to example data.
-* New function to restrict edges to certain networks that have sites (obeservation
-  or prediction) and delete the rest ('restict_network').
+* New function to restrict edges to certain networks based on sites (obeservation
+  or prediction) or given netIDs and delete the rest ('restict_network').
 * New functionality in calc_attributes_edges and calc_attributes_sites_exact: 
   It is now possible to calculate percentages from raster maps with multiple values
   (e.g. land cover classes). 
-* sites has now the column 'str_edge' (for 'stream') instead of 'cat_edge' 
+* Sites has now the column 'str_edge' (for 'stream') instead of 'cat_edge' 
   to relate the site to its edge.
 
 

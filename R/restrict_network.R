@@ -7,10 +7,14 @@
 #' This can help to save computation time before calculating edge attributes.
 #' 
 #' @param sites name(s) of sites.
-#' @param keep boolean; should the original 'edges' be saved as 'edges_o'? Default is TRUE.
+#' @param keep_netIDs numeric (optional); vector of netIDs to keep
+#' @param delete_netIDs numeric (optional); vector of netIDs to delete
+#' @param keep boolean; should the original 'edges' be saved? Default is TRUE.
+#' @param filename character string; file name to save the original edges vector file; 
+#'   defaults to 'edges_o'.
 #' 
 #' @return Nothing. The function updates 'edges' and (if keep = TRUE) saves 
-#' the original file to 'edges_o'.
+#' the original file to the file name provided.
 #' 
 #'
 #' @author Mira Kattwinkel  \email{mira.kattwinkel@@gmx.net}
@@ -62,36 +66,64 @@
 #' legend = c("sites", "edges orig", "edges restricted"))
 #' }
 
-restrict_network <- function(sites, keep = TRUE){
+restrict_network <- function(sites = NULL, 
+                             keep_netIDs = NULL, 
+                             delete_netIDs = NULL, 
+                             keep = TRUE,
+                             filename = "edges_o"){
   
-  vect <- execGRASS("g.list",
+  if(! is.null(sites)){
+    vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vector"
                     ), intern = TRUE)
 
-  if(!any(sites %in% vect)){
-    stop(ifelse(length(sites) == 1, paste(sites, "does not exist."), paste(paste(sites, collapse = ", "), "do not exist.")))
+    if(!any(sites %in% vect)){
+      stop(ifelse(length(sites) == 1, paste(sites, "does not exist."), paste(paste(sites, collapse = ", "), "do not exist.")))
+    }
   }
   
+  if((sum(is.null(keep_netIDs), is.null(delete_netIDs), is.null(sites)) == 3) |
+     (!is.null(keep_netIDs) & ! is.null(delete_netIDs)) |
+     (!is.null(sites) & ! is.null(delete_netIDs)))
+    stop("Only 'sites' and 'keep_netIDs' can be combined; 'delete_netIDs' must be provided without the other two.")
+  
+  
   netIDs <- NULL
-  for(i in 1:length(sites)){
-    netIDs <- c(netIDs,unique(as.numeric(execGRASS("v.db.select", flags = "quiet", 
-                                                   parameters = list(
-                                                     map = sites[i], 
-                                                     columns = "netID",
-                                                     separator = ","
-                                                   ), 
-                                                   ignore.stderr = TRUE,
-                                                   intern = TRUE)[-1])))
+  if(!is.null(sites)){
+    for(i in 1:length(sites)){
+      netIDs <- c(netIDs,unique(as.numeric(execGRASS("v.db.select", flags = "quiet", 
+                                                     parameters = list(
+                                                       map = sites[i], 
+                                                       columns = "netID",
+                                                       separator = ","
+                                                     ), 
+                                                     ignore.stderr = TRUE,
+                                                     intern = TRUE)[-1])))
+    }
+  }
+  if(!is.null(keep_netIDs)){
+    netIDs <- c(netIDs, keep_netIDs)
   }
   netIDs <- unique(netIDs)
+  
+  if(!is.null(delete_netIDs)){
+    all_netIDs <- unlist(strsplit(
+      execGRASS("db.select", 
+              parameters = list(
+                sql = "select netID from edges"
+              ), intern = T), 
+      split = "\\|"))[-1]
+    all_netIDs <- sort(as.numeric(unique(all_netIDs)))
+    netIDs <- all_netIDs[-which(all_netIDs %in% delete_netIDs)]
+  }
   
   if(keep == TRUE){
     execGRASS("g.copy", flags = c("quiet", "overwrite"),
               parameters = list(
-                vector = "edges,edges_o"
+                vector = paste0("edges,", filename)
               ), intern = TRUE, ignore.stderr = TRUE)
-    message("Original edges moved to edges_o.")
+    message(paste0("Original edges moved to ", filename, "."))
   }
   
   message(paste("Deleting edges with netIDs other than", paste(netIDs, collapse = ", "), "..."))
@@ -105,7 +137,7 @@ restrict_network <- function(sites, keep = TRUE){
   #           ))
   a <- execGRASS("v.extract", flags = c("overwrite", "quiet"),
             parameters = list(
-              input = "edges_o", 
+              input = filename, 
               output = "edges",
               type = "line",
               where = paste0("netID IN (", paste0(netIDs, collapse = "," ), ")")

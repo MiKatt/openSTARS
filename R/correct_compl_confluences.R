@@ -1,13 +1,9 @@
 #' Correct confluences with three or more inflows.
 #'
 #' At complex confluences (when more than two line segments flow into a node,
-#' i.e. more than two inflows to an outflow), the inflow
-#' with the smallest angle to the shortest inflow is broken into two segments 
-#' close to the juntion using the GRASS function
-#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-#' break). Then, the shortes inflow is moved to this new junction using
-#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
-#' vertexmove). 
+#' i.e. more than two inflows to an outflow), the end of one of the inflows is moved a 
+#' tiny bit upstream to one of the other inflows to create a new confluence of
+#' two streams (see details below).
 #' 
 #' @param clean logical; should intermediate files be removed from 'GRASS'
 #'   session?
@@ -15,6 +11,22 @@
 #' @return Nothing. The function changes features in 'streams_v'. Changed features are
 #' marked in the new column 'changed'.
 #
+#' @details At complex confluences (when more than two line segments flow into a node,
+#' i.e. more than two inflows to an outflow), new confluences of only two streams 
+#' are created:
+#' 1. complex confluences are found based on the fact that the outflow has more than
+#' two previous streams
+#' 2. the inflow with the shortest cummulative length from its source  is found; 
+#' the end of this segment will be moved
+#' 3. the inflow with the smallest angle to this inflow is found;
+#' this segment will be cut into tow segments close to the juntion using the GRASS function
+#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
+#' break) creating a new confluence
+#' 4. the shortest inflow found in 2 is moved to the newly created confluence using
+#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
+#' vertexmove)
+#' 5. all lengths are updated (segment length, cumulative length, i.e. length of the stream
+#' from the source, distance to the outlet).
 #'
 #' @note \code{\link{setup_grass_environment}}, \code{\link{import_data}} and
 #'   \code{\link{derive_streams}} must be run before.
@@ -63,6 +75,8 @@
 #' lines(streams, col = 'blue', lty = 2, lwd = 2)
 #' legend("bottomright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2), 
 #'   legend = c("original", "corrected"))
+#'   
+#' plot(streams, col = c("blue", "red")[streams@data$changed+1], lty = 1, lwd = 2)   
 #' }
 
 correct_compl_confluences <- function(clean = TRUE){
@@ -335,12 +349,17 @@ correct_compl_confluences <- function(clean = TRUE){
     rm("streams")
     
     # Recalculate length of line segments
+    execGRASS("v.db.addcolumn", flags = "quiet",
+              parameters = list(
+                map = "streams_v",
+                columns = "length_new double precision"
+              ))
     execGRASS("v.to.db", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 option = "length",
                 type = "line",
-                columns = "length"
+                columns = "length_new"
               ), ignore.stderr = TRUE)
     # Find new cat_ and new_str of short and long pieces of cut streams
     cut.str <- paste(df.move_streams[, "cut_stream"], collapse = ",")
@@ -348,16 +367,16 @@ correct_compl_confluences <- function(clean = TRUE){
     dt.cut <- do.call(rbind,strsplit(
       execGRASS("db.select",
                 parameters = list(
-                  sql = paste0("select stream, length, cat_, str_new from streams_v where stream in", cut.str)
+                  sql = paste0("select stream, length, length_new, cat_, str_new from streams_v where stream in", cut.str)
                 ),intern = T),
       split = '\\|'))
     colnames(dt.cut)<-dt.cut[1,]
     dt.cut <- data.table(dt.cut[-1,])
     dt.cut[, `:=`(names(dt.cut), lapply(.SD, as.numeric))]
-    dt.smallcut <- dt.cut[dt.cut[, .I[length == min(length)], by=stream]$V1]
+    dt.smallcut <- dt.cut[dt.cut[, .I[length_new == min(length_new)], by=stream]$V1]
     setnames(dt.smallcut,"str_new","str_new_small")
     setnames(dt.smallcut,"cat_","cat_small")
-    dt.largecut <- dt.cut[dt.cut[, .I[length == max(length)], by=stream]$V1]
+    dt.largecut <- dt.cut[dt.cut[, .I[length_new == max(length_new)], by=stream]$V1]
     setnames(dt.largecut,"str_new","str_new_large")
     setnames(dt.largecut,"cat_","cat_large")
     # find segments with idential length, i.e. in both largecut and smallcut
@@ -407,7 +426,7 @@ correct_compl_confluences <- function(clean = TRUE){
         # else set stream's move_stream_prev to cat_small if move_stream_prev < i
         dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.move_streams[jj, str_new_small]]
       }
-      # if both cut_str_prev and move_str_prev are != i, set mover_str_prev to prev_str0i
+      # if both cut_str_prev and move_str_prev are != i, set move_str_prev to prev_str0i
       if(dt.move_streams[jj, cut_stream_prev] != i & dt.move_streams[jj, move_stream_prev] != i){
         dt.streams[stream == dt.junctions[j, stream], paste0("prev_str0", dt.move_streams[jj, move_stream_prev]) := dt.junctions[j, paste0("prev_str0",i), with = F]]
       }
@@ -439,13 +458,32 @@ correct_compl_confluences <- function(clean = TRUE){
     # set next_str of str_new_large and move_str_prev to str_new_small
     dt.streams[stream %in% unlist(dt.move_streams[jj, .(str_new_large, move_stream)]),  next_str := as.integer(dt.move_streams[jj, str_new_small])]
     
+    # recalculate cum_length
+    # cum_length of move_stream: old cum_length - difference between old and new length
+    dt.streams[stream == dt.move_streams[jj, move_stream], cum_length := cum_length - (length - length_new)]
+    # cum_length of cut_large: old cum_length - difference between old and new length
+    dt.streams[stream == dt.move_streams[jj, str_new_large], cum_length := cum_length - (length - length_new)]
+    # cum_length of cut_small is old cum_length
+      
+    # recalculate out_dist
+    # out_dist of move_stream: old out_dist + (new length + new length of cut_small - old length)
+    length_cut_small <- dt.streams[stream == dt.move_streams[jj, str_new_small], length_new]
+    dt.streams[stream == dt.move_streams[jj, move_stream], out_dist := out_dist - (length - length_new + length_cut_small)]
+    # out_dist of cut_small: old out_dist - difference between old and new length
+    dt.streams[stream == dt.move_streams[jj, str_new_small], out_dist := out_dist - (length - length_new)]
+    # out_dist of cut_large is old out_dist
+    
     # Set 'changed' to '1' for the changed streams
     str1<-unique(unlist(dt.move_streams[jj, c(move_stream, str_new_small, str_new_large, cut_stream)]))
     dt.streams[stream %in% str1,  changed := 1]
+    
     }
     
     # delete column prev_str0X
     dt.streams[,  paste0("prev_str0", i) := NULL]
+    
+    dt.streams[, length := length_new]
+    dt.streams[, length_new := NULL]
     
     if("cat_" %in% colnames(dt.streams)){
       dt.streams[,  cat_ := NULL]
