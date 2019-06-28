@@ -3,12 +3,14 @@
 #' This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 #'
 #' @param dem character; path to DEM.  
-#' @param epsg integer; EPSG code for the projection to use. If not given (default)
-#' the information is taken from the dem
+#' @param epsg integer (optional); EPSG code for the projection to use. If not given (default)
+#'   the information is taken from the dem. This should ONLY be used if the \code{dem} does not 
+#'   contain projection information and MUST be the correct one for the dem used.
 #' @param sites (deprecated); not used any more. Only included for compatibility with previous version.
 #'
-#' @return Nothing, the 'GRASS' mapset is set to PERMANENT, the projection and
-#' the extent of the current location is set to the one of the dem.
+#' @return Nothing, the 'GRASS' mapset is set to PERMANENT, the extent of the current location 
+#'  is set to the one of the dem, and the projection is set to the one of the dem or to the 
+#'  one provided in \code{epsg} .
 #'
 #' @note A 'GRASS' session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 #' 
@@ -68,6 +70,7 @@ setup_grass_environment <- function(dem, epsg = NULL, sites = NULL) {
               mapset = "PERMANENT"))
   # g.proj must be executed before g.region, otherwise cell sizes etc. are overwritten
   if(!is.null(epsg)){
+    message("WARNING: 'epsg' should only be used if the dem does not contain projection information. It must be the correct one for the dem.")
     execGRASS("g.proj", flags = c("c", "quiet"),
               parameters = list(
                 epsg = epsg

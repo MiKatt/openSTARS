@@ -17,7 +17,7 @@ attributes shall be calculated for. "sites" (default) refers to the observation 
 maps to calculate attributes from.}
 
 \item{stat_rast}{character vector (optional); statistics to be calculated, one of:
-min, max, mean, stddev, variance, sum, median, percant, area or percentile_X (where X
+"min", "max", "mean", "stddev", "variance", "sum", "median", "percent", "area" or "percentile_X" (where X
 gives the desired percentile e.g. 25 for the first). Must be provided if 
 \code{input_raster} are given.}
 
@@ -29,12 +29,12 @@ Must be provided if \code{input_raster} are given.}
 maps to calculate attributes from.}
 
 \item{stat_vect}{character string vector (optional); statistics to be calculated, 
-one of: percentage, area or count. Must be provided if \code{input_vector} is given.}
+one of: "percent", "area" or "count." Must be provided if \code{input_vector} is given.}
 
 \item{attr_name_vect}{character string vector (optional); column name(s) in 
 the vector file provided to calculate the attributes from (if \code{input_vector}
-is a polygon map and stat_vect is 'percent') or giving the new name attributes
-to calculate (if \code{input_vector} is a point map and stat_vect is 'count'.
+is a polygon map and stat_vect is "percent") or giving the new name attributes
+to calculate (if \code{input_vector} is a point map and stat_vect is "count".
 Must be provided if \code{input_vector} is given.}
 
 \item{round_dig}{integer; number of digits to round results to. Can be a vector
@@ -43,19 +43,24 @@ of different values or just one value for all attributes.}
 \item{calc_basin_area}{boolean; shall the catchment area be calculated? (Useful
 to set to FALSE if the function has been called before with \code{keep_basins = TRUE}.)}
 
-\item{keep_basins}{boolean; shall raster maps of all the watersheds be kept?}
+\item{keep_basins}{boolean; shall raster and vector maps of all the watersheds be kept?
+Defaults to FALSE.}
 }
 \value{
 Nothing. The function appends new columns to the \code{sites_map} attribute table
 \itemize{
  \item{'H2OArea':} {Total watershed area of the watershed upstream of each site.}
  \item{attr_name_rast:} {Additional optional attributes calculated based on input_raster maps.}
+ \item{attributes form vector maps:}{Additional optional attributes 
+ calculated based on input_vector maps. The column names are based on the unique entries 
+ of the column(s) given in \code{attr_name_vect}.} 
 }
 Please note that for sampling points that lie in the same DEM raster cell 
  along a stream identical values are calculated because identical watersheds
  are derived.
 }
 \description{
+For each site (observation or prediction) the total catchment area is
 calculated ('H2OArea'). Additionally, other attributes (predictor variables)
 can be derived based on given raster or vector maps. This function calculates
 exact values for catchments derived with

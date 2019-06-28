@@ -592,6 +592,15 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   
   dat <- cbind(dat.h2o, dat.rast, dat.vect, locID)
   
+  # truncate column names
+  n <- nchar(colnames(dat))
+  nn <- which(n > 10)
+  anames2 <- anames
+  if(length(nn) > 0){
+    colnames(dat)[nn] <- paste0(substr(colnames(dat)[nn], start = 1, stop = 7), substr(colnames(dat)[nn], start = nchar(colnames(dat)[nn]), stop = nchar(colnames(dat)[nn])))     
+  }
+
+  
   # Join attributes to sites attribute table
   message("Joining new attributes to attribute table ...")
   utils::write.csv(dat, file.path(temp_dir,"sites_attributes_exact.csv"),row.names = F)

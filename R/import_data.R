@@ -45,6 +45,13 @@
 #' Hence, if the projections does not match to the one of the DEM (which was used
 #' to specify the location in \code{\link{setup_grass_environment}}) the maps 
 #' are projected and imported on the fly.
+#' All raster data are not transformed but it is assumed that they have the same 
+#' projection as the current location. Hence, it is important to make sure that 
+#' they all have indeed the same projection (and same cell size) and that the correct
+#' one is set in \code{\link{setup_grass_environment}}. If this condition is not met,
+#' the raster data should be propocessed before importing.
+#' Use \code{\link{check_projection}} to compare the projection of a raster data set and
+#' the one of the current location.
 #' 
 #' @note A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
 #' 
@@ -121,7 +128,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | is.null(sites))
     stop("DEM and sites are needed.")
-  
+
   # Import data -------------------
   message("Loading DEM into GRASS as 'dem' ...")
   
@@ -129,22 +136,12 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # MiKatt: it is necassary to set the region with g.region in setup_grass_environment;
   #         using flag "e" when importing the dem does not work
   #         (r.hydrodem produces very huge raster)
-  # 20180215: not necessary?
-  # if(.Platform$OS.type == "windows"){
-  #   execGRASS("r.in.gdal",
-  #             flags = c("overwrite","quiet","o"),
-  #             parameters = list(
-  #               input = dem,
-  #               band = band,
-  #               output = "dem"),ignore.stderr=T)
-  # } else{
   execGRASS("r.in.gdal",
-            flags = c("overwrite", "quiet"),
+            flags = c("overwrite", "quiet", "o"), # overwrite projection check
             parameters = list(
               input = dem,
               band = band,
               output = "dem"),ignore.stderr=T)
-  #}
 
   message("Loading sites into GRASS as 'sites_o' ...")
   # sites data
@@ -167,7 +164,6 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     }
   }
   
-  
   # predictor raster maps
   if (!is.null(predictor_raster)) {
     if(is.null(predictor_r_names))
@@ -176,20 +172,12 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     #         width = 80)))
     message(paste0("Loading raster predictor variables into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_r_names)){
-      if(.Platform$OS.type == "windows"){
         execGRASS("r.in.gdal",
                   flags = c("overwrite","quiet","o"),
                   parameters = list(
                     input = predictor_raster[i],
                     output = predictor_r_names[i]),ignore.stderr=T)
-      } else{
-        execGRASS("r.in.gdal",
-                  flags = c("overwrite", "quiet"),
-                  parameters = list(
-                    input = predictor_raster[i],
-                    output = predictor_r_names[i]),ignore.stderr=T)
-      }
-    }
+     }
   }
   
   # predictor vector maps
@@ -208,7 +196,6 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   if (!is.null(streams)) {
     message("Loading streams into GRASS as 'streams_o'  ...")
     # flag "-r": only current region
-    
     import_vector_data(data = streams, name = "streams_o", proj_ref_obj = dem)
     # MiKatt: snapp line ends to next vertext to prevent loose ends/ unconnected streams and to build topography
     if(snap_streams){
@@ -341,4 +328,43 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
       invisible(file.remove(file.path(tempdir(), list.files(path = tempdir(), pattern = paste0(name, ".")))))
     }
   }
+}
+
+
+#' Compare projection raster data to the one of the current GRASS location.
+#' 
+#' @param path character string vector; path raster data file(s)
+#' 
+#' @return Nothing.
+#' 
+#' @details Prints out a table of the PROJ.4 elements of the projection
+#'   information of the current GRASS location and of the raster file(s) as
+#'   well as one columns for each comparison indicating the differences. 
+#'   Based on this information it can be decided if the data can be read
+#'   into GRASS (\code{\link{import_data}}) without prior processing, i.e.
+#'   if all raster data are of the same projection.
+#'  
+#' @export
+#' 
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+
+check_projection <- function(path){
+    loc_proj <- execGRASS("g.proj", flags = c("j"),
+                        intern = TRUE, ignore.stderr = TRUE)
+  comp <- loc_proj
+  n <- length(path)
+  
+  for(i in 1:n){
+    rast_proj <- execGRASS("g.proj", flags = c("j"),
+                          parameters = list(
+                            georef = path[i]
+                          ), intern = TRUE)
+    comp <- cbind(comp, rast_proj)
+    comp <- cbind(comp, comp[,1] == comp[,2*i])
+  }
+  
+  fnames <- sapply(1:n, function(x) basename(path[x]))
+  cnames <- paste0("comp", 1:n)
+  colnames(comp) <- c("GRASS project", c(sapply(1:n, function(x) c(fnames[x], cnames[x]))))
+  print(comp)
 }

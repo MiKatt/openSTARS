@@ -202,9 +202,9 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     }
   }
   
-  if(any(sapply(attr_name_vect, nchar) > 8))
-    stop("Attribute names must not be longer than eight characters.")
-  
+  # if(any(sapply(attr_name_vect, nchar) > 8))
+  #   stop("Attribute names must not be longer than eight characters.")
+
   if(is.null(input_raster) & is.null(input_vector))
     stop("At least one raster or vector file name must be given for intersection.")
   
@@ -508,7 +508,14 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     
     # Delete unneeded columns
     dt.streams[, c("next_str", "prev_str01", "prev_str02", "netID", "H2OArea", "rcaArea") := NULL]
-    setnames(dt.streams, anames, paste0(anames, "_e"))
+    # truncate column names
+    n <- nchar(anames)
+    nn <- which(n > 9)
+    anames2 <- anames
+    if(length(nn) > 0){
+      anames2[nn] <- paste0(substr(anames[nn], start = 1, stop = 7), substr(anames[nn], start = nchar(anames[nn]), stop = nchar(anames[nn])))     
+    }
+    setnames(dt.streams, anames, paste0(anames2, "_e"))
 
     # Join attributes to edges attribute table
     message("Joining table vector attributes ...")
