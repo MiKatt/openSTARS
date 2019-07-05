@@ -26,7 +26,9 @@ If TRUE line ends of the streams are snapped to the next feature if they are
  unconnected with threshold of 10 m using 'GRASS' function v.clean.}
 
 \item{pred_sites}{character string vector or object(s) (optional); path(s) to prediction sites 
-vector files (ESRI shape) or sp or sf data object.}
+vector files (ESRI shape) or sp or sf data object. 
+Different formats (i.e. path and objects) must not be mixed; more than one sf or sp
+object must be provided as a list, not concatenated with \code{c}.}
 
 \item{predictor_raster}{character vector (optional); paths to raster data to 
 import as predictors.}
@@ -35,7 +37,9 @@ import as predictors.}
 variables in raster format; if not provided \code{perdictor_raster} is used.}
 
 \item{predictor_vector}{character string vector of object(s) (optional); path(s)
-to vector data (ESRI shape) or sp or sf object names to import as predictors.}
+to vector data (ESRI shape) or sp or sf object names to import as predictors.
+Different formats (i.e. path and objects) must not be mixed; more than one sf or sp
+object must be provided as a list, not concatenated with \code{c}.}
 
 \item{predictor_v_names}{character vector (optional); names for potential predictor
 variables in vector format ; if not provided \code{perdictor_vector} is used.}

@@ -8,23 +8,27 @@
 #' @param dem character; path to DEM (digital elevation model) raster file.
 #' @param band integer (optional); defines which band of the dem to use
 #' @param sites character string or object; path to sites vector file (ESRI shape) 
-#' or sp or sf data object.
+#'  or sp or sf data object.
 #' @param streams character string or object (optional); path to network vector 
-#' file (ESRI shape) or sp or sf data object. If available this can be burnt into the DEM 
-#' in \code{\link{derive_streams}}
+#'  file (ESRI shape) or sp or sf data object. If available this can be burnt into the DEM 
+#'  in \code{\link{derive_streams}}
 #' @param snap_streams boolean (optional); snap line ends.
 #'  If TRUE line ends of the streams are snapped to the next feature if they are
 #'   unconnected with threshold of 10 m using 'GRASS' function v.clean.
 #' @param pred_sites character string vector or object(s) (optional); path(s) to prediction sites 
-#' vector files (ESRI shape) or sp or sf data object. 
+#'  vector files (ESRI shape) or sp or sf data object. 
+#'  Different formats (i.e. path and objects) must not be mixed; more than one sf or sp
+#'  object must be provided as a list, not concatenated with \code{c}.
 #' @param predictor_raster character vector (optional); paths to raster data to 
-#' import as predictors.
+#' import as predictors. 
 #' @param predictor_r_names character string vector (optional); names for potential predictor
-#' variables in raster format; if not provided \code{perdictor_raster} is used.
+#'  variables in raster format; if not provided \code{perdictor_raster} is used.
 #' @param predictor_vector character string vector of object(s) (optional); path(s)
 #'  to vector data (ESRI shape) or sp or sf object names to import as predictors.
+#'  Different formats (i.e. path and objects) must not be mixed; more than one sf or sp
+#'  object must be provided as a list, not concatenated with \code{c}.
 #' @param predictor_v_names character vector (optional); names for potential predictor
-#' variables in vector format ; if not provided \code{perdictor_vector} is used.
+#'  variables in vector format ; if not provided \code{perdictor_vector} is used.
 #'
 #' @return Nothing, the data is loaded into the 'GRASS' session (mapset PERMANENT).
 #' The DEM is stored as raster 'dem', sites as vector 'sites_o', prediction sites
@@ -151,14 +155,22 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # prediction sites data
   if (!is.null(pred_sites)) {
-    pred_sites_names <- do.call(rbind,base::strsplit(sapply(pred_sites,basename,USE.NAMES=F), split="[.]"))[,1]
+    if(is.character(pred_sites)){
+     pred_sites_names <- do.call(rbind,base::strsplit(sapply(pred_sites,basename,USE.NAMES=F), split="[.]"))[,1]
+    } else {
+      if(length(class(pred_sites)) == 1 && class(pred_sites) == "list"){
+        pred_sites_names <- paste("pred_sites", 1:length(pred_sites))
+      } else{
+        pred_sites_names <- "pred_sites"
+      }
+    }
     if(any(pred_sites_names == "sites")){
       message("Prediction sites cannot be named 'sites'. Please rename.")
     } else{
       pred_sites_names <- paste0(pred_sites_names, "_o")
       message(paste0("Loading preditions sites into GRASS as ",
                      paste("'", pred_sites_names, "'", collapse=", ", sep=""), " ..."))
-      for(i in 1:length(pred_sites)){
+      for(i in 1:length(pred_sites_names)){
         import_vector_data(data = pred_sites[i], name = pred_sites_names[i], proj_ref_obj = dem)
       }
     }
@@ -166,7 +178,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # predictor raster maps
   if (!is.null(predictor_raster)) {
-    if(is.null(predictor_r_names))
+    if(is.null(predictor_r_names)){}
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
     #message(writeLines(strwrap(paste0("Loading raster predictor variables into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."),
     #         width = 80)))
@@ -182,8 +194,17 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # predictor vector maps
   if (!is.null(predictor_vector)) {
-    if(is.null(predictor_v_names))
-      predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
+    if(is.null(predictor_v_names)){
+      if(is.character(predictor_vector)){
+        predictor_v_names <- do.call(rbind,base::strsplit(sapply(predictor_vector,basename,USE.NAMES=F), split="[.]"))[,1]
+      } else {
+        if(length(class(predictor_vector)) == 1 && class(predictor_vector) == "list"){
+          predictor_v_names <- paste("predictor_v", 1:length(predictor_vector))
+        } else{
+          predictor_v_names <- "predictor_v"
+        }
+      }
+    }
     #message(writeLines(strwrap(paste0("Loading vector predictor variables into GRASS as ",paste("'", predictor_v_names, "'", collapse = ", ", sep=""), " ..."),
     #        width = 80), con = stderr()), appendLF = TRUE)
     message(paste0("Loading vector predictor variables into GRASS as ",paste("'", predictor_v_names, "'", collapse = ", ", sep=""), " ..."))
