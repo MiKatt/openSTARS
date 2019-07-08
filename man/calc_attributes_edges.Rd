@@ -77,11 +77,12 @@ v.in.ogr (see examples).
 \note{
 Column names for the results are created as follows:
 Raster data - the column names given in \code{attr_name_rast} are used. The user should
-take care to use unique, clear names.
+take care to use unique, clear names. For \code{stat_rast} = 'percentage' or 'area', 
+the output column name will be concatenated 'p' or 'a', repectively.
 For vector data, column names are constructed from the entries in in the column 
 \code{attr_name_vect}. For counts of points, the new column name containing the counts
 is just the given name. For polygon data ('percentage' or 'area'), the names are constructed using
-the unique entries of the column with a concated 'p' or 'a', repectively. If, for intance, 
+the unique entries of the column with a concatenated 'p' or 'a', repectively. If, for instance, 
 for a landuse vector containing the classes 'urban' and 'arable' percentages would be calculated,
 edges would contain two new columns 'urbanp' and 'arablep'.
 

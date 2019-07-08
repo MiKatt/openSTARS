@@ -30,15 +30,14 @@
 #'
 #'@note Column names for the results are created as follows:
 #' Raster data - the column names given in \code{attr_name_rast} are used. The user should
-#' take care to use unique, clear names.
+#' take care to use unique, clear names. For \code{stat_rast} = 'percentage' or 'area', 
+#' the output column name will be concatenated 'p' or 'a', repectively.
 #' For vector data, column names are constructed from the entries in in the column 
 #' \code{attr_name_vect}. For counts of points, the new column name containing the counts
 #' is just the given name. For polygon data ('percentage' or 'area'), the names are constructed using
-#' the unique entries of the column with a concated 'p' or 'a', repectively. If, for intance, 
+#' the unique entries of the column with a concatenated 'p' or 'a', repectively. If, for instance, 
 #' for a landuse vector containing the classes 'urban' and 'arable' percentages would be calculated,
 #' edges would contain two new columns 'urbanp' and 'arablep'.
-#'
-#'
 #'
 #'@details First, the reach contributing areas (= subcatchments) for all edges are calculated. 
 #' Then these are intersected with the given raster and/or vector maps and the desired 
@@ -323,9 +322,9 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
           stat_r <- c(stat_r, rep("area_class", ncol(st) - 1))
         }
         if(length(colnames(st)) > 2){
-          colnames(st)[-1] <- paste(attr_name_rast[j], colnames(st)[-1], sep = "_")
+          colnames(st)[-1] <- paste(paste0(attr_name_rast[j], substr(stat_rast[j],1,1)), colnames(st)[-1], sep = "_")
         } else{
-          colnames(st)[-1] <- attr_name_rast[j]
+          colnames(st)[-1] <- paste0(attr_name_rast[j], substr(stat_rast[j],1,1))
         }
         rca_cell_count <- merge(rca_cell_count, st, by = "zone", all.x = TRUE)
       } else {
