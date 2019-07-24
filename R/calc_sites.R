@@ -355,5 +355,6 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
             parameters = list(
               sql=sql_str
             ))
+  try(unlink("temp.txt"), silent = TRUE)
 }
 

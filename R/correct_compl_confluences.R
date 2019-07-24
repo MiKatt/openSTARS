@@ -525,7 +525,7 @@ correct_compl_confluences <- function(clean = TRUE){
                 type = "vector",
                 name = c("complex_flows","complex_flows_cp","complex_flows_p")
               ))
-    try(unlink("temp.txt"), silent = TRUE)
   }
+  try(unlink("temp.txt"), silent = TRUE)
   message("Complex confluences were removed. Please check changed features in 'streams_v'.")
 }

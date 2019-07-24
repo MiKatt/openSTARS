@@ -51,22 +51,22 @@
 #' initGRASS(gisBase = gisbase,
 #'     home = tempdir(),
 #'     override = TRUE)
-#'
+#' 
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path)
 #' gmeta()
-#'
+#' 
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
-#'
-#' check_complex_confluences()
+#' 
+#' check_compl_confluences()
 #' calc_edges()
 #' calc_sites()
 #' calc_prediction_sites(predictions = "preds", dist = 2500)
-#'
+#' 
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)
 #' preds <- readVECT('preds', ignore.stderr = TRUE)

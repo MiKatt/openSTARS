@@ -244,6 +244,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   } else {
     message("No streams available, skipping.\n")
   }
+  try(unlink("temp.txt"), silent = TRUE)
 }
 
 #' Import vector data into GRASS.

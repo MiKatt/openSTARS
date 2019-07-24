@@ -24,14 +24,14 @@
 #' \donttest{
 #' # Initiate GRASS session
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.4.0"
-#'   } else {
-#'   gisbase = "/usr/lib/grass74/"
-#'   }
+#'     gisbase <- "c:/Program Files/GRASS GIS 7.4.0"
+#' } else {
+#'   gisbase <- "/usr/lib/grass74/"
+#' }
 #' initGRASS(gisBase = gisbase,
 #'     home = tempdir(),
 #'     override = TRUE)
-#'
+#' 
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
@@ -39,7 +39,7 @@
 #' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path)
 #' gmeta()
-#'
+#' 
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 100, condition = TRUE, clean = TRUE)
 #' 
@@ -53,6 +53,7 @@
 #' 
 #' calc_edges()
 #' calc_sites()
+#' restrict_network(sites = "sites", keep = TRUE, filename = "edges_o")
 #' 
 #' # plot
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
@@ -61,9 +62,9 @@
 #' plot(edges_o, col = "lightblue", lwd = 2)
 #' lines(edges, col = "blue4")
 #' points(sites, pch = 16, col = "red")
-#' legend("topright", col = c("red", "lightblue", "blue4"), lty = c(NA, 1,1), 
+#' legend("topright", col = c("red", "lightblue", "blue4"), lty = c(NA, 1,1),
 #' lwd = c(NA,2,1), pch = c(16,NA,NA),
-#' legend = c("sites", "edges orig", "edges restricted"))
+#' legend = c("sites", "edges original", "edges restricted"))
 #' }
 
 restrict_network <- function(sites = NULL, 

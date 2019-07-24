@@ -365,6 +365,7 @@ delete_lakes <- function(lakes, keep = TRUE){
   #             use = "attr",
   #             attribute_column = "cat"
   #           ))
+  try(unlink("temp.txt"), silent = TRUE)
 }
 
 
