@@ -33,7 +33,7 @@ Measurements are merged to the sites objects based on \code{site_id}. If
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.6.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.6"
   } else {
   gisbase = "/usr/lib/grass74/"
   }

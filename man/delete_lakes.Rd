@@ -38,7 +38,7 @@ The column 'out_dist' (flow length from the upstream node of the
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.6.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.6"
   } else {
   gisbase = "/usr/lib/grass74/"
   }
