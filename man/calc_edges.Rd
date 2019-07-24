@@ -35,7 +35,7 @@ All lengths are rounded to 2 and all areas to 6 decimal places, respectively.
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.6.0"
   } else {
   gisbase = "/usr/lib/grass74/"
   }

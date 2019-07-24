@@ -27,7 +27,7 @@ It is checked, if there are columns named 'prev_str03', 'prev_str04' and
 \donttest{
 # Initiate GRASS session
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.4.0"
+  gisbase = "c:/Program Files/GRASS GIS 7.6.0"
   } else {
   gisbase = "/usr/lib/grass74/"
   }
