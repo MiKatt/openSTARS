@@ -12,7 +12,8 @@
 #'  is set to the one of the dem, and the projection is set to the one of the dem or to the 
 #'  one provided in \code{epsg} .
 #'
-#' @note A 'GRASS' session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
+#' @note A 'GRASS' session must be initiated before, see \code{\link[rgrass7]{initGRASS}}. This function 
+#'   uses \code{use_sp()} from the \code{rgrass7} package to support raster data.
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export
@@ -43,6 +44,8 @@ setup_grass_environment <- function(dem, epsg = NULL, sites = NULL) {
   if(!is.null(sites))
     message(writeLines(strwrap("'sites' is no longer a parameter of setup_grass_environment (see help). \nThe function will still execute normally. Please update your code.",
             width = 80)))
+  
+  use_sp()
   
   dem_raster <- raster::raster(dem)
   #dem_proj <- raster::projection(dem_raster)

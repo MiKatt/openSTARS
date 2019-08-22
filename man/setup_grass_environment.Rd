@@ -24,7 +24,8 @@ Nothing, the 'GRASS' mapset is set to PERMANENT, the extent of the current locat
 This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 }
 \note{
-A 'GRASS' session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
+A 'GRASS' session must be initiated before, see \code{\link[rgrass7]{initGRASS}}. This function 
+  uses \code{use_sp()} from the \code{rgrass7} package to support raster data.
 }
 \examples{
 \donttest{
