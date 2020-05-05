@@ -9,6 +9,8 @@
   might have occured.
 * Updated all lengths in correct_complex_confluences 
   (segement length, cum_length, out_dist)
+* correct_complex_confluences now works correctly for non-sqared cells (use max
+  cell dimension instead of min for calculation of flow directions at conflueces)
 * New function to delete lakes from the network ('delete_lakes'). Added "lakes.shp"
   to example data.
 * New function to restrict edges to certain networks based on sites (obeservation

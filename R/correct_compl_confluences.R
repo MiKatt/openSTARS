@@ -92,9 +92,9 @@ correct_compl_confluences <- function(clean = TRUE){
   temp_dir <- tempdir()
 
   # get cellcize of dem raster
-  cellsize <- execGRASS("g.region", flags = "p",intern=T)
-  cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2])
-  cellsize <- min(cellsize)
+  cellsize <- execGRASS("g.region", flags = "p",intern=T) ## "m" statt "p"?
+  cellsize <- as.numeric(do.call(rbind,strsplit(cellsize[grep("res",cellsize)],split=":"))[,2]) ## "=" statt ":"?
+  cellsize <- max(cellsize)
 
   # get maximum prev_str0X from colnames
   max.prev.str <- max(which(paste0("prev_str0", 3:7) %in% cnames)) + 2
