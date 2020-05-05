@@ -266,7 +266,7 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
                      input = "streams_v", 
                      output = "streams_v",
                      type = "line",
-                     where = paste0("Length > 0")
+                     where = paste0("length > 0")
                    ), intern = TRUE, ignore.stderr = TRUE)
     
     message("Derived streams saved as 'streams_v'.")
