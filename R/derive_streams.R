@@ -271,9 +271,10 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
     
     execGRASS("g.copy", flags = c("overwrite", "quiet"),
               parameters = list(
-                vector = "streams_v1,streams_v"))
+                vector = "streams_v1,streams_v"
+                ), intern = TRUE, ignore.stderr = TRUE)
     
-    execGRASS("g.remove", flags = c("quiet"),
+    execGRASS("g.remove", flags = c("quiet", "f"),
               parameters = list(
                 type = "vector",
                 name = "streams_v1"))
