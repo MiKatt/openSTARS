@@ -260,6 +260,15 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
                             "sinosoid","source_elev","outlet_elev","elev_drop","out_drop","gradient")
               ))
     
+    # delete stream segments with zero length
+    a <- execGRASS("v.extract", flags = c("overwrite", "quiet"),
+                   parameters = list(
+                     input = "streams_v", 
+                     output = "streams_v",
+                     type = "line",
+                     where = paste0("Length > 0")
+                   ), intern = TRUE, ignore.stderr = TRUE)
+    
     message("Derived streams saved as 'streams_v'.")
 }
 

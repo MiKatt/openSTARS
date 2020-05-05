@@ -23,6 +23,7 @@
 * Sites has now the column 'str_edge' (for 'stream') instead of 'cat_edge' 
   to relate the site to its edge.
 * Several smaller fixes.
+* Delete stream segments with zero length in derive_streams
 
 
 # openSTARS 1.1.0
