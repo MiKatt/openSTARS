@@ -264,10 +264,19 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
     a <- execGRASS("v.extract", flags = c("overwrite", "quiet"),
                    parameters = list(
                      input = "streams_v", 
-                     output = "streams_v",
+                     output = "streams_v1",
                      type = "line",
                      where = paste0("length > 0")
                    ), intern = TRUE, ignore.stderr = TRUE)
+    
+    execGRASS("g.copy", flags = c("overwrite", "quiet"),
+              parameters = list(
+                vector = "streams_v1,streams_v"))
+    
+    execGRASS("g.remove", flags = c("quiet"),
+              parameters = list(
+                type = "vector",
+                name = "streams_v1"))
     
     message("Derived streams saved as 'streams_v'.")
 }
