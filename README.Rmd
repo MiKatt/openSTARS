@@ -39,10 +39,10 @@ install.packages("openSTARS")
 library("openSTARS")
 ```
 
-For the lastest github version of openSTARS (carefull, might be experimental):
+For the lastest development version of openSTARS on GitHub (carefull, might be experimental):
 ```{r install_gh, eval = FALSE}
 # install.packages("devtools")
-devtools::install_github("MiKatt/openSTARS")
+devtools::install_github("MiKatt/openSTARS", ref = "dev")
 library("openSTARS")
 ```
 
@@ -108,30 +108,33 @@ check_projection(preds_r_path)
 
 ```{r import_data, message = TRUE}
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-preds_path <- c(system.file("extdata", "nc", "landuse.shp", package = "openSTARS"),
-                 system.file("extdata", "nc", "pointsources.shp", package = "openSTARS"))
+preds_path <- system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
 preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
-import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path, predictor_v_names = c("landuse", "psources"), predictor_raster = preds_r_path)
+import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path, predictor_v_names = "psources", predictor_raster = preds_r_path)
 ```
 
 The DEM is loaded into the GRASS database as a raster map named `dem`, the sites as a vector map named `sites_o` and the (optional) stream network as a vector map named `streams_o`. Predictor sites are stored under their base file name, potential predictors either using their base file names or the ones provided in 'predictor_r_names' and 'predictor_v_names', respectively.
 
 The data looks like this:
 
-```{r plot_data1, message=FALSE, results='hide'}
+```{r plot_data1.1, message=FALSE, results='hide'}
+library(sp)
 dem <- readRAST("dem", ignore.stderr = TRUE)
 sites <- readVECT("sites_o", ignore.stderr = TRUE)
 psources <- readVECT("psources", ignore.stderr = TRUE)
-lu <- readVECT("landuse", ignore.stderr = TRUE)
+lu <- readRAST("landuse_r", ignore.stderr = TRUE)
 plot(dem, col = gray(seq(0,1,length.out=20)))
-col <- adjustcolor(c("red", "green", "blue", "yellow"), alpha.f = 0.3)
-plot(lu, add = T, col = col[as.numeric(as.factor(lu$landuse))])
-legend(x = par("usr")[1]*1.001, y = par("usr")[4]*0.999, col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse))), 
-       title = "landuse", ncol = 4)
 cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value)]
 points(sites, pch = 16, col = cols)
 points(psources, pch = 19, col = 1, cex = 1.7)
 legend(x = par("usr")[2]*0.991, y = par("usr")[4]*0.999, pch = c(16, 16, 19), ncol = 1, col = c(range(cols),1), legend = c(paste("value at sites:", c(range(sites$value))), "point sources"))
+
+```
+```{r plot_data1.2, message=FALSE, results='hide'}
+col <- adjustcolor(c("orange", "yellow",  "green", "greenyellow", "green3","blue", "brown"), alpha.f = 1)
+image(lu["landuse_r"], col = col)
+legend("right", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse_r))), 
+       title = "landuse")
 
 ```
 
@@ -158,40 +161,40 @@ points(sites, pch = 16, col = cols)
 ### Check and correct the network
 Next, the stream network should be checked if there are stream segments with more than two inflows. These must be corrected because the .ssn object must not have such complex junctions. In the nc data set provided, there will be complex junctions only if accum_threshold is small (e.g. 150; note that this will take long to run and use a lot of memory).
 
-<!-- uses too much disk space and takes ages
-```{r compl_junctions, eval = FALSE}
+uses too much disk space and takes ages
+```{r compl_junctions, eval = TRUE}
 derive_streams(burn = 0, accum_threshold = 100)
-cp <- check_compl_junctions()
+cp <- check_compl_confluences()
 if (cp)
-  correct_compl_junctions()
+  correct_compl_confluences()
 ```
 
 ```{r plot_compl_junctions, eval = FALSE}
 dem <- readRAST('dem', ignore.stderr = TRUE)
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
-streams_orig <- readVECT('streams_v_o', ignore.stderr = TRUE)
+streams_orig <- readVECT('streams_v_o3', ignore.stderr = TRUE)
 # zoom to a relevant part of the dem
 plot(dem, col = terrain.colors(20), axes = TRUE,
-  xlim = c(640050,640200), ylim = c(219700,219850))
+     xlim = c(640080,640170), ylim = c(219730,219820))
 lines(streams_orig, col = 'red', lwd = 4)
 lines(streams, col = 'blue', lty = 2, lwd = 2)
 legend("topright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2),
-  legend = c("original", "corrected"))
+       legend = c("original", "corrected"))
 ```
--->
 
-An example of a complex junction and the correction would look like this:
 
-![Original network with complex junction. Arrows indicate flow direction.](README_files/compl_junction1.PNG)  ![Corrected network. Arrows indicate flow direction.](README_files/compl_junction2.PNG)
+<!-- An example of a complex junction and the correction would look like this: -->
 
-*Left* Original network with complex junction (i.e. three inflows to one outflow). 
-*Right* Corrected network. Arrows indicate flow direction.
+<!-- ![Original network with complex junction. Arrows indicate flow direction.](README_files/compl_junction1.PNG)  ![Corrected network. Arrows indicate flow direction.](README_files/compl_junction2.PNG) -->
+
+<!-- *Left* Original network with complex junction (i.e. three inflows to one outflow).  -->
+<!-- *Right* Corrected network. Arrows indicate flow direction. -->
+
 
 The end node of the inflowing segment with the smallest angle to the outflowing 
-segment is moved 0.25 times the cell size of the DEM downstream. The outflowing
+segment is moved a small fraction of the cell size of the DEM downstream. The outflowing
 segment is split into tow parts at this new junction. All features are corrected
-accordingly (cat, length, prev_str01, prev_str02, next_str etc.). Currently, this 
-only works for three inflows to the same outflow but not more.
+accordingly (cat, length, prev_str01, prev_str02, next_str etc.). 
 
 Other topological errors as mentioned for the ArcGIS toolbox STARS do not occur
 if the stream network is derived from a DEM.
@@ -251,7 +254,7 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites_orig, pch = 20, col = "black")
 points(sites, pch = 21, cex=0.75, bg = "grey")
-legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("snapped sites", "original sites"))
+legend("topright", y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("snapped sites", "original sites"), ncol = 2)
 ```
 
 ### Prepare prediction sites
@@ -269,7 +272,7 @@ Similar as for the observation sites, attributes needed for .ssn object are assi
 The filed 'cat_edge' gives the 'cat' of the stream segment the point lies on (equivalent to 'rid').
 
 ```{r prep_pred_sites, results='hide', message=FALSE, warning=FALSE}
-calc_prediction_sites(predictions = "preds", nsites = 100, netIDs = 15 )
+calc_prediction_sites(predictions = "preds", nsites = 100, netIDs = 47 )
 ```
 
 ```{r plot_data4}
@@ -281,7 +284,7 @@ plot(dem, col = terrain.colors(20))
 lines(edges, col = "blue")
 points(sites, pch = 21, cex=0.75, bg = "grey")
 points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
-legend(x = par("usr")[1]*1.002, y = par("usr")[3]*1.01, pt.bg = c("grey","royalblue"), pch = 21, legend = c("(snapped) observation sites","prediction sites"))
+legend("topright", ncol = 2, pt.bg = c("grey","royalblue"), pch = 21, legend = c("(snapped) observation sites","prediction sites"))
 head(pred_sites@data, n = 5)
 ```
 
@@ -300,16 +303,15 @@ execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
             elevation = "dem",
             slope = "slope"
           ))
-# calculate average slope per sub-catchment of each stream segment using raster and imported vector data
-calc_attributes_edges(input_raster = "slope", stat_rast = "mean",
-                      attr_name_rast = "avSlo", input_vector = "landuse", 
-                      stat_vect = "percent", attr_name_vect = "landuse", 
-                      round_dig = 4)
-#calculate approx. catchment area and average slope per catchment of each site
+# calculate average slope per sub-catchment of each stream segment using raster data
+calc_attributes_edges(input_raster = c("slope", "landuse_r"), stat_rast = c("mean", "percent"),
+                      attr_name_rast = c("avSlo","lu"),
+                      round_dig = 4)#, input_vector = "landuse", stat_vect = "percent", attr_name_vect = "landuse", 
+#calculate approx. catchment area, average slope per catchment and percentage of land use class of each site
 calc_attributes_sites_approx(sites_map = "sites", 
-                             input_attr_name = c("avSlo","agri","forest","grass","urban"),
-                             output_attr_name = c("avSloA","agriA","forestA","grassA","urbanA"),
-                             stat = c("mean", rep("percemt", 4)))
+                             input_attr_name = c("avSlo",paste0("lup_",1:7)),
+                             output_attr_name = c("avSloA",paste0("luA", 1:7)),
+                             stat = c("mean", rep("percent", 7)))
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 5)
 ```
@@ -318,17 +320,18 @@ The exact calculation of attribute values for the total catchment of each point 
 
 
 ```{r attributes_exact}
-# calculate exact catchment area and average slope per catchment of each site
+# calculate exact catchment area, average slope per catchment and number of point sources of each site
 calc_attributes_sites_exact(sites_map = "sites", 
                             input_raster = "slope",
                             stat_rast = "mean",
                             attr_name_rast = "avSloE", 
-                            input_vector = "landuse",
-                            stat_vect = "percent",
-                            attr_name_vect = "landuse",
+                            input_vector = "psources",
+                            stat_vect = "count",
+                            attr_name_vect = "nps",
                             round_dig = 4)
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 5)
+
 ```
 In both alternatives, the catchment area for each site is calculated automatically ('H2OAreaA' for `calc_attributes_sites_appox` and 'H2OArea' for `calc_attributes_sites_exact`).
 
