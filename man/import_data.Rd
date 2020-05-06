@@ -4,10 +4,18 @@
 \alias{import_data}
 \title{Import data into 'GRASS.'}
 \usage{
-import_data(dem, band = 1, sites, streams = NULL,
-  snap_streams = FALSE, pred_sites = NULL, predictor_raster = NULL,
-  predictor_r_names = NULL, predictor_vector = NULL,
-  predictor_v_names = NULL)
+import_data(
+  dem,
+  band = 1,
+  sites,
+  streams = NULL,
+  snap_streams = FALSE,
+  pred_sites = NULL,
+  predictor_raster = NULL,
+  predictor_r_names = NULL,
+  predictor_vector = NULL,
+  predictor_v_names = NULL
+)
 }
 \arguments{
 \item{dem}{character; path to DEM (digital elevation model) raster file.}

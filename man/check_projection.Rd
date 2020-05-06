@@ -13,7 +13,8 @@ check_projection(path)
 Nothing.
 }
 \description{
-Compare projection raster data to the one of the current GRASS location.
+Check if the procection of raster files matches the one of the 
+current region
 }
 \details{
 Prints out a table of the PROJ.4 elements of the projection
@@ -22,7 +23,4 @@ Prints out a table of the PROJ.4 elements of the projection
   Based on this information it can be decided if the data can be read
   into GRASS (\code{\link{import_data}}) without prior processing, i.e.
   if all raster data are of the same projection.
-}
-\author{
-Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}
 }

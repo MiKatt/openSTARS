@@ -15,12 +15,6 @@ assign_binIDs(dt, id, binID, lastbit)
 \item{binID:}{binary ID}
 
 \item{lastbit:}{last char to be added (0 or 1)}
-
-\item{id:}{stream segment}
-
-\item{binID:}{binary ID}
-
-\item{lastbit:}{last char to be added (0 or 1)}
 }
 \description{
 Should be run for all outlets in the network ( = most downstream segments) and fills the binID for all segments

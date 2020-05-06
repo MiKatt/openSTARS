@@ -4,10 +4,18 @@
 \alias{calc_attributes_sites_exact}
 \title{Calculate attributes of the sites.}
 \usage{
-calc_attributes_sites_exact(sites_map = "sites", input_raster = NULL,
-  stat_rast = NULL, attr_name_rast = NULL, input_vector = NULL,
-  stat_vect = NULL, attr_name_vect = NULL, round_dig = 2,
-  calc_basin_area = TRUE, keep_basins = FALSE)
+calc_attributes_sites_exact(
+  sites_map = "sites",
+  input_raster = NULL,
+  stat_rast = NULL,
+  attr_name_rast = NULL,
+  input_vector = NULL,
+  stat_vect = NULL,
+  attr_name_vect = NULL,
+  round_dig = 2,
+  calc_basin_area = TRUE,
+  keep_basins = FALSE
+)
 }
 \arguments{
 \item{sites_map}{character; name of the sites (observation or prediction) 

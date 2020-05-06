@@ -4,8 +4,7 @@
 \alias{calc_prediction_sites}
 \title{Calculate prediction sites for 'SSN' object.}
 \usage{
-calc_prediction_sites(predictions, dist = NULL, nsites = 10,
-  netIDs = NULL)
+calc_prediction_sites(predictions, dist = NULL, nsites = 10, netIDs = NULL)
 }
 \arguments{
 \item{predictions}{string giving the name for the prediction sites map.}

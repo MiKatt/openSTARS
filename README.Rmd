@@ -50,7 +50,7 @@ library("openSTARS")
 
 ### Initiate an ephemeral GRASS session
 First, a GRASS session must be initiated:
-```{r init_grass1, eval = FALSE}
+```{r init_grass1, eval = TRUE}
 library(openSTARS)
 initGRASS(gisBase = "/usr/lib/grass74/",
           home = tempdir(),
@@ -68,7 +68,7 @@ initGRASS(gisBase = "/usr/lib/grass74/",
 ```
 
 On Windows, this might look like this:
-```{r init_grass3, eval = TRUE}
+```{r init_grass3, eval = FALSE}
 library(openSTARS)
 initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.4.0", 
           home = tempdir(),
@@ -82,11 +82,11 @@ The path to the digital elevation model (DEM) and the observation sites must be
 provided. Additionally, the path to a stream network, which can be burnt into the
 DEM before extracting the streams, can be given.
 
-First, `setup_grass_environment` prepares the GRASS environment by setting
-
- * the projection to that one of the observation sites or to an epsg code provided
- * the region to the extent of the DEM.
+First, `setup_grass_environment` prepares the GRASS environment by setting the projection and the region to the extent of the DEM. If the DEM does not contain projection infromation, an EPSG code can be provided. However, this must be the correct one for the DEM as no projection of raster data is performed here.
  
+**Update**
+Please use data in a metric coordinate reference system (CRS) appropriate for the study region (i.e. no long/lat CRS). Otherwise particularly the network correction on 'correct_colplex_confluences' might not work proberly. Suggestions for CRS can e.g. be found here http://epsg.io/.
+
 For more information on the concept of GRASS Locations, Mapsets etc. see the [GRASS GIS Quickstart](https://grass.osgeo.org/grass74/manuals/helptext.html).
 
 ```{r setup_grass, warning=FALSE, message=TRUE}
@@ -97,13 +97,21 @@ setup_grass_environment(dem = dem_path)
 gmeta()
 ```
 
-Then, use `import_data` to import all data into GRASS (DEM, observation sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`).
+Then, use `import_data` to import all data into GRASS (DEM, observation sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`). 
+
+Note that vector data is reprojected on the fly in this import, while raster data is not as it should be done manually (due to the changes this might cause to the resolution etc.). It can be checked before the import if the current region (as defined by the dem) and other raster maps have the same projection. If this is not the case, they should be reprojected before, so that the dem and all raster files have identical projections. 
+
+```{r check_prij, message = TRUE}
+preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
+check_projection(preds_r_path)
+```
 
 ```{r import_data, message = TRUE}
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 preds_path <- c(system.file("extdata", "nc", "landuse.shp", package = "openSTARS"),
                  system.file("extdata", "nc", "pointsources.shp", package = "openSTARS"))
-import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path, predictor_v_names = c("landuse", "psources"))
+preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
+import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_path, predictor_v_names = c("landuse", "psources"), predictor_raster = preds_r_path)
 ```
 
 The DEM is loaded into the GRASS database as a raster map named `dem`, the sites as a vector map named `sites_o` and the (optional) stream network as a vector map named `streams_o`. Predictor sites are stored under their base file name, potential predictors either using their base file names or the ones provided in 'predictor_r_names' and 'predictor_v_names', respectively.

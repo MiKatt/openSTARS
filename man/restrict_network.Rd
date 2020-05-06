@@ -4,8 +4,13 @@
 \alias{restrict_network}
 \title{Restrict edges to certain stream networks}
 \usage{
-restrict_network(sites = NULL, keep_netIDs = NULL,
-  delete_netIDs = NULL, keep = TRUE, filename = "edges_o")
+restrict_network(
+  sites = NULL,
+  keep_netIDs = NULL,
+  delete_netIDs = NULL,
+  keep = TRUE,
+  filename = "edges_o"
+)
 }
 \arguments{
 \item{sites}{name(s) of sites.}

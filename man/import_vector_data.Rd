@@ -4,8 +4,7 @@
 \alias{import_vector_data}
 \title{Import vector data into GRASS.}
 \usage{
-import_vector_data(data, name, layer = NULL, proj_ref_obj = NULL,
-  snap = -1)
+import_vector_data(data, name, layer = NULL, proj_ref_obj = NULL, snap = -1)
 }
 \arguments{
 \item{data}{character string or object; path to data vector file (shape), postgis 
@@ -43,6 +42,7 @@ import_vector_data(data = "PG: 'pgname=postgit_DB', 'host=123.45.67.890',
 'port='1234', 'user=username', 'password=password'",
  name = "forest", layer = "landuse_schema.forest")
 }
+
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}

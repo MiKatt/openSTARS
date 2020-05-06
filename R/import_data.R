@@ -277,7 +277,6 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 'port='1234', 'user=username', 'password=password'",
 #'  name = "forest", layer = "landuse_schema.forest")
 #'}
-#' @export
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
@@ -355,6 +354,9 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
 
 #' Compare projection raster data to the one of the current GRASS location.
 #' 
+#' @description Check if the procection of raster files matches the one of the 
+#' current region
+#' 
 #' @param path character string vector; path raster data file(s)
 #' 
 #' @return Nothing.
@@ -365,10 +367,8 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
 #'   Based on this information it can be decided if the data can be read
 #'   into GRASS (\code{\link{import_data}}) without prior processing, i.e.
 #'   if all raster data are of the same projection.
-#'  
+#'   
 #' @export
-#' 
-#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 
 check_projection <- function(path){
     loc_proj <- execGRASS("g.proj", flags = c("j"),

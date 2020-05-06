@@ -4,8 +4,7 @@
 \alias{prepare_sites}
 \title{Snap sites to streams and calculate attributes}
 \usage{
-prepare_sites(sites_map, locid_c = NULL, pid_c = NULL,
-  maxdist = NULL)
+prepare_sites(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NULL)
 }
 \arguments{
 \item{sites_map}{character; name of sites map (observation or prediction sites)

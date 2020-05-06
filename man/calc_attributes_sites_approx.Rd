@@ -4,9 +4,14 @@
 \alias{calc_attributes_sites_approx}
 \title{Calculate attributes of the sites.}
 \usage{
-calc_attributes_sites_approx(sites_map = "sites",
-  input_attr_name = NULL, output_attr_name = NULL, stat = NULL,
-  round_dig = 2, calc_basin_area = TRUE)
+calc_attributes_sites_approx(
+  sites_map = "sites",
+  input_attr_name = NULL,
+  output_attr_name = NULL,
+  stat = NULL,
+  round_dig = 2,
+  calc_basin_area = TRUE
+)
 }
 \arguments{
 \item{sites_map}{character; name of the sites (observation or prediction) 
@@ -124,7 +129,7 @@ plot(sites, col = 1, add = TRUE, pch = 19, cex = (sites$CZbg + 0.15) * 2)
 legend("left", col = adjustcolor(1:8, alpha.f = 0.5), bty = "n",
 legend = unique(geo$GEO_NAME), pch = 15, title = "geology")
 legend("right", col = 1, pch = 19, legend = seq(0, 1, 0.2), bty = "n",
-title = "share CZbg\\nin catchment", pt.cex =  (seq(0, 1, 0.2) + 0.15) * 2)
+title = "share CZbg\nin catchment", pt.cex =  (seq(0, 1, 0.2) + 0.15) * 2)
 }
 }
 \author{

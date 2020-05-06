@@ -4,9 +4,15 @@
 \alias{calc_attributes_edges}
 \title{Calculate attributes of the edges.}
 \usage{
-calc_attributes_edges(input_raster = NULL, stat_rast = NULL,
-  attr_name_rast = NULL, input_vector = NULL, stat_vect = NULL,
-  attr_name_vect = NULL, round_dig = 2)
+calc_attributes_edges(
+  input_raster = NULL,
+  stat_rast = NULL,
+  attr_name_rast = NULL,
+  input_vector = NULL,
+  stat_vect = NULL,
+  attr_name_vect = NULL,
+  round_dig = 2
+)
 }
 \arguments{
 \item{input_raster}{name(s) of raster map(s) to calculate attributes from.}

@@ -3,7 +3,6 @@
 \docType{package}
 \name{openSTARS}
 \alias{openSTARS}
-\alias{openSTARS-package}
 \title{openSTARS: An Open Source Implementation of the 'ArcGIS' Toolbox 'STARS'.}
 \description{
 openSTARS provides functions to prepare data so that it can be imported by
@@ -11,6 +10,46 @@ the \code{\link[SSN]{SSN}} package for spatial modelling on stream networks.
 'GRASS GIS 7.0' (or greater) with installed addons r.stream.basins,
 r.stream.distance, r.stream.order, and r.hydrodem is needed.
 }
+\section{obs_data.csv}{
+
+Artificial observation data with arbitrary measurements.
+}
+
+\section{elev_ned30m.tif}{
+
+South-West Wake county National Elevation Data 30m.
+}
+
+\section{sites_nc.shp}{
+
+Arbitrary sites along rivers in North Carolina.
+}
+
+\section{streams.shp}{
+
+Rivers in North Carolina.
+}
+
+\section{geology.shp}{
+
+Geological data.
+}
+
+\section{landuse_r.tif}{
+
+Land use date in North Carolina.
+}
+
+\section{lakes.shp}{
+
+Artificial lakes (not at topologically correct locations)
+}
+
+\section{pointsources.shp}{
+
+Artificial point sources.
+}
+
 \examples{
 \donttest{
 if(.Platform$OS.type == "windows"){
@@ -104,6 +143,8 @@ check_ssn(ssn_dir)
 ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 print(ssn_obj)
 }
+
+
 
 #Datasets shipped with openSTARS
 

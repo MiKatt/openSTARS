@@ -4,8 +4,7 @@
 \alias{calc_sites}
 \title{Calculate sites for SSN object.}
 \usage{
-calc_sites(locid_col = NULL, pid_col = NULL, pred_sites = NULL,
-  maxdist = NULL)
+calc_sites(locid_col = NULL, pid_col = NULL, pred_sites = NULL, maxdist = NULL)
 }
 \arguments{
 \item{locid_col}{character (optional); column name in the sites attribute 

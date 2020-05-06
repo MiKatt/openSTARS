@@ -106,6 +106,8 @@
 #' print(ssn_obj)
 #' }
 #' 
+#' 
+#' 
 #' #Datasets shipped with openSTARS
 #'
 #' @name openSTARS_data
@@ -113,7 +115,7 @@
 #' Source \url{https://grass.osgeo.org/download/sample-data/} or artificially
 #' created.
 #' 
-#' @section obs_data.csv
+#' @section obs_data.csv:
 #' Artificial observation data with arbitrary measurements.
 #' @section elev_ned30m.tif:
 #' South-West Wake county National Elevation Data 30m.
