@@ -14,7 +14,7 @@ name of vector map in the GRASS data base or sp or sf data object.}
 }
 \value{
 Nothing. The function updates 'streams_v' and (if keep = TRUE) saves 
-the original file to streams_v_prev_lakes. If \code {lakes} is a file path, the lakes
+the original file to streams_v_prev_lakes. If \code{lakes} is a file path, the lakes
 are imported into GRASS as 'lakes'
 }
 \description{

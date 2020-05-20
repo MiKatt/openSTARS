@@ -14,7 +14,7 @@
 #' @param keep boolean; should the original 'streams_v' be saved? Default is TRUE.
 #' 
 #' @return Nothing. The function updates 'streams_v' and (if keep = TRUE) saves 
-#' the original file to streams_v_prev_lakes. If \code {lakes} is a file path, the lakes
+#' the original file to streams_v_prev_lakes. If \code{lakes} is a file path, the lakes
 #' are imported into GRASS as 'lakes'
 #' 
 #' @note The column 'out_dist' (flow length from the upstream node of the 
