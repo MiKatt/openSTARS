@@ -15,13 +15,13 @@
 #' @examples
 #' \donttest{
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.6"
-#'   } else {
+#' gisbase = "c:/Program Files/GRASS GIS 7.6"
+#' } else {
 #'   gisbase = "/usr/lib/grass74/"
-#'   }
+#' }
 #' initGRASS(gisBase = gisbase,
-#'     home = tempdir(),
-#'     override = TRUE)
+#'           home = tempdir(),
+#'           override = TRUE)
 #' 
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
@@ -29,7 +29,7 @@
 #' streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS")
 #' preds_v_path <- system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
 #' preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
-#'                  
+#' 
 #' 
 #' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path, streams = streams_path,
@@ -50,15 +50,15 @@
 #' 
 #' # calculate slope as potential predictor
 #' execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
-#' parameters = list(
-#'   elevation = "dem",
-#'     slope = "slope"
-#'     ))
+#'           parameters = list(
+#'             elevation = "dem",
+#'             slope = "slope"
+#'           ))
 #' 
 #' # Prepare edges
 #' calc_edges()
-#' calc_attributes_edges(input_raster = c("slope", "landuse_r"), 
-#'                       stat_rast = c("max", "percent"), 
+#' calc_attributes_edges(input_raster = c("slope", "landuse_r"),
+#'                       stat_rast = c("max", "percent"),
 #'                       attr_name_rast = c("maxSlo", "luse"),
 #'                       input_vector = "pointsources", stat_vect = "count",
 #'                       attr_name_vect = "psource")
@@ -69,20 +69,21 @@
 #' # Usually, only one of the following methods is needed. The exact one takes
 #' # much longer to run
 #' # approximate potential predictor variables for each site based on edge values
-#' calc_attributes_sites_approx(input_attr_name = c("maxSlo", "luse_1", "luse_2", 
-#'                                                  "luse_3", "luse_4", "luse_5", 
-#'                                                  "luse_6", "luse_7"),
-#'                              output_attr_name = c("maxSloA","luse1A", "luse2A", 
-#'                                                   "luse_3", "luse4A", "luse5A", 
+#' calc_attributes_sites_approx(input_attr_name = c("maxSlo", "lusep_1", "lusep_2",
+#'                                                  "lusep_3", "lusep_4", "lusep_5",
+#'                                                  "lusep_6", "lusep_7"),
+#'                              output_attr_name = c("maxSloA","luse1A", "luse2A",
+#'                                                   "luse_3A", "luse4A", "luse5A",
 #'                                                   "luse6A", "luse7A"),
 #'                              stat = c("max", rep("percent", 7)))
 #' 
 #' # exact potential predictor variables for each site based on catchments
 #' calc_attributes_sites_exact(input_raster = c("slope", "landuse_r"),
-#'                             attr_name_rast = c("maxSloEx", "luseE"), 
+#'                             attr_name_rast = c("maxSloEx", "luseE"),
 #'                             stat_rast = c("max", "percent"))
 #' 
 #' # Plot data
+#' library(sp)
 #' dem <- readRAST("dem", ignore.stderr = TRUE)
 #' sites <- readVECT("sites", ignore.stderr = TRUE)
 #' sites_orig <-  readVECT("sites_o", ignore.stderr = TRUE)
@@ -105,7 +106,6 @@
 #' ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 #' print(ssn_obj)
 #' }
-#' 
 #' 
 #' 
 #' #Datasets shipped with openSTARS

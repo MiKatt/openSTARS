@@ -115,17 +115,18 @@ calc_sites()
  
 # approximate potential predictor variables for each site based on edge values
 calc_attributes_sites_approx(
-input_attr_name = c('maxSlo', 'CZam', 'CZbg', 'CZfg', 'CZg', 'CZig', 'CZlg', 'CZve', 'Km'), 
+input_attr_name = c('maxSlo', 'CZamp', 'CZbgp', 'CZfgp', 'CZgp', 'CZigp', 'CZlgp', 'CZvep', 'Kmp'), 
   stat = c("max", rep("percent", 8)))
 
 # plot share of a certain geology in the sampling point's catchment as
 # point size
+library(sp)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
-geo <- readVECT("geology", ignore.stderr = TRUE)#' 
+geo <- readVECT("geology", ignore.stderr = TRUE)
 plot(geo, col = adjustcolor(1:8, alpha.f = 0.5)[as.factor(geo$GEO_NAME)])
 plot(edges, col = "blue", add = TRUE)
-plot(sites, col = 1, add = TRUE, pch = 19, cex = (sites$CZbg + 0.15) * 2)
+plot(sites, col = 1, add = TRUE, pch = 19, cex = (sites$CZbgp + 0.15) * 2)
 legend("left", col = adjustcolor(1:8, alpha.f = 0.5), bty = "n",
 legend = unique(geo$GEO_NAME), pch = 15, title = "geology")
 legend("right", col = 1, pch = 19, legend = seq(0, 1, 0.2), bty = "n",

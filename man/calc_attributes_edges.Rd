@@ -147,7 +147,7 @@ calc_attributes_edges(input_raster = c("slope", "landuse_r"),
                       input_vector = "pointsources", stat_vect = "count",
                       attr_name_vect = "psource")
                       
-# Plot eges with percentage of forest in the catchment (luse_5) as line width
+# Plot eges with percentage of forest in the catchment (lusep_5) as line width
 edges <- readVECT('edges', ignore.stderr = TRUE)
 head(edges@data)
 lu <- readRAST("landuse_r", ignore.stderr = TRUE)
@@ -164,7 +164,7 @@ legend("bottom", cex = 0.75,
   legend = c("developed", "agriculture", "herbaceous", "shrubland", "forest", "water", "sediment"),
   fill = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"),
   horiz = TRUE, inset = -0.175)
-plot(edges, lwd = edges$luse_5_c * 10, add = TRUE)    
+plot(edges, lwd = edges$lusep_5_c * 10, add = TRUE)    
 par <- op
 }
 }

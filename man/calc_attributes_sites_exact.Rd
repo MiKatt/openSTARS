@@ -121,6 +121,7 @@ calc_attributes_sites_approx(input_attr_name = "maxSlo", output_attr_name = "max
 calc_attributes_sites_exact(input_raster = "slope", attr_name_rast = "maxSloE", stat_rast = "max")
 
 # Plot data
+library(sp)
 dem <- readRAST('dem', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
@@ -129,10 +130,13 @@ mm <- range(c(edges$maxSlo_e, sites$maxSloA, sites$maxSloE))
 b <- seq(from = mm[1], to = mm[2] + diff(mm) * 0.01, length.out = 10)
 c_ramp <- colorRampPalette(c("white", "blue", "orange", "red"))
 cols <- c_ramp(length(b))[as.numeric(cut(edges$maxSlo_e, breaks = b, right = FALSE))]
+# plot stream edges, color depending on maxSlope of the edge
 plot(edges,col = cols, lwd = 2, add = TRUE)
 cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloA,breaks = b,right = FALSE))]
+# plot sites as points with color corresponding to maxSlop approximate
 plot(sites, pch = 19, col = cols, cex = 2, add = TRUE)
 cols <- c_ramp(length(b))[as.numeric(cut(sites$maxSloE,breaks = b,right = FALSE))]
+#' # plot sites as ring around points with color corresponding to maxSlop exact
 plot(sites, pch = 21, bg = cols, cex = 1.1, add = TRUE)
 # Some points in the lower centre of the map indicate a difference in max slope between
 # approximate and exact calculation (different colors for inner and outer points). However,

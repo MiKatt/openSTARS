@@ -120,6 +120,7 @@ import_data(dem = dem_path, sites = sites_path, streams = streams_path,
 gmeta()
 
 # Plot data
+library(sp)
 dem <- readRAST("dem", ignore.stderr = TRUE)
 sites_orig <-  readVECT("sites_o", ignore.stderr = TRUE)
 lu <- readRAST("landuse_r", ignore.stderr = TRUE)

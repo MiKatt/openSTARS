@@ -77,6 +77,7 @@ calc_edges()
 calc_sites()
 calc_prediction_sites(predictions = "preds", dist = 2500)
 
+library(sp)
 dem <- readRAST('dem', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
 preds <- readVECT('preds', ignore.stderr = TRUE)

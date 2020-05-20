@@ -53,6 +53,7 @@
 #' calc_edges()
 #' 
 #' # Plot data
+#' library(sp)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))

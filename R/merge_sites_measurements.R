@@ -55,7 +55,9 @@
 #'
 #' # Prepare site
 #' calc_sites()
+#' 
 #' # Plot data
+#' library(sp)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)

@@ -68,6 +68,7 @@
 #' }
 #' 
 #' # plot
+#' library(sp)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' streams <- readVECT('streams_v', ignore.stderr = TRUE)
 #' streams_orig <- readVECT('streams_v_o3', ignore.stderr = TRUE)

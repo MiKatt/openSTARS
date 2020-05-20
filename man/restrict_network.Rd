@@ -71,6 +71,7 @@ calc_sites()
 restrict_network(sites = "sites", keep = TRUE, filename = "edges_o")
 
 # plot
+library(sp)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 edges_o <- readVECT('edges_o', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)

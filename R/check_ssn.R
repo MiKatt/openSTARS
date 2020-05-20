@@ -53,6 +53,7 @@
 #' calc_attributes_sites_exact()
 #'
 #' # Plot data
+#' library(sp)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' sites <- readVECT('sites', ignore.stderr = TRUE)
 #' sites_orig <-  readVECT('sites_o', ignore.stderr = TRUE)

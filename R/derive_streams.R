@@ -74,6 +74,9 @@
 #'
 #' # Derive streams from DEM
 #' derive_streams(burn = 10, accum_threshold = 700, condition = TRUE, clean = TRUE)
+#' 
+#' # Plot
+#' library(sp)
 #' dem <- readRAST('dem', ignore.stderr = TRUE)
 #' sites <- readVECT('sites_o', ignore.stderr = TRUE)
 #' streams_o <- readVECT('streams_o', ignore.stderr = TRUE)
