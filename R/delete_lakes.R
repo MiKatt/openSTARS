@@ -6,7 +6,7 @@
 #' downstream of a lake is not clear. For instance, chemicals could
 #' be retained and temperature altered in a lake. This function intersects
 #' the stream network with a given vector map of lakes; it deletes the stream
-#' segments in the lake, breaks those the cross its borders and 
+#' segments in the lake, breaks those that cross its borders and 
 #' assigns a new, updated topology.
 #' 
 #' @param lakes character string or object; path to lake vector file (ESRI shape), 
@@ -14,7 +14,8 @@
 #' @param keep boolean; should the original 'streams_v' be saved? Default is TRUE.
 #' 
 #' @return Nothing. The function updates 'streams_v' and (if keep = TRUE) saves 
-#' the original file to streams_v_prev_lakes.
+#' the original file to streams_v_prev_lakes. If \code {lakes} is a file path, the lakes
+#' are imported into GRASS as 'lakes'
 #' 
 #' @note The column 'out_dist' (flow length from the upstream node of the 
 #'  segment to the outlet of the network) is updated based on the new segment length.
@@ -65,13 +66,13 @@
 #' streams <- readVECT('streams_v', ignore.stderr = TRUE)
 #' streams_with_lakes <- readVECT('streams_v_prev_lakes', ignore.stderr = TRUE)
 #' lakes <- readVECT('lakes', ignore.stderr = TRUE)
-#' # zoom to a relevant part of the dem
+
 #' plot(dem, col = terrain.colors(20), axes = TRUE)
 #' lines(streams_with_lakes, col = 'red', lty = 2, lwd = 2)
 #' lines(streams, col = 'blue', lty = 4, lwd = 2)
 
 #' legend("topright", col = c("red", "blue"), lty = c(1,4), lwd = c(2,2), 
-#'   legend = c("though lakes", "lakes cut out"))
+#'   legend = c("through lakes", "lakes cut out"))
 #' }
 
 delete_lakes <- function(lakes, keep = TRUE){
@@ -250,7 +251,6 @@ delete_lakes <- function(lakes, keep = TRUE){
   
   # 2. duplicate stream segments
   for(i in dup_streams){
-    print(i)
     i0 <- which(dt.streams$stream == i)
     # not '==' but '%in% because next_str could be cut into pieces, too, and therefore there are more than one start_xy
     i_wnext <- which(dt.streams[i0, end_xy] %in% dt.streams[stream %in% unique(dt.streams[stream == i, next_str]), start_xy])
@@ -316,7 +316,6 @@ delete_lakes <- function(lakes, keep = TRUE){
     
     dt.streams[i0, stream := str_new_lake]  
     dt.streams[i0, changed := 1] 
-    print(colnames(dt.streams))
   }
   
   next_str <- sort(unique(dt.streams[, next_str]))[-1]
