@@ -38,6 +38,10 @@ knitr::opts_chunk$set(
 <!-- might not work), open the attributes table, sort the 'value' column and start  -->
 <!-- editing. Replace all empty cells with an arbitrary integer value. Save and close. -->
 
+# GRASS version
+If there are problems with GRASS functions (e.g. dlls not found on Windows or other error messages / warnings on Linux) try installing a slightly older Grass version instead of the most recent one (currently e.g. Grass 7.6 or 7.4 instead of 7.8). 
+openSTARS depends on several other R packages providing GIS functionality and particularly for linking R to Grass. It might be possible that not all changes of the newest Grass version have already been implemented in all these packages resulting in errors and warnings.
+
 # Special settings for MAC OS
 GRASS 7 does not run on Mac with system integrity check (<http://grassmac.wikidot.com>) and it needs to be disbaled. Additionally, GRASS addons (r.hydrodem etc.) need to be installed system-wide (see below how to install them using GRASS GUI).
 
@@ -52,7 +56,7 @@ When using the folliwing command in RStudio, this may result in an error:
 Error: (converted from warning) Setting LC_CTYPE failed, using "C"
 Execution halted
 Error in i.p(...) :
-(converted from warning) installation of package ‘/tmp/RtmpMsIim5/file65bc33ff2831/openSTARS_1.1.0.tar.gz’ had non-zero exit status
+(converted from warning) installation of package ‘/tmp/RtmpMsIim5/file65bc33ff2831/openSTARS_1.2.0.tar.gz’ had non-zero exit status
 ```
   
 Try the follwing: Quit RStudio, start R from a console and run the command there. It should install without error. Close R in the console (using q()), restart RStudio and continue.

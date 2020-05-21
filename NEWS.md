@@ -1,4 +1,4 @@
-# openSTARS 1.1.0.999
+# openSTARS 1.2.0
 
 * Renamed check_compl_junctions and correct_compl_junctions to 
   check_compl_confluences and correct_compl_confluences, respectively,

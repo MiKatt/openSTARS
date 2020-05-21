@@ -1,15 +1,15 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "May 20, 2020"
+date: "May 21, 2020"
 output: html_document
 ---
 
 ## Submission review comments
 
 ## Test environments
-* Linux Mint 19.0 Tara, R 3.6.3
-* Windows 10, R 4.0
+* Linux Mint 19.0 Tara, R 3.6.3, grass 7.4
+* Windows 10, R 4.0, grass 7.6.1
 * win-builder (devel, release, oldrelease)
 
 ## R CMD check results
