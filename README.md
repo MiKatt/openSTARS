@@ -61,9 +61,9 @@ initGRASS(gisBase = "/usr/lib/grass74/",
           gisDbase = file.path(tempdir(),"GRASSDB"),
           location = "test_openSTARS",
           remove_GISRC = T)
-#> gisdbase    /tmp/Rtmp2NLERx/GRASSDB 
+#> gisdbase    /tmp/RtmptfdGjc/GRASSDB 
 #> location    test_openSTARS 
-#> mapset      file2ea6303e3a51 
+#> mapset      file21775a3787e1 
 #> rows        1 
 #> columns     1 
 #> north       1 
@@ -106,7 +106,7 @@ setup_grass_environment(dem = dem_path)
 #> Setting up GRASS Environment ...
 
 gmeta()
-#> gisdbase    /tmp/Rtmp2NLERx/GRASSDB 
+#> gisdbase    /tmp/RtmptfdGjc/GRASSDB 
 #> location    test_openSTARS 
 #> mapset      PERMANENT 
 #> rows        450 
