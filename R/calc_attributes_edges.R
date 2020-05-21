@@ -736,7 +736,7 @@ calc_catchment_attributes_vect_rec <- function(dt, id, stat_vect, attr_name_vect
 #' 
 #' @note This function is sensitive to MASKs, i.e. if a MASK is present,
 #'  only the part or the raster is processed within the MASK; 
-#'  \href{https://grass.osgeo.org/grass75/manuals/r.mask.html}{r.mask}.
+#'  \href{https://grass.osgeo.org/grass78/manuals/r.mask.html}{r.mask}.
 
 get_n_val_raster <- function(raster_name){
   return(length(get_all_raster_values(raster_name)))
@@ -754,7 +754,7 @@ get_n_val_raster <- function(raster_name){
 #' 
 #' @note This function is sensitive to MASKs, i.e. if a MASK is present,
 #'  only the part or the raster is processed within the MASK; 
-#'  \href{https://grass.osgeo.org/grass75/manuals/r.mask.html}{r.mask}.
+#'  \href{https://grass.osgeo.org/grass78/manuals/r.mask.html}{r.mask}.
 
 get_all_raster_values <- function(raster_name){
   r <- execGRASS("r.stats", flags = c("l","n"),

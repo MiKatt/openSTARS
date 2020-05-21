@@ -19,6 +19,6 @@ Returns the number of different values in the input raster.
 \note{
 This function is sensitive to MASKs, i.e. if a MASK is present,
  only the part or the raster is processed within the MASK; 
- \href{https://grass.osgeo.org/grass75/manuals/r.mask.html}{r.mask}.
+ \href{https://grass.osgeo.org/grass78/manuals/r.mask.html}{r.mask}.
 }
 \keyword{internal}
