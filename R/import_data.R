@@ -133,7 +133,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
     stop("GRASS not initialised. Please run initGRASS().")
   if (is.null(dem) | is.null(sites))
     stop("DEM and sites are needed.")
-
+  
   # Import data -------------------
   message("Loading DEM into GRASS as 'dem' ...")
   
@@ -147,7 +147,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
               input = dem,
               band = band,
               output = "dem"),ignore.stderr=T)
-
+  
   message("Loading sites into GRASS as 'sites_o' ...")
   # sites data
   # flag "-r": only current region
@@ -157,7 +157,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   # prediction sites data
   if (!is.null(pred_sites)) {
     if(is.character(pred_sites)){
-     pred_sites_names <- do.call(rbind,base::strsplit(sapply(pred_sites,basename,USE.NAMES=F), split="[.]"))[,1]
+      pred_sites_names <- do.call(rbind,base::strsplit(sapply(pred_sites,basename,USE.NAMES=F), split="[.]"))[,1]
     } else {
       if(length(class(pred_sites)) == 1 && class(pred_sites) == "list"){
         pred_sites_names <- paste("pred_sites", 1:length(pred_sites))
@@ -179,18 +179,19 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # predictor raster maps
   if (!is.null(predictor_raster)) {
-    if(is.null(predictor_r_names)){}
+    if(is.null(predictor_r_names)){
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
+    }
     #message(writeLines(strwrap(paste0("Loading raster predictor variables into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."),
     #         width = 80)))
     message(paste0("Loading raster predictor variables into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."))
     for(i in 1:length(predictor_r_names)){
-        execGRASS("r.in.gdal",
-                  flags = c("overwrite","quiet","o"),
-                  parameters = list(
-                    input = predictor_raster[i],
-                    output = predictor_r_names[i]),ignore.stderr=T)
-     }
+      execGRASS("r.in.gdal",
+                flags = c("overwrite","quiet","o"),
+                parameters = list(
+                  input = predictor_raster[i],
+                  output = predictor_r_names[i]),ignore.stderr=T)
+    }
   }
   
   # predictor vector maps
@@ -304,9 +305,9 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
       }
     }
     if(import_flag) {
-        rgdal::writeOGR(obj = data, dsn = tempdir(), layer = name, driver="ESRI Shapefile", overwrite_layer = TRUE)
-        data <- file.path(tempdir(), paste0(name, ".shp"))
-      }
+      rgdal::writeOGR(obj = data, dsn = tempdir(), layer = name, driver="ESRI Shapefile", overwrite_layer = TRUE)
+      data <- file.path(tempdir(), paste0(name, ".shp"))
+    }
   } 
   if(import_flag) {
     # gives error on Linux if projection is not identical but it works!
@@ -372,16 +373,16 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
 #' @export
 
 check_projection <- function(path){
-    loc_proj <- execGRASS("g.proj", flags = c("j"),
+  loc_proj <- execGRASS("g.proj", flags = c("j"),
                         intern = TRUE, ignore.stderr = TRUE)
   comp <- loc_proj
   n <- length(path)
   
   for(i in 1:n){
     rast_proj <- execGRASS("g.proj", flags = c("j"),
-                          parameters = list(
-                            georef = path[i]
-                          ), intern = TRUE)
+                           parameters = list(
+                             georef = path[i]
+                           ), intern = TRUE)
     comp <- cbind(comp, rast_proj)
     comp <- cbind(comp, comp[,1] == comp[,2*i])
   }
