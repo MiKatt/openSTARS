@@ -179,8 +179,9 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
   
   # predictor raster maps
   if (!is.null(predictor_raster)) {
-    if(is.null(predictor_r_names)){}
+    if(is.null(predictor_r_names)){
       predictor_r_names <- do.call(rbind,base::strsplit(sapply(predictor_raster,basename,USE.NAMES=F), split="[.]"))[,1]
+    }
     #message(writeLines(strwrap(paste0("Loading raster predictor variables into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."),
     #         width = 80)))
     message(paste0("Loading raster predictor variables into GRASS as ",paste("'",predictor_r_names, "'", collapse = ", ", sep=""), " ..."))
