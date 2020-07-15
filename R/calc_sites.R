@@ -12,7 +12,7 @@
 #'@param pid_col character (optional); column name in the sites attribute table 
 #' that distinguishes between repeated measurements at a sampling site, e.g. by 
 #' date. If not provided, it is created automatically.
-#'@param pred_sites character vector (optional); names for prediction sites 
+#'@param predictions character vector (optional); names for prediction sites 
 #'(loaded with \code{import_data}).
 #'@param maxdist integer (optional); maximum snapping distance in map units (see details).
 #' Sites farther away from edges will be deleted.
@@ -115,7 +115,7 @@
 #'}
 
 
-calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL, maxdist = NULL) {
+calc_sites <- function(locid_col = NULL, pid_col = NULL, predictions = NULL, maxdist = NULL) {
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vect"
@@ -131,17 +131,17 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, pred_sites = NULL, maxd
   if (!"edges" %in% vect)
     stop("Edges not found. Did you run calc_edges()?")
   
-  if(!is.null(pred_sites)){
-   i <- grep("_o$",pred_sites)
+  if(!is.null(predictions)){
+   i <- grep("_o$",predictions)
    if(length(i) > 0){
-    pred_sites[-i] <- paste0(pred_sites[-i],"_o")
+    predictions[-i] <- paste0(predictions[-i],"_o")
    } else
-     pred_sites <- paste0(pred_sites,"_o")     
-   if (any(!pred_sites %in% vect))
+     predictions <- paste0(predictions,"_o")     
+   if (any(!predictions %in% vect))
      stop("Prediction sites not found. Did you run import_data() on them?")
   }
   
-  site_maps <- c("sites", pred_sites)
+  site_maps <- c("sites", predictions)
   site_maps <- sub("_o$","", site_maps)
   s <- sapply(site_maps, prepare_sites, locid_c = locid_col, pid_c = pid_col, maxdist = maxdist)
   

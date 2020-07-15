@@ -4,7 +4,12 @@
 \alias{calc_sites}
 \title{Calculate sites for SSN object.}
 \usage{
-calc_sites(locid_col = NULL, pid_col = NULL, pred_sites = NULL, maxdist = NULL)
+calc_sites(
+  locid_col = NULL,
+  pid_col = NULL,
+  predictions = NULL,
+  maxdist = NULL
+)
 }
 \arguments{
 \item{locid_col}{character (optional); column name in the sites attribute 
@@ -15,7 +20,7 @@ automatically (based on the 'cat' field; default).}
 that distinguishes between repeated measurements at a sampling site, e.g. by 
 date. If not provided, it is created automatically.}
 
-\item{pred_sites}{character vector (optional); names for prediction sites 
+\item{predictions}{character vector (optional); names for prediction sites 
 (loaded with \code{import_data}).}
 
 \item{maxdist}{integer (optional); maximum snapping distance in map units (see details).
