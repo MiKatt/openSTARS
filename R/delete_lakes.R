@@ -132,10 +132,14 @@ delete_lakes <- function(lakes, keep = TRUE){
             ))
   
   # get start and end coordinates of streams
-  execGRASS("v.db.addcolumn", parameters = list(
-    map = "streams_wo_lakes",
-    columns = "end_x double,end_y double,start_x double,start_y double,new_length double"
-  ))
+  ## GRASS version below 7.8
+  ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten   
+  if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+    execGRASS("v.db.addcolumn", parameters = list(
+      map = "streams_wo_lakes",
+      columns = "end_x double,end_y double,start_x double,start_y double,new_length double"
+    ))
+  }
   execGRASS("v.to.db", flags = c("quiet"), 
             parameters = list(
               map = "streams_wo_lakes", 

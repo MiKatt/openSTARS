@@ -179,6 +179,7 @@ correct_compl_confluences <- function(clean = TRUE){
              ignore.stderr = TRUE, intern =TRUE
    )
    # Get flow direction at these points
+   # MiKatt 20200716: gives warning "WARNING: Values in column <cat> will be overwritten"
    execGRASS("v.db.addtable", flags = c("quiet"), 
              parameters = list(
                map = "complex_flows_p", 
@@ -351,13 +352,17 @@ correct_compl_confluences <- function(clean = TRUE){
     writeVECT(streams, "streams_v", v.in.ogr_flags = c("overwrite", "quiet", "o"), ignore.stderr = TRUE)
     sink()
     rm("streams")
-    
+   
     # Recalculate length of line segments
-    execGRASS("v.db.addcolumn", flags = "quiet",
+    ## GRASS version below 7.8
+    ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten   
+    if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+      execGRASS("v.db.addcolumn", flags = "quiet",
               parameters = list(
                 map = "streams_v",
                 columns = "length_new double precision"
               ))
+    }
     execGRASS("v.to.db", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",

@@ -365,7 +365,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         #             ))
         #}
       } else {
-        coord <- coordinates(d.sites[ii,])
+        coord <- sp::coordinates(d.sites[ii,])
         execGRASS("r.stream.basins",
                   flags = c("overwrite", "l", "quiet"),
                   parameters = list(direction = "dirs",
@@ -482,11 +482,15 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                   type = "area"
                 ))
       # calculate area
-      execGRASS("v.db.addcolumn",
-                parameters = list(
-                  map = vname,
-                  columns = "area double precision"
-                ))
+      ## GRASS version below 7.8
+      ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten
+      if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+        execGRASS("v.db.addcolumn",
+                  parameters = list(
+                    map = vname,
+                    columns = "area double precision"
+                  ))
+      }
       execGRASS("v.to.db",flags = "quiet",
                 parameters = list(
                   map = vname,
@@ -512,11 +516,15 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       olayer = "1,0,0"
                     ), ignore.stderr = TRUE, intern = TRUE)
           # calculate area of all features
-          execGRASS("v.db.addcolumn",
-                    parameters = list(
-                      map = "intersect_out",
-                      columns = "area double precision"
-                    ))
+          ## GRASS version below 7.8
+          ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten   
+          if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+            execGRASS("v.db.addcolumn",
+                      parameters = list(
+                        map = "intersect_out",
+                        columns = "area double precision"
+                      ))
+          }
           execGRASS("v.to.db",flags = "quiet",
                     parameters = list(
                       map = "intersect_out",

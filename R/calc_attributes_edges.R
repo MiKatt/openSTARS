@@ -443,11 +443,16 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                     operator = "and",
                     output = "temp_inters"
                   ), ignore.stderr = T)
-        execGRASS("v.db.addcolumn", flags = "quiet",
+
+        ## GRASS version below 7.8
+        ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten   
+        if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+          execGRASS("v.db.addcolumn", flags = "quiet",
                   parameters = list(
                     map =  "temp_inters",
                     columns = "area double"
                   ), ignore.stderr = TRUE)
+        }
         execGRASS("v.to.db", flags = c("quiet"),
                   parameters = list(
                     map =  "temp_inters",
