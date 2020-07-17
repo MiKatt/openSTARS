@@ -4,44 +4,44 @@
 \alias{setup_grass_environment}
 \title{Setup 'GRASS' environment.}
 \usage{
-setup_grass_environment(dem, epsg = NULL, sites = NULL)
+setup_grass_environment(dem, gisBase, ...)
 }
 \arguments{
 \item{dem}{character; path to DEM.}
 
-\item{epsg}{integer (optional); EPSG code for the projection to use. If not given (default)
-the information is taken from the dem. This should ONLY be used if the \code{dem} does not 
-contain projection information and MUST be the correct one for the dem used.}
+\item{gisBase}{character; the directory path to GRASS binaries and libraries, containing 
+bin and lib subdirectories among others (see details).}
 
-\item{sites}{(deprecated); not used any more. Only included for compatibility with previous version.}
+\item{...}{Optional arguments to be passed to \code{\link[rgrass7]{initGRASS}} (see details).}
 }
 \value{
-Nothing, the 'GRASS' mapset is set to PERMANENT, the extent of the current location 
- is set to the one of the dem, and the projection is set to the one of the dem or to the 
- one provided in \code{epsg} .
+Nothing. A GRASS session is initiated and the 'GRASS' mapset is set to PERMANENT. 
+ The geographical projection, geographical extension, number of columns and number of 
+ rows for the data and the resolution are defined by the dem. They are stored the DEFAULT_WIND file.
 }
 \description{
 This function sets the 'GRASS' mapset to PERMANENT and sets its projection and extension.
 }
-\note{
-A 'GRASS' session must be initiated before, see \code{\link[rgrass7]{initGRASS}}. This function 
-  uses \code{use_sp()} from the \code{rgrass7} package to support raster data.
+\details{
+A GRASS session is initiated using \code{\link[rgrass7]{initGRASS}}. The path to 
+  the GRASS program must be provided as \code{gisBase}. For Linux, this might look like 
+  "/usr/lib/grass78/" and for Windows "c:/Program Files/GRASS GIS 7.8".
+  Optional arguments are for example 
+  * \code{gisDbase}: the GRASS GISBASE directory for this session; defaults to tempdir()
+  * \code{location}: name of the location for this session; defaults to tempfile()
+  * \code{override}: TRUE for allowing to override an existing location.
 }
 \examples{
 \donttest{
-# Initiate GRASS session
+# path to GRASS
 if(.Platform$OS.type == "windows"){
   gisbase = "c:/Program Files/GRASS GIS 7.6"
   } else {
-  gisbase = "/usr/lib/grass74/"
+  gisbase = "/usr/lib/grass78/"
   }
-initGRASS(gisBase = gisbase,
-    home = tempdir(),
-    override = TRUE)
-
-# Load files into GRASS
+# path to the dem   
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
-setup_grass_environment(dem = dem_path)
+setup_grass_environment(dem = dem_path, gisBase = gisbase, location = "nc_example_location")
 gmeta()
 }
 }
