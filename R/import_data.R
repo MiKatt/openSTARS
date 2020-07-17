@@ -40,12 +40,12 @@
 #' (typically stored as 'grid_name/w001001.adf') are used. Likewise, predictor
 #' vector maps can be read in from Esri Shape file (given as the full file path)
 #' or as sf or sp objects. Potential predictor data can also be read in later, e.g.
-#' using GRASS commands \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import} 
-#' or \href{https://grass.osgeo.org/grass74/manuals/r.in.gdal.html}{r.in.gdal}
+#' using GRASS commands \href{https://grass.osgeo.org/grass78/manuals/v.import.html}{v.import} 
+#' or \href{https://grass.osgeo.org/grass78/manuals/r.in.gdal.html}{r.in.gdal}
 #' (see examples below).
 #' 
 #' @details All vector data (sites, streams and potential predictors) is imported 
-#' into the current location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
+#' into the current location using \href{https://grass.osgeo.org/grass78/manuals/v.import.html}{v.import}.
 #' Hence, if the projections does not match to the one of the DEM (which was used
 #' to specify the location in \code{\link{setup_grass_environment}}) the maps 
 #' are projected and imported on the fly.
@@ -57,7 +57,7 @@
 #' Use \code{\link{check_projection}} to compare the projection of a raster data set and
 #' the one of the current location.
 #' 
-#' @note A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
+#' @note A GRASS session must be initiated and setup before, see \code{\link{setup_grassenvironment}}.
 #' 
 #' If sites, pred_sites and / or streams are sp objects it is important that they 
 #' have a datum defined otherwise the import will not work. Hence, it is e.g. 
@@ -130,7 +130,7 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
                         pred_sites = NULL, predictor_raster = NULL, predictor_r_names = NULL,
                         predictor_vector = NULL, predictor_v_names = NULL) {
   if (nchar(get.GIS_LOCK()) == 0)
-    stop("GRASS not initialised. Please run initGRASS().")
+    stop("GRASS not initialised. Please run setup_grass_environment().")
   if (is.null(dem) | is.null(sites))
     stop("DEM and sites are needed.")
 
@@ -259,8 +259,8 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' @param layer character string; default 1, particularly needed if data is a dsn for 
 #' importing postgis data (see details)
 #' @param proj_ref_obj character; path to a georeferenced data file to be used as reference; only
-#'   used if \code{data} is an sf of sp object, then, the two projections are compared to find the
-#'   correct way for importing; typically the dem raster file used in this project.
+#'   used if \code{data} is an sf of sp object, then, the two projections are compared to check if
+#'   on-the-fly reprocection is needed for importing; typically the dem raster file used in this project.
 #' @param snap float; snapping threshold in map units. If != -1 (default) vertices are snapped to other vertices
 #'   in this snapping distance during import. If used, the features are automatically cleaned afterwards 
 #'   (see GRASS tools \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}  
@@ -290,6 +290,21 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
   }
   if(inherits(data, 'Spatial')) {
     if(!is.null(proj_ref_obj)){
+      
+      # MiKatt 20200717 wkt option but not much better than proj4
+      # temp_dir <- tempdir()
+      # wkt_file <- file.path(temp_dir, "wkt_data.prj")
+      # write(paste(wkt(data)), file = wkt_file)
+      # proj_data <- execGRASS("g.proj", flags = c("w", "f"),
+      #                        parameters = list(
+      #                          wkt = wkt_file
+      #                        ), intern = TRUE)
+      # proj_ref <- execGRASS("g.proj", flags = c("w", "f"),
+      #                       parameters = list(
+      #                         georef = proj_ref_obj
+      #                       ), intern = TRUE, ignore.stderr = TRUE)
+      # invisible(file.remove(file.path(temp_dir,"wkt_data.prj")))
+      
       proj_data <- execGRASS("g.proj", flags = c("j", "f"),
                              parameters = list(
                                proj4 = proj4string(data)

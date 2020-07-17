@@ -63,8 +63,8 @@ original file names (without extension) or using the names provides in
 (typically stored as 'grid_name/w001001.adf') are used. Likewise, predictor
 vector maps can be read in from Esri Shape file (given as the full file path)
 or as sf or sp objects. Potential predictor data can also be read in later, e.g.
-using GRASS commands \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import} 
-or \href{https://grass.osgeo.org/grass74/manuals/r.in.gdal.html}{r.in.gdal}
+using GRASS commands \href{https://grass.osgeo.org/grass78/manuals/v.import.html}{v.import} 
+or \href{https://grass.osgeo.org/grass78/manuals/r.in.gdal.html}{r.in.gdal}
 (see examples below).
 }
 \description{
@@ -75,7 +75,7 @@ maps (raster or vector format) can be loaded.
 }
 \details{
 All vector data (sites, streams and potential predictors) is imported 
-into the current location using \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}.
+into the current location using \href{https://grass.osgeo.org/grass78/manuals/v.import.html}{v.import}.
 Hence, if the projections does not match to the one of the DEM (which was used
 to specify the location in \code{\link{setup_grass_environment}}) the maps 
 are projected and imported on the fly.
@@ -88,7 +88,7 @@ Use \code{\link{check_projection}} to compare the projection of a raster data se
 the one of the current location.
 }
 \note{
-A GRASS session must be initiated before, see \code{\link[rgrass7]{initGRASS}}.
+A GRASS session must be initiated and setup before, see \code{\link{setup_grassenvironment}}.
 
 If sites, pred_sites and / or streams are sp objects it is important that they 
 have a datum defined otherwise the import will not work. Hence, it is e.g. 

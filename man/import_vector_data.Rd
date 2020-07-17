@@ -16,8 +16,8 @@ data source name (dsn; see details), or sp or sf data object.}
 importing postgis data (see details)}
 
 \item{proj_ref_obj}{character; path to a georeferenced data file to be used as reference; only
-used if \code{data} is an sf of sp object, then, the two projections are compared to find the
-correct way for importing; typically the dem raster file used in this project.}
+used if \code{data} is an sf of sp object, then, the two projections are compared to check if
+on-the-fly reprocection is needed for importing; typically the dem raster file used in this project.}
 
 \item{snap}{float; snapping threshold in map units. If != -1 (default) vertices are snapped to other vertices
 in this snapping distance during import. If used, the features are automatically cleaned afterwards 
