@@ -80,6 +80,10 @@
 
 calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
                                   netIDs = NULL) {
+  
+  # MiKatt 20200717
+  # WARNING: Values in column <cat> will be overwritten
+
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vect"

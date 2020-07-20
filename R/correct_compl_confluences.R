@@ -356,20 +356,44 @@ correct_compl_confluences <- function(clean = TRUE){
     # Recalculate length of line segments
     ## GRASS version below 7.8
     ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten   
-    if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
-      execGRASS("v.db.addcolumn", flags = "quiet",
+    # if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+    #   execGRASS("v.db.addcolumn", flags = "quiet",
+    #           parameters = list(
+    #             map = "streams_v",
+    #             columns = "length_new double precision"
+    #           ))
+    # }
+    # execGRASS("v.to.db", flags = c("quiet"),
+    #           parameters = list(
+    #             map = "streams_v",
+    #             option = "length",
+    #             type = "line",
+    #             columns = "length_new"
+    #           ), ignore.stderr = TRUE)
+    
+    # try to create and fill column in on step (version 7.8)
+    check <- try(execGRASS("v.to.db", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
-                columns = "length_new double precision"
-              ))
-    }
-    execGRASS("v.to.db", flags = c("quiet"),
+                option = "length",
+                type = "line",
+                columns = "length_new"
+              )))
+    # create column first, then fill it version < 7.8
+    if(class(check) == "try-error"){
+      execGRASS("v.db.addcolumn", flags = "quiet",
+                parameters = list(
+                  map = "streams_v",
+                  columns = "length_new double precision"
+                ))
+      execGRASS("v.to.db", flags = c("quiet"),
               parameters = list(
                 map = "streams_v",
                 option = "length",
                 type = "line",
                 columns = "length_new"
               ), ignore.stderr = TRUE)
+    }
     # Find new cat_ and new_str of short and long pieces of cut streams
     cut.str <- paste(df.move_streams[, "cut_stream"], collapse = ",")
     cut.str<-paste0("(", cut.str, ")",sep="")

@@ -21,8 +21,8 @@ on-the-fly reprocection is needed for importing; typically the dem raster file u
 
 \item{snap}{float; snapping threshold in map units. If != -1 (default) vertices are snapped to other vertices
 in this snapping distance during import. If used, the features are automatically cleaned afterwards 
-(see GRASS tools \href{https://grass.osgeo.org/grass74/manuals/v.import.html}{v.import}  
-and \href{https://grass.osgeo.org/grass74/manuals/v.clean.html}{v.clean} )}
+(see GRASS tools \href{https://grass.osgeo.org/grass78/manuals/v.import.html}{v.import}  
+and \href{https://grass.osgeo.org/grass78/manuals/v.clean.html}{v.clean} )}
 }
 \value{
 Nothing.

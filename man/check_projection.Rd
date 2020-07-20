@@ -2,25 +2,32 @@
 % Please edit documentation in R/import_data.R
 \name{check_projection}
 \alias{check_projection}
-\title{Compare projection raster data to the one of the current GRASS location.}
+\title{Show the projection of raster data and compare to the current GRASS location.}
 \usage{
-check_projection(path)
+check_projection(path, format = "wkt")
 }
 \arguments{
 \item{path}{character string vector; path raster data file(s)}
+
+\item{format}{character string; how to format the output (see details)}
 }
 \value{
 Nothing.
 }
 \description{
-Check if the procection of raster files matches the one of the 
-current region
+Check if the procection of raster files matches the region of the 
+current location
 }
 \details{
-Prints out a table of the PROJ.4 elements of the projection
-  information of the current GRASS location and of the raster file(s) as
-  well as one columns for each comparison indicating the differences. 
-  Based on this information it can be decided if the data can be read
-  into GRASS (\code{\link{import_data}}) without prior processing, i.e.
+This is a wrapper for the GRASS function
+  \href{https://grass.osgeo.org/grass78/manuals/g.proj.html}{g.proj}. 
+  It prints out the projection information of the current location
+  and of the raster file(s). Based on this information it can be decided if the data 
+  can be read into GRASS (\code{\link{import_data}}) without prior processing, i.e.
   if all raster data are of the same projection.
+  Different ouptput options can be chosen:
+  * \code{wkt} WKT format (default)
+  * \code{grass} conventional GRASS format
+  * \code{shell} shell script style
+  * \code{proj4} PROJ.4 format (note that this format is deprecated)
 }
