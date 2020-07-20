@@ -484,19 +484,22 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       # calculate area
       ## GRASS version below 7.8
       ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten
-      if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
-        execGRASS("v.db.addcolumn",
-                  parameters = list(
-                    map = vname,
-                    columns = "area double precision"
-                  ))
-      }
-      execGRASS("v.to.db",flags = "quiet",
-                parameters = list(
-                  map = vname,
-                  option = "area",
-                  columns = "area"
-                ), ignore.stderr = TRUE)
+      # if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+      #   execGRASS("v.db.addcolumn",
+      #             parameters = list(
+      #               map = vname,
+      #               columns = "area double precision"
+      #             ))
+      # }
+      # execGRASS("v.to.db",flags = "quiet",
+      #           parameters = list(
+      #             map = vname,
+      #             option = "area",
+      #             columns = "area"
+      #           ), ignore.stderr = TRUE)
+      
+      grass_v.to.db(map = vname, option = "area", columns = "area", format = "douple precision")
+      
       carea <- sum(as.numeric(execGRASS("v.db.select",flags = "quiet",
                                         parameters = list(
                                           map = vname,
@@ -518,19 +521,21 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           # calculate area of all features
           ## GRASS version below 7.8
           ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten   
-          if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
-            execGRASS("v.db.addcolumn",
-                      parameters = list(
-                        map = "intersect_out",
-                        columns = "area double precision"
-                      ))
-          }
-          execGRASS("v.to.db",flags = "quiet",
-                    parameters = list(
-                      map = "intersect_out",
-                      option = "area",
-                      columns = "area"
-                    ), ignore.stderr = TRUE)
+          # if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+          #   execGRASS("v.db.addcolumn",
+          #             parameters = list(
+          #               map = "intersect_out",
+          #               columns = "area double precision"
+          #             ))
+          # }
+          # execGRASS("v.to.db",flags = "quiet",
+          #           parameters = list(
+          #             map = "intersect_out",
+          #             option = "area",
+          #             columns = "area"
+          #           ), ignore.stderr = TRUE)
+          grass_v.to.db(map = "intersect_out", option = "area", column = "area", format = "douple precision")
+          
           # get the areas per value of the attribute
           a <- execGRASS("db.select",flags = "c",
                          parameters = list(

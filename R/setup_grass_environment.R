@@ -37,6 +37,7 @@
 #' }
 
 setup_grass_environment <- function(dem, gisBase, ...){
+  use_sp()
   dem_grid <- rgdal::readGDAL(dem, silent = TRUE)
   initGRASS(gisBase = grass_program_path,
             SG = dem_grid,
@@ -46,4 +47,48 @@ setup_grass_environment <- function(dem, gisBase, ...){
             parameters = list(
               georef = dem
             ))
+}
+
+
+#' Update attribute tabel.
+#'
+#' Wrapper for v.to.db to catch errors arising in some GRASS versions
+#'
+#' @param map character; name of the map where values should be uploaded.  
+#' @param option character; what values should be uploaded
+#' @param column character; name of the column top upload data to
+#' @param format character; data format of the new column (if it must be created)
+#' @param type character; feature type (default = "line")
+#'
+#' @return Nothing. Uses \href{https://grass.osgeo.org/grass78/manuals/v.to.db.html}{v.to.db}
+#' to populate attribute values from vector features. 
+#'
+#' @details Since different versions of GRASS handle v.to.db differently (older versions <= 7.4 need
+#'  the column to exists. while newer ones create the column) different implementations are
+#'  necessary
+#' 
+#' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
+#'
+grass_v.to.db <- function(map, option, type = "line", columns, format){
+  check <- try(execGRASS("v.to.db", flags = c("quiet"),
+                       parameters = list(
+                         map = map,
+                         option = option,
+                         type = type,
+                         columns = paste(columns, collapse = ","))))
+# create column first, then fill it version < 7.6
+  if(class(check) == "try-error"){
+    execGRASS("v.db.addcolumn", flags = "quiet",
+            parameters = list(
+              map = map,
+              columns = paste0(paste(columns, format), collapse = ",")
+            ))
+  execGRASS("v.to.db", flags = c("quiet"),
+            parameters = list(
+              map = map,
+              option = option,
+              type = type,
+              columns = paste(columns, collapse = ",")
+            ), ignore.stderr = TRUE)
+  }
 }

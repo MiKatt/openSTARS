@@ -446,19 +446,22 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
 
         ## GRASS version below 7.8
         ## v.to.db needs the column to be pobulated to exist; from 7.8 onward this column is created and existing ones are not automatically overwritten   
-        if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
-          execGRASS("v.db.addcolumn", flags = "quiet",
-                  parameters = list(
-                    map =  "temp_inters",
-                    columns = "area double"
-                  ), ignore.stderr = TRUE)
-        }
-        execGRASS("v.to.db", flags = c("quiet"),
-                  parameters = list(
-                    map =  "temp_inters",
-                    option = "area",
-                    columns = "area"
-                  ), ignore.stderr = TRUE)
+        # if(compareVersion(strsplit(system2("grass",  "--version", stdout = TRUE, stderr = TRUE)[1], " ")[[1]][3], "7.8") < 0){
+        #   execGRASS("v.db.addcolumn", flags = "quiet",
+        #           parameters = list(
+        #             map =  "temp_inters",
+        #             columns = "area double"
+        #           ), ignore.stderr = TRUE)
+        # }
+        # execGRASS("v.to.db", flags = c("quiet"),
+        #           parameters = list(
+        #             map =  "temp_inters",
+        #             option = "area",
+        #             columns = "area"
+        #           ), ignore.stderr = TRUE)
+        
+        grass_v.to.db(map = "temp_inters", option = "area", columns = "area", format = "douple precision")
+        
         cname <- paste0("b_", attr_name_vect[j])
         dt.dat <- do.call(rbind,strsplit(
           execGRASS("db.select",

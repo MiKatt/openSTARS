@@ -371,29 +371,8 @@ correct_compl_confluences <- function(clean = TRUE){
     #             columns = "length_new"
     #           ), ignore.stderr = TRUE)
     
-    # try to create and fill column in on step (version 7.8)
-    check <- try(execGRASS("v.to.db", flags = c("quiet"),
-              parameters = list(
-                map = "streams_v",
-                option = "length",
-                type = "line",
-                columns = "length_new"
-              )))
-    # create column first, then fill it version < 7.8
-    if(class(check) == "try-error"){
-      execGRASS("v.db.addcolumn", flags = "quiet",
-                parameters = list(
-                  map = "streams_v",
-                  columns = "length_new double precision"
-                ))
-      execGRASS("v.to.db", flags = c("quiet"),
-              parameters = list(
-                map = "streams_v",
-                option = "length",
-                type = "line",
-                columns = "length_new"
-              ), ignore.stderr = TRUE)
-    }
+    grass_v.to.db(map = "streams_v", option = "length", columns = "length_new", format = "douple precision")
+    
     # Find new cat_ and new_str of short and long pieces of cut streams
     cut.str <- paste(df.move_streams[, "cut_stream"], collapse = ",")
     cut.str<-paste0("(", cut.str, ")",sep="")
