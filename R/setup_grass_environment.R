@@ -68,7 +68,8 @@ setup_grass_environment <- function(dem, gisBase, ...){
 #'  necessary
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
-#'
+#' @export
+#' 
 grass_v.to.db <- function(map, option, type = "line", columns, format){
   check <- try(execGRASS("v.to.db", flags = c("quiet"),
                        parameters = list(

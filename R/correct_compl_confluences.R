@@ -179,12 +179,11 @@ correct_compl_confluences <- function(clean = TRUE){
              ignore.stderr = TRUE, intern =TRUE
    )
    # Get flow direction at these points
-   # MiKatt 20200716: gives warning "WARNING: Values in column <cat> will be overwritten"
    execGRASS("v.db.addtable", flags = c("quiet"), 
              parameters = list(
                map = "complex_flows_p", 
                columns = "dir int"),
-             ignore.stderr = TRUE
+             ignore.stderr = TRUE, intern = TRUE
    )
    execGRASS("v.what.rast", flags = c("quiet"), 
              parameters = list(

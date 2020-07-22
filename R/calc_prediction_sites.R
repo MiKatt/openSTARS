@@ -159,7 +159,7 @@ calc_prediction_sites <- function(predictions, dist = NULL, nsites = 10,
             parameters = list(
               map = predictions,
               columns = "cat_edge int,str_edge int,dist double precision,nx double precision,ny double precision,pid int,loc int,net int,rid int,out_dist double,distalong double precision,ratio double precision"
-           ), ignore.stderr = TRUE)
+           ), ignore.stderr = TRUE, intern = TRUE)
 
   # MiKatt: Necessary to get upper and lower case column names
   execGRASS("v.db.renamecolumn", flags = "quiet",
