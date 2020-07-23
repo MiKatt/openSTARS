@@ -132,13 +132,13 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, predictions = NULL, max
     stop("Edges not found. Did you run calc_edges()?")
   
   if(!is.null(predictions)){
-   i <- grep("_o$",predictions)
-   if(length(i) > 0){
-    predictions[-i] <- paste0(predictions[-i],"_o")
-   } else
-     predictions <- paste0(predictions,"_o")     
-   if (any(!predictions %in% vect))
-     stop("Prediction sites not found. Did you run import_data() on them?")
+    i <- grep("_o$",predictions)
+    if(length(i) > 0){
+      predictions[-i] <- paste0(predictions[-i],"_o")
+    } else
+      predictions <- paste0(predictions,"_o")     
+    if (any(!predictions %in% vect))
+      stop("Prediction sites not found. Did you run import_data() on them?")
   }
   
   site_maps <- c("sites", predictions)
@@ -164,7 +164,6 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, predictions = NULL, max
 #' This function is called by \code{calc_sites} and should not be called directly.
 #' Sites are snapped to the streams and upstream distance is calculated.
 #'
-
 prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NULL){
   execGRASS("g.copy",
             flags = c("overwrite", "quiet"),
@@ -179,7 +178,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
   # drop columns if they are in sites
   cnames <- execGRASS("db.columns", flags = "quiet",
                       parameters = list(
-                        table = "sites"
+                        table = sites_map
                       ), intern = TRUE)
   if(any(i <- which(c("cat_edge","str_edge","dist","NEAR_X", "NEAR_Y") %in% cnames))){
     execGRASS("v.db.dropcolumn", flags = "quiet",
@@ -207,10 +206,39 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
   sites <- readVECT(sites_map, type = "point", ignore.stderr = TRUE)
   proj4 <- proj4string(sites)
   sites <-  as(sites, "data.frame")
-  coordinates(sites) <-  ~ NEAR_X + NEAR_Y
+  sp::coordinates(sites) <-  ~ NEAR_X + NEAR_Y
   proj4string(sites) <- proj4
   names(sites)[names(sites) %in% c( "coords.x1", "coords.x2")] <- c("NEAR_X", "NEAR_Y")
   sites$cat_ <- NULL
+  
+  #####################################################
+  # MiKatt v.in.ascii reads x and y as INTEGER!
+  # cnames <- execGRASS("db.columns", flags = "quiet",
+  #                     parameters = list(
+  #                       table = sites_map
+  #                     ), intern = TRUE)
+  # execGRASS("v.db.select", flags = c("f", "quiet", "overwrite"),
+  #           parameters = list(
+  #             map = sites_map,
+  #             columns = paste0(cnames, collapse = ","),
+  #             file = file.path(tempdir(), "new_sites.txt")
+  #           ))
+  # execGRASS("v.in.ascii", flags =c("quiet", "overwrite"),
+  #           parameters = list(
+  #             input = file.path(tempdir(), "new_sites.txt"),
+  #             output = sites_map,
+  #             format = "standard",
+  #             x = which(cnames == "NEAR_X"),
+  #             y = which(cnames == "NEAR_Y"),
+  #             cat = which(cnames == "cat")
+  #           )) 
+  # .... execGRASS("v.db.select", flags = c("c"),
+  #           parameters = list(
+  #             map = sites_map,
+  #             column = "distance"
+  #           ), intern = TRUE)
+  #####################################################
+  
   
   # get actual maximum snapping distance
   mdist <- max(sites@data$dist)
@@ -343,7 +371,7 @@ prepare_sites <- function(sites_map, locid_c = NULL, pid_c = NULL, maxdist = NUL
             parameters = list(
               sql=sql_str
             ))
-
+  
   execGRASS("v.db.addcolumn",
             flags = c("quiet"),
             parameters = list(

@@ -14,7 +14,8 @@ calc_attributes_sites_exact(
   attr_name_vect = NULL,
   round_dig = 2,
   calc_basin_area = TRUE,
-  keep_basins = FALSE
+  keep_basins = FALSE,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -53,6 +54,8 @@ to set to FALSE if the function has been called before with \code{keep_basins = 
 
 \item{keep_basins}{boolean; shall raster and vector maps of all the watersheds be kept?
 Defaults to FALSE.}
+
+\item{overwrite}{boolean; shall existing columns be overwritten; defaults to FALSE}
 }
 \value{
 Nothing. The function appends new columns to the \code{sites_map} attribute table

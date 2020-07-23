@@ -20,6 +20,7 @@
 #' @param round_dig integer; number of digits to round results to.
 #' @param calc_basin_area boolean; shall the catchment area be calculated? (Useful
 #'  to set to FALSE if the function has been called before.)
+#' @param overwrite boolean; shall existing columns be overwritten; defaults to FALSE
 #'
 #' @return Nothing. The function appends new columns to the \code{sites_map}
 #'   attribute table
@@ -112,14 +113,19 @@
 #' legend("right", col = 1, pch = 19, legend = seq(0, 1, 0.2), bty = "n",
 #' title = "share CZbg\nin catchment", pt.cex =  (seq(0, 1, 0.2) + 0.15) * 2)
 #'}
-
+#'
 calc_attributes_sites_approx <- function(sites_map = "sites",
                                          input_attr_name = NULL,
                                          output_attr_name = NULL,
                                          stat = NULL,
                                          round_dig = 2,
-                                         calc_basin_area = TRUE){
-
+                                         calc_basin_area = TRUE,
+                                         overwrite = FALSE){
+  cnames <- execGRASS("db.columns", 
+                      parameters = list(
+                        table = sites_map), 
+                      intern = TRUE)
+  
   if(is.null(output_attr_name))
     output_attr_name <- input_attr_name
   if(calc_basin_area == TRUE){
@@ -127,10 +133,6 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
     input_attr_name <- c("H2OArea", input_attr_name)
     stat <- c("totalArea", stat)
     
-    cnames <- execGRASS("db.columns", 
-                        parameters = list(
-                          table = sites_map), 
-                        intern = TRUE)
     if("H2OAreaA" %in% cnames){
       execGRASS("v.db.dropcolumn", flags = "quiet",
                 parameters = list(
@@ -142,31 +144,54 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
   if(calc_basin_area == FALSE & is.null(input_attr_name)){
     stop("Either input attribute name(s) must be given or calc_basin_area must be TRUE.")
   }
-
+  
+  if(any(output_attr_name %in% cnames) & overwrite == FALSE){
+    stop(paste0("Column(s) ", paste0(output_attr_name[which(output_attr_name %in% cnames)], collapse = ", "), " already exist; use overwrite = TRUE to overwrite them."))
+  }
+  
+  if(any(output_attr_name %in% cnames) & overwrite == TRUE){
+    ii <- which(output_attr_name %in% cnames)
+    jj <- which(output_attr_name[ii] == "H2OAreaA")
+    if(length(jj) > 0)
+      ii <- ii[-jj]
+    for(i in ii){
+      execGRASS("v.db.dropcolumn", flags = "quiet",
+                parameters = list(
+                  map = sites_map,
+                  columns = output_attr_name[i]
+                ))
+    }
+  }
+  
   if(length(input_attr_name) != length(output_attr_name))
     stop("There must be the same number of input and output attribute names.")
-
+  
   if(any(nchar(output_attr_name)) > 10)
     stop("Attribute names must not be longer than ten characters.")
-
+  
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(output_attr_name))
-
+  
   if(length(round_dig) < length(output_attr_name))
     round_dig <- c(max(round_dig), round_dig)
-
+  
   if(length(unique(c(length(input_attr_name), length(stat),length(output_attr_name)))) > 1)
     stop(paste0("There must be the same number of input attribute names (",length(input_attr_name), "),
                 output attribute names (", length(output_attr_name), ") and
                 statistics to calculate  (", length(stat),")."))
-
+  
+  cnames <- execGRASS("db.columns", 
+                      parameters = list(
+                        table = sites_map), 
+                      intern = TRUE)
+  
   execGRASS("v.db.addcolumn",
             flags = c("quiet"),
             parameters = list(
               map = sites_map,
               columns = paste0(output_attr_name," double precision", collapse = ", ")
             ))
-
+  
   for(i in seq_along(input_attr_name)){
     if(stat[i] %in% c("min", "max", "mean", "percent")){
       execGRASS("db.execute",
@@ -224,9 +249,9 @@ calc_attributes_sites_approx <- function(sites_map = "sites",
     }
   }
   cnames2 <- execGRASS("db.columns", flags = "quiet",
-                             parameters = list(
-                               table = sites_map
-                             ), intern = TRUE)
+                       parameters = list(
+                         table = sites_map
+                       ), intern = TRUE)
   cnames2 <- cnames2[-(which(cnames2 %in% cnames))]
   #message(writeLines(strwrap(paste0("\nNew attributes values are stored as ", paste("'", cnames2, "'", sep = "", collapse = ", "), " in 'sites'."),
   #        width = 80)))

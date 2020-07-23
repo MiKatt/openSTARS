@@ -88,13 +88,14 @@ Use \code{\link{check_projection}} to compare the projection of a raster data se
 the one of the current location (i.e the one of the dem).
 }
 \note{
-A GRASS session must be initiated and setup before, see \code{\link{setup_grassenvironment}}.
+A GRASS session must be initiated and setup before, see \code{\link{setup_grass_environment}}.
 
 If sites, pred_sites and / or streams are sp objects it is important that they 
 have a datum defined otherwise the import will not work. Hence, it is e.g. 
 better to use proj4string = CRS("+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +datum=potsdam +units=m +no_defs")
 instead of proj4string = CRS("+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs"))
-when defining sp objects.
+when defining sp objects. However, please note that proj4 is outdated 
+(\code{link{https://www.r-spatial.org/r/2020/03/17/wkt.html}}) and will at least rise warnings.
 }
 \examples{
 \donttest{

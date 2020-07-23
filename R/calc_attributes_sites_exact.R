@@ -36,6 +36,7 @@
 #'  to set to FALSE if the function has been called before with \code{keep_basins = TRUE}.)
 #' @param keep_basins boolean; shall raster and vector maps of all the watersheds be kept?
 #'  Defaults to FALSE.
+#' @param overwrite boolean; shall existing columns be overwritten; defaults to FALSE
 #'
 #' @return Nothing. The function appends new columns to the \code{sites_map} attribute table
 #' \itemize{
@@ -128,19 +129,20 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                                         attr_name_vect = NULL,
                                         round_dig = 2,
                                         calc_basin_area = TRUE,
-                                        keep_basins = FALSE){
+                                        keep_basins = FALSE,
+                                        overwrite = FALSE){
   
   if(length(input_raster) != length(stat_rast) | length(input_raster) != length(attr_name_rast) | length(attr_name_rast) != length(stat_rast))
     stop(paste0("There must be the same number of input raster files (",length(input_raster), "), statistics to calculate (",
                 length(stat_rast), ") and attribute names (", length(attr_name_rast),")."))
-
+  
   if(length(input_vector) != length(stat_vect))
     stop(paste0("There must be the same number of input vector files (",length(input_vector), ")
                 and statistics to calculate (", length(stat_vect), ")."))
   
   if(!is.null(stat_rast) & any(stat_rast %in% c("min","max", "mean", "stddev","variance","sum","median", "percent","area") + grepl("percentile", stat_rast)) == 0) # TRUE = 1, FALSE = 0
     stop('Statistisc to calculate from raster data must be one of "min","max", "mean", "stddev","variance","sum", "median", "percentile_X", "percent" or "area".')
-
+  
   if(any(!stat_vect %in% c("percent", "count", "area")))
     stop('statistics to calculate from vector data must be one of "count", "percent" or "area".')
   
@@ -165,14 +167,14 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   
   if(is.null(stat_rast) & is.null(stat_vect) & !calc_basin_area)
     stop("Either the catchment areas are calculated or a statistic to calculate must be provided.")
-
+  
   temp_dir <- tempdir()
-
+  
   if(length(round_dig) == 1)
     round_dig <- rep(round_dig, length(stat_rast)+1)
   if(length(round_dig) == length(stat_rast))
     round_dig <- c(round_dig[1], round_dig)
-
+  
   rast <- execGRASS("g.list",
                     parameters = list(
                       type = "rast"
@@ -192,7 +194,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                 ". Please give valid raster names. \nAvailable raster are ",  
                 paste0("'", rast, "'", collapse = ", ")))
   }
-
+  
   vect <- execGRASS("g.list",
                     parameters = list(
                       type = "vector"
@@ -222,7 +224,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     dt.edges[, colnames(dt.edges)[-which(colnames(dt.edges) %in% c("cat", "stream","prev_str01","prev_str02","rid","H2OArea"))] := NULL]
     rm(d.edges)
   }
-
+  
   locID <- unique(d.sites@data$locID)
   dat.h2o <- dat.rast <- dat.vect <- NULL
   if(calc_basin_area){
@@ -252,10 +254,10 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                       paste0("'", cnames, "'", collapse = ", ")))
         attribute_cats <- c(attribute_cats, 
                             paste0(unique(execGRASS("db.select", flags = c("c"),
-                                            parameters = list(
-                                              sql = paste0("select ", attr_name_vect[i], " from ",input_vector[i])
-                                            ), ignore.stderr = TRUE, intern = TRUE)), substr(stat_vect[i], 1, 1))
-                            )
+                                                    parameters = list(
+                                                      sql = paste0("select ", attr_name_vect[i], " from ",input_vector[i])
+                                                    ), ignore.stderr = TRUE, intern = TRUE)), substr(stat_vect[i], 1, 1))
+        )
       } else {
         attribute_cats <- c(attribute_cats, attr_name_vect[i])
       }
@@ -266,6 +268,14 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     colnames(dat.vect) <- c(attribute_cats)
   }
   
+  cnames_new <- c()
+  if(exists("dat.h2o"))
+    cnames_new <- c(cnames_new, colnames(dat.h2o))
+  if(exists("dat.rast"))
+    cnames_new <- c(cnames_new, colnames(dat.rast))
+  if(exists("dat.vect"))
+    cnames_new <- c(cnames_new, colnames(dat.vect))
+  
   cellsize <- NULL
   if(any(stat_rast == "area")){
     cellsize <- execGRASS("g.region", flags = "p",intern=T)
@@ -274,9 +284,14 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   }
   
   cnames_sites <- execGRASS("db.columns", flags = "quiet",
-                             parameters = list(
-                               table = "sites"
-                             ), intern = TRUE)
+                            parameters = list(
+                              table = "sites"
+                            ), intern = TRUE)
+  
+  if(any(cnames_new %in% cnames_sites) & overwrite == FALSE){
+    stop(paste0("Column(s) ", paste0(cnames_new[which(cnames_new %in% cnames_sites)], collapse = ", "), " already exist; use overwrite = TRUE to overwrite them."))
+    
+  }
   
   message("Intersecting maps for ", nrow(d.sites@data)," sites ...")
   # progress bar
@@ -288,7 +303,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
     #dat[i,"locID"]  <-  locID
     # get first entry from d.sites@data with locID
     ii <- which(d.sites@data$locID == id)[1] 
-
+    
     # calculate drainage area in km^2
     if(calc_basin_area){
       # If the distance ratio is 0, the site lies within the outflow cell of
@@ -555,18 +570,18 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
         } else { # if this is a point vector
           dat.vect[i, attr_name_vect[j]] <- as.numeric(unlist(strsplit(
             execGRASS("v.vect.stats", flags = c("p", "quiet"),
-                    parameters = list(
-                      points = input_vector[j],
-                      areas = vname,
-                      separator = ","
-                    ), intern = TRUE)[2], split = ","))[2])
+                      parameters = list(
+                        points = input_vector[j],
+                        areas = vname,
+                        separator = ","
+                      ), intern = TRUE)[2], split = ","))[2])
           
         }
         j.count <- j.count + 1
       }
     }
     ###################################################
-
+    
     # Delete watershed raster
     if (!keep_basins) {
       rast <- execGRASS("g.list",
@@ -588,12 +603,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
                         ),
                         intern = TRUE)
       if(paste0(sites_map, "_catchm_",id, "_v") %in% vect){
-      execGRASS("g.remove",
-                flags = c("quiet", "f"),
-                parameters = list(
-                  type = "vector",
-                  name = paste0(sites_map, "_catchm_",id, "_v")
-                ), ignore.stderr = TRUE)
+        execGRASS("g.remove",
+                  flags = c("quiet", "f"),
+                  parameters = list(
+                    type = "vector",
+                    name = paste0(sites_map, "_catchm_",id, "_v")
+                  ), ignore.stderr = TRUE)
       }
     }
     pb$tick()
@@ -602,8 +617,8 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   # change column names if there is just one raster class (and NULL)
   if(!is.null(input_raster)){
     cnames.rast <- lapply(1:length(attr_name_rast), function(x) ifelse(stat_rast[x] %in% c("percent", "area") & length(unlist(vals.rast[[x]])) > 1, 
-                                                                     list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
-                                                                     attr_name_rast[x]))
+                                                                       list(paste(attr_name_rast[x], unlist(vals.rast[[x]]), sep = "_")),
+                                                                       attr_name_rast[x]))
     colnames(dat.rast) <- unlist(cnames.rast)
   }
   
@@ -615,7 +630,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   if(length(nn) > 0){
     colnames(dat)[nn] <- paste0(substr(colnames(dat)[nn], start = 1, stop = 7), substr(colnames(dat)[nn], start = nchar(colnames(dat)[nn]), stop = nchar(colnames(dat)[nn])))     
   }
-
+  
   
   # Join attributes to sites attribute table
   message("Joining new attributes to attribute table ...")
@@ -640,12 +655,12 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
   invisible(file.remove(file.path(temp_dir,"sites_attributes_exact.csv")))
   invisible(file.remove(file.path(temp_dir,"sites_attributes_exact.csvt")))
   
-  cnames_sites2 <- execGRASS("db.columns", flags = "quiet",
-                             parameters = list(
-                               table = sites_map
-                             ), intern = TRUE)
-  cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
+  # cnames_sites2 <- execGRASS("db.columns", flags = "quiet",
+  #                            parameters = list(
+  #                              table = sites_map
+  #                            ), intern = TRUE)
+  # cnames_sites2 <- cnames_sites2[-(which(cnames_sites2 %in% cnames_sites))]
   #message(writeLines(strwrap(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", "), " in 'sites'."),
   #        width = 80)))
-  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_sites2, "'", sep = "", collapse = ", "), " in 'sites'."))
+  message(paste0("\nNew attributes values are stored as ", paste("'", cnames_new, "'", sep = "", collapse = ", "), " in 'sites'."))
 }

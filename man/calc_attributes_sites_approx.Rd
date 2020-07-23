@@ -10,7 +10,8 @@ calc_attributes_sites_approx(
   output_attr_name = NULL,
   stat = NULL,
   round_dig = 2,
-  calc_basin_area = TRUE
+  calc_basin_area = TRUE,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ See details below.}
 
 \item{calc_basin_area}{boolean; shall the catchment area be calculated? (Useful
 to set to FALSE if the function has been called before.)}
+
+\item{overwrite}{boolean; shall existing columns be overwritten; defaults to FALSE}
 }
 \value{
 Nothing. The function appends new columns to the \code{sites_map}
@@ -132,6 +135,7 @@ legend = unique(geo$GEO_NAME), pch = 15, title = "geology")
 legend("right", col = 1, pch = 19, legend = seq(0, 1, 0.2), bty = "n",
 title = "share CZbg\nin catchment", pt.cex =  (seq(0, 1, 0.2) + 0.15) * 2)
 }
+
 }
 \author{
 Mira Kattwinkel, \email{mira.kattwinkel@gmx.net}

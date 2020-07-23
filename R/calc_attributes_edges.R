@@ -248,7 +248,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
     } else {
       mes <- input_vector
     }
-    stop(paste0("Missing input vector data ", paste0("'",mes,"'", collapse = ", "), 
+    stop(paste0("Missing input vector data ", paste0("'",mes ,"'", collapse = ", "), 
                 ". Please give valid vector file names. \nAvailable vector files are ",  
                 paste0("'",vect,"'", collapse = ", ")))
   }
