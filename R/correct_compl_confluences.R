@@ -370,7 +370,7 @@ correct_compl_confluences <- function(clean = TRUE){
     #             columns = "length_new"
     #           ), ignore.stderr = TRUE)
     
-    grass_v.to.db(map = "streams_v", option = "length", columns = "length_new", format = "douple precision")
+    grass_v.to.db(map = "streams_v", option = "length", columns = "length_new", format = "double precision")
     
     # Find new cat_ and new_str of short and long pieces of cut streams
     cut.str <- paste(df.move_streams[, "cut_stream"], collapse = ",")

@@ -460,7 +460,7 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         #             columns = "area"
         #           ), ignore.stderr = TRUE)
         
-        grass_v.to.db(map = "temp_inters", option = "area", columns = "area", format = "douple precision")
+        grass_v.to.db(map = "temp_inters", option = "area", columns = "area", format = "double precision")
         
         cname <- paste0("b_", attr_name_vect[j])
         dt.dat <- do.call(rbind,strsplit(

@@ -513,7 +513,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
       #             columns = "area"
       #           ), ignore.stderr = TRUE)
       
-      grass_v.to.db(map = vname, option = "area", columns = "area", format = "douple precision")
+      grass_v.to.db(map = vname, option = "area", columns = "area", format = "double precision")
       
       carea <- sum(as.numeric(execGRASS("v.db.select",flags = "quiet",
                                         parameters = list(
@@ -549,7 +549,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           #             option = "area",
           #             columns = "area"
           #           ), ignore.stderr = TRUE)
-          grass_v.to.db(map = "intersect_out", option = "area", column = "area", format = "douple precision")
+          grass_v.to.db(map = "intersect_out", option = "area", column = "area", format = "double precision")
           
           # get the areas per value of the attribute
           a <- execGRASS("db.select",flags = "c",
