@@ -71,25 +71,54 @@ setup_grass_environment <- function(dem, gisBase, ...){
 #' @export
 #' 
 grass_v.to.db <- function(map, option, type = "line", columns, format){
-  check <- try(execGRASS("v.to.db", flags = c("quiet"),
-                       parameters = list(
-                         map = map,
-                         option = option,
-                         type = type,
-                         columns = paste(columns, collapse = ","))))
-# create column first, then fill it version < 7.6
-  if(class(check) == "try-error"){
-    execGRASS("v.db.addcolumn", flags = "quiet",
+  # MiKatt 20200724: 
+  # Does not work with 7.4; gives 
+  # DBMI-SQLite driver error:
+  # Error in sqlite3_prepare():
+  #  no such column: length_new
+#   check <- try(execGRASS("v.to.db", flags = c("quiet"),
+#                        parameters = list(
+#                          map = map,
+#                          option = option,
+#                          type = type,
+#                          columns = paste(columns, collapse = ","))))
+# # create column first, then fill it version < 7.6
+#   if(class(check) == "try-error"){
+#     execGRASS("v.db.addcolumn", flags = "quiet",
+#             parameters = list(
+#               map = map,
+#               columns = paste0(paste(columns, format), collapse = ",")
+#             ))
+#   execGRASS("v.to.db", flags = c("quiet"),
+#             parameters = list(
+#               map = map,
+#               option = option,
+#               type = type,
+#               columns = paste(columns, collapse = ",")
+#             ), ignore.stderr = TRUE)
+#   }
+  
+  execGRASS("v.db.addcolumn", flags = "quiet",
             parameters = list(
               map = map,
               columns = paste0(paste(columns, format), collapse = ",")
             ))
-  execGRASS("v.to.db", flags = c("quiet"),
-            parameters = list(
-              map = map,
-              option = option,
-              type = type,
-              columns = paste(columns, collapse = ",")
-            ), ignore.stderr = TRUE)
+  
+  check <- try(execGRASS("v.to.db", flags = c("quiet"),
+                         parameters = list(
+                           map = map,
+                           option = option,
+                           type = type,
+                           columns = paste(columns, collapse = ",")
+                           ), ignore.stderr = TRUE))
+  # use overwrite for Grass 7.8
+  if(class(check) == "try-error"){
+    execGRASS("v.to.db", flags = c("quiet", "overwrite"),
+              parameters = list(
+                map = map,
+                option = option,
+                type = type,
+                columns = paste(columns, collapse = ",")
+              ), ignore.stderr = TRUE)
   }
 }
