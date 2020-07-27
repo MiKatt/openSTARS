@@ -2,7 +2,7 @@
 % Please edit documentation in R/setup_grass_environment.R
 \name{grass_v.to.db}
 \alias{grass_v.to.db}
-\title{Update attribute tabel.}
+\title{Update attribute table.}
 \usage{
 grass_v.to.db(map, option, type = "line", columns, format)
 }
@@ -13,9 +13,9 @@ grass_v.to.db(map, option, type = "line", columns, format)
 
 \item{type}{character; feature type (default = "line")}
 
-\item{format}{character; data format of the new column (if it must be created)}
+\item{columns}{character; name of the column top upload data to}
 
-\item{column}{character; name of the column top upload data to}
+\item{format}{character; data format of the new columns (if it must be created)}
 }
 \value{
 Nothing. Uses \href{https://grass.osgeo.org/grass78/manuals/v.to.db.html}{v.to.db}
