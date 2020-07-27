@@ -70,6 +70,14 @@ calc_edges <- function() {
   if (!"streams_v" %in% vect)
     stop("Missing data. Did you run derive_streams()?")
   
+  cnames<-execGRASS("db.columns",
+                    parameters = list(
+                      table = "streams_v"
+                    ), intern=T)
+  if("prev_str03" %in% cnames){
+    stop("There are complex confluences in the stream network. Please run correct_compl_confluences() for correction.")
+  }
+  
   temp_dir <- tempdir()
 
   execGRASS("g.copy",

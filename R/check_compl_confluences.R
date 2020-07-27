@@ -47,9 +47,9 @@ check_compl_confluences <- function(){
                     parameters = list(
                       table = "streams_v"
                     ), intern = TRUE)
-  if(any(c("prev_str03","prev_str04","prev_str05") %in% cnames)){
+  if("prev_str03" %in% cnames){
     #message(writeLines(strwrap("There are complex confluences in the stream network. Please run correct_compl_confluences for correction.", width = 80)))
-    message("There are complex confluences in the stream network. Please run correct_compl_confluences for correction.")
+    message("There are complex confluences in the stream network. Please run correct_compl_confluences() for correction.")
     ret <- TRUE
   }
   return(ret)
