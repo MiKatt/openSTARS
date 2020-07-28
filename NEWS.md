@@ -1,3 +1,10 @@
+# openSTARS 1.2.1
+
+* catch error arising in GRASS 7.8 due to changes in v.to.db
+* update setup_grass_environment to use 'dem' as SG in initGRASS
+* update examples to GRASS 7.8
+* several small changes and bug fixes
+
 # openSTARS 1.2.0
 
 * Renamed check_compl_junctions and correct_compl_junctions to 

@@ -25,7 +25,7 @@ results in many small streams. Defaults to 700 but a reasonable value
 strongly depends on the raster resolution. See details below.}
 
 \item{condition}{logical; should the DEM be conditioned using the GRASS function
-\href{https://grass.osgeo.org/grass74/manuals/addons/r.hydrodem.html}{r.hydrodem};
+\href{https://grass.osgeo.org/grass78/manuals/addons/r.hydrodem.html}{r.hydrodem};
  default: TRUE.}
 
 \item{min_stream_length}{integer: minimum stream length in number of DEM
@@ -39,7 +39,7 @@ conditioned and / or burnt in DEM raster from previous runs shall be used.}
 ('streams_or') be removed from the GRASS session? Defaults to TRUE.}
 
 \item{mem}{logical; should -m flag in the GRASS function 
-\href{https://grass.osgeo.org/grass74/manuals/r.watershed.html}{r.watershed} 
+\href{https://grass.osgeo.org/grass78/manuals/r.watershed.html}{r.watershed} 
  be used (for data preparation)? Defaults to FALSE; if set to TRUE the calculation
  uses disk swap mode, i.e. it is not carried out in the RAM but also using disk space.
  Useful for large data sets but also slower.}
@@ -56,15 +56,15 @@ Nothing. The function produces the following maps:
 }
 \description{
 Streams are derived from a digital elevation model (DEM) using the GRASS function
-\href{https://grass.osgeo.org/grass74/manuals/r.stream.extract.html}{r.stream.extract}.
+\href{https://grass.osgeo.org/grass78/manuals/r.stream.extract.html}{r.stream.extract}.
 If a stream network is available (see \code{\link{import_data}}) and burn > 0
 it will be first burnt into DEM. Stream topology is derived using the GRASS function
-\href{https://grass.osgeo.org/grass74/manuals/addons/r.stream.order.html}{r.stream.order}.
+\href{https://grass.osgeo.org/grass78/manuals/addons/r.stream.order.html}{r.stream.order}.
 }
 \details{
 For details on \code{accum_threshold} and \code{min_stream_length}
 see the parameters 'threshold' and 'stream_length' at
-\href{https://grass.osgeo.org/grass74/manuals/r.stream.extract}{r.stream.extract}.
+\href{https://grass.osgeo.org/grass78/manuals/r.stream.extract}{r.stream.extract}.
 It might be useful to not burn in the whole available stream network but only 
 parts of it (e.g., larger streams with higher Strahler stream order only). 
 For this, the stream network needs to be pre-processed (parts could be deleted)
@@ -76,23 +76,25 @@ before loading it with \code{import_data}.
 }
 \examples{
 \donttest{
-# Initiate GRASS session
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.6"
+  grass_program_path = "c:/Program Files/GRASS GIS 7.6"
   } else {
-  gisbase = "/usr/lib/grass74/"
+  grass_program_path = "/usr/lib/grass78/"
   }
-initGRASS(gisBase = gisbase,
-    home = tempdir(),
-    override = TRUE)
 
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,      
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
+gmeta()
+                        
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path, streams = streams_path)
-gmeta()
 
 # Derive streams from DEM
 derive_streams(burn = 10, accum_threshold = 700, condition = TRUE, clean = TRUE)
@@ -106,8 +108,8 @@ streams <- readVECT('streams_v', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(streams, col = 'blue', lwd = 2)
 lines(streams_o, col = 'lightblue', lwd = 1)
-points(sites, pch = 4)
-}
+legend("topright", col = c("lightblue", "blue"),  lwd = c(1,2), 
+       legend = c("read in streams for burn in", "derived streams"))#' }
 
 }
 \author{

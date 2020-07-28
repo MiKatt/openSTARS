@@ -20,22 +20,25 @@ essential columns are missing or values have illegal values.
 }
 \examples{
 \donttest{
-# Initiate GRASS session
+# Initiate and setup GRASS
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.6"
+  grass_program_path = "c:/Program Files/GRASS GIS 7.6"
   } else {
-  gisbase = "/usr/lib/grass74/"
+  grass_program_path = "/usr/lib/grass78/"
   }
-initGRASS(gisBase = gisbase,
-    home = tempdir(),
-    override = TRUE)
+
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,      
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
+gmeta()
 
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path)
-gmeta()
 
 # Derive streams from DEM
 derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)

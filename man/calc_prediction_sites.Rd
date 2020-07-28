@@ -42,9 +42,9 @@ position of the site on the edge (= distance traveled from lower end of the
 edge to the site) and the total length of the edge.} }
 
 'pid' and 'locID' are identical, unique numbers. 'upDist' is calculated using
-\href{https://grass.osgeo.org/grass72/manuals/addons/r.stream.distance.html}{r.stream.distance}.
+\href{https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html}{r.stream.distance}.
 Points are created using
-\href{https://grass.osgeo.org/grass72/manuals/v.segment.html}{v.segment}.
+\href{https://grass.osgeo.org/grass78/manuals/v.segment.html}{v.segment}.
 }
 \note{
 \code{\link{import_data}}, \code{\link{derive_streams}} and
@@ -52,22 +52,25 @@ Points are created using
 }
 \examples{
 \donttest{
-# Initiate GRASS session
+# Initiate and setup GRASS
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.6"
+  grass_program_path = "c:/Program Files/GRASS GIS 7.6"
   } else {
-  gisbase = "/usr/lib/grass74/"
+  grass_program_path = "/usr/lib/grass78/"
   }
-initGRASS(gisBase = gisbase,
-    home = tempdir(),
-    override = TRUE)
 
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,      
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
+gmeta()
+                        
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path)
-gmeta()
 
 # Derive streams from DEM
 derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
@@ -85,7 +88,7 @@ edges <- readVECT('edges', ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
 lines(edges, col = 'blue', lwd = 2)
 points(sites, pch = 4)
-points(preds, pch = 19, col = "steelblue")
+points(preds, pch = 19, col = "darkred")
 }
 }
 \author{

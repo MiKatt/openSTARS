@@ -99,14 +99,19 @@ when defining sp objects. However, please note that proj4 is outdated
 }
 \examples{
 \donttest{
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.6"
+  grass_program_path = "c:/Program Files/GRASS GIS 7.6"
   } else {
-  gisbase = "/usr/lib/grass74/"
+  grass_program_path = "/usr/lib/grass78/"
   }
-initGRASS(gisBase = gisbase,
-    home = tempdir(),
-    override = TRUE)
+
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,      
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
+gmeta()
 
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
@@ -115,10 +120,8 @@ streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS
 preds_v_path <- system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
 preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
                  
-setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path, streams = streams_path,
             predictor_vector = preds_v_path, predictor_raster = preds_r_path)
-gmeta()
 
 # Plot data
 library(sp)
@@ -142,15 +145,16 @@ points(ps, bg = "red", pch = 21, col = "grey", cex = 1.5)
 
 # plot landuse data
 library(raster)
+par(mfcol = c(1,1), mar = c(5,4,4,2))
 op <- par()
 par(xpd = FALSE)
 plot(raster(lu), legend = FALSE, xaxt = "n", yaxt = "n", bty = "n",
-col = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"))
+     col = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"))
 par(xpd = TRUE)
 legend("bottom", cex = 0.75,
-  legend = c("developed", "agriculture", "herbaceous", "shrubland", "forest", "water", "sediment"),
-  fill = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"),
-  horiz = TRUE, inset = -0.175)
+       legend = c("developed", "agriculture", "herbaceous", "shrubland", "forest", "water", "sediment"),
+       fill = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"),
+       horiz = TRUE, inset = -0.175)
 par <- op
 }
 }

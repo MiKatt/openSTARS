@@ -52,14 +52,20 @@ Artificial point sources.
 
 \examples{
 \donttest{
+# Initiate and setup GRASS
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 if(.Platform$OS.type == "windows"){
-gisbase = "c:/Program Files/GRASS GIS 7.6"
-} else {
-  gisbase = "/usr/lib/grass74/"
-}
-initGRASS(gisBase = gisbase,
-          home = tempdir(),
-          override = TRUE)
+  grass_program_path = "c:/Program Files/GRASS GIS 7.6"
+  } else {
+  grass_program_path = "/usr/lib/grass78/"
+  }
+
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,      
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
+gmeta()
 
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
@@ -68,11 +74,8 @@ streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS
 preds_v_path <- system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
 preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
 
-
-setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path, streams = streams_path,
             predictor_vector = preds_v_path, predictor_raster = preds_r_path)
-gmeta()
 
 # Derive streams from DEM
 # burn in 'streams' 10 meters
@@ -105,7 +108,7 @@ calc_attributes_edges(input_raster = c("slope", "landuse_r"),
 calc_sites()
 
 # Usually, only one of the following methods is needed. The exact one takes
-# much longer to run
+# longer to run
 # approximate potential predictor variables for each site based on edge values
 calc_attributes_sites_approx(input_attr_name = c("maxSlo", "lusep_1", "lusep_2",
                                                  "lusep_3", "lusep_4", "lusep_5",

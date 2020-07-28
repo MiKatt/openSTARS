@@ -1,7 +1,6 @@
 ---
 output:
-  html_document:
-    keep_md: yes
+  github_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -40,7 +39,7 @@ library("openSTARS")
 ```
 
 For the lastest development version of openSTARS on GitHub (carefull, might be experimental):
-```{r install_gh, eval = FALSE}
+```{r install_gh, eval = TRUE}
 # install.packages("devtools")
 devtools::install_github("MiKatt/openSTARS", ref = "dev")
 library("openSTARS")
@@ -48,57 +47,40 @@ library("openSTARS")
 
 ## Step by step usage
 
-### Initiate an ephemeral GRASS session
-First, a GRASS session must be initiated:
-```{r init_grass1, eval = FALSE}
-library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass74/",
-          home = tempdir(),
-          override = TRUE)
-```
+### Initiate and setup GRASS
+First, a GRASS session must be initiated and setup. Adjust the paths to the GRASS installation (`gisBase`) and, if needed, to the GRASS data base where all GRASS files will be stored (`gisDbase`) to those on your system. The name of the GRASS location within can be given (`location`). The projection and extent of the GRASS location is based on that one of the digital elevation model (`dem`) and is used for all input and output files. On Windows systems, you might get a warinig '`WARNING: Concurrent mapset locking is not supported on Windows`' that can be ignored.
 
-Alternatively, the path to a specific GRASS database directory and a Location name can be provided.
-```{r init_grass2, eval = TRUE}
-library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass74/",
-          home = tempdir(),
-          gisDbase = file.path(tempdir(),"GRASSDB"),
-          location = "test_openSTARS",
-          remove_GISRC = T)
-```
-
-On Windows, this might look like this:
-```{r init_grass3, eval = FALSE}
-library(openSTARS)
-initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.4.0", 
-          home = tempdir(),
-          location = "test_openSTARS",
-          remove_GISRC = T)
-```
-
-
-### Setup GRASS and load data into GRASS
-The path to the digital elevation model (DEM) and the observation sites must be
-provided. Additionally, the path to a stream network, which can be burnt into the
-DEM before extracting the streams, can be given.
-
-First, `setup_grass_environment` prepares the GRASS environment by setting the projection and the region to the extent of the DEM. If the DEM does not contain projection infromation, an EPSG code can be provided. However, this must be the correct one for the DEM as no projection of raster data is performed here.
- 
-**Update**
 Please use data in a metric coordinate reference system (CRS) appropriate for the study region (i.e. no long/lat CRS). Otherwise particularly the network correction on 'correct_colplex_confluences' might not work proberly. Suggestions for CRS can e.g. be found here http://epsg.io/.
 
-For more information on the concept of GRASS Locations, Mapsets etc. see the [GRASS GIS Quickstart](https://grass.osgeo.org/grass78/manuals/helptext.html).
+```{r setup_grass}
+# give paths to GRASS and where to store the GRASS data base
+# Linux e.g.
+grass_program_path <- "/usr/lib/grass78/"
+# Windows e.g.
+# grass_program_path <- "c:/Program Files/GRASS GIS 7.6"
 
-```{r setup_grass, warning=FALSE, message=TRUE}
+working_dir <- file.path(tempdir(), "grass_workflow")
+grass_db_path <- file.path(working_dir, "grassDB")
+dir.create(working_dir)
+setwd(tempdir())
+
+# specify the path to the digital elevation model
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
-
-setup_grass_environment(dem = dem_path)
-
-gmeta()
-
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,
+                        gisDbase = grass_db_path,
+                        location = "nc_openSTARS",
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
 ```
 
-Then, use `import_data` to import all data into GRASS (DEM, observation sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`). 
+```{r gmeta}
+gmeta()
+```
+
+### Load data into GRASS
+Use `import_data` to import all data into GRASS (DEM, observation sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`). 
 
 Note that vector data is reprojected on the fly in this import, while raster data is not as it should be done manually (due to the changes this might cause to the resolution etc.). It can be checked before the import if the current region (as defined by the dem) and other raster maps have the same projection. If this is not the case, they should be reprojected before, so that the dem and all raster files have identical projections. Please note that providing all data including vector data in the same coordinate reference system (CRS) is best to avoid errors during on the fly import.
 

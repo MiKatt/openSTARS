@@ -39,7 +39,7 @@
 setup_grass_environment <- function(dem, gisBase, ...){
   use_sp()
   dem_grid <- rgdal::readGDAL(dem, silent = TRUE)
-  initGRASS(gisBase = grass_program_path,
+  initGRASS(gisBase = gisBase,
             SG = dem_grid,
             mapset = "PERMANENT",
             ...)

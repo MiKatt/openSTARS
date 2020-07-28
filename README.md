@@ -1,113 +1,73 @@
----
-output:
-  html_document:
-    keep_md: yes
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
 openSTARS
-=============
+=========
 
+Introduction
+------------
 
-
-## Introduction
-`openSTARS` is an open source implementation of the STARS toolbox (Peterson & Ver Hoef, 2014) using R and GRASS GIS.
-It prepares the .ssn object needed for the SSN package.
-A digital elevation model (DEM) is used to derive stream networks (in contrast to STARS that can clean an existing stream network). The reason for this is that existing stream networks (e.g. obtained as shape files) very often contain loops and dead ends that hinder building a valid topology for them.
+`openSTARS` is an open source implementation of the STARS toolbox (Peterson & Ver Hoef, 2014) using R and GRASS GIS. It prepares the .ssn object needed for the SSN package. A digital elevation model (DEM) is used to derive stream networks (in contrast to STARS that can clean an existing stream network). The reason for this is that existing stream networks (e.g. obtained as shape files) very often contain loops and dead ends that hinder building a valid topology for them.
 
 For more information on STARS and SSN, see [their web page](http://www.fs.fed.us/rm/boise/AWAE/projects/SpatialStreamNetworks.shtml).
 
 Peterson, E. E., & Ver Hoef, J. M. (2014). STARS: An ArcGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J Stat Softw, 56(2), 1–17.
 
-## Installation and loading
-A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with installed add-ons [r.stream.basins](https://grass.osgeo.org/grass78/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html), [r.stream.order](https://grass.osgeo.org/grass78/manuals/addons/r.stream.order.html) and 
-[r.hydrodem](https://grass.osgeo.org/grass78/manuals/addons/r.hydrodem.html) is needed.
-These add-ons can be installed from within GRASS using the console and g.extension or in the GUI under 'Settings'/'Addons extensions'/'Install extensions from add-ons' under 'raster'.
+Installation and loading
+------------------------
+
+A functional installation of [GRASS GIS (&gt;=7.0)](https://grass.osgeo.org/#) with installed add-ons [r.stream.basins](https://grass.osgeo.org/grass78/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html), [r.stream.order](https://grass.osgeo.org/grass78/manuals/addons/r.stream.order.html) and [r.hydrodem](https://grass.osgeo.org/grass78/manuals/addons/r.hydrodem.html) is needed. These add-ons can be installed from within GRASS using the console and g.extension or in the GUI under 'Settings'/'Addons extensions'/'Install extensions from add-ons' under 'raster'.
 
 Installation from CRAN repository:
 
-```r
+``` r
 install.packages("openSTARS")
 library("openSTARS")
 ```
 
 For the lastest development version of openSTARS on GitHub (carefull, might be experimental):
 
-```r
+``` r
 # install.packages("devtools")
 devtools::install_github("MiKatt/openSTARS", ref = "dev")
 library("openSTARS")
 ```
 
-## Step by step usage
+Step by step usage
+------------------
 
-### Initiate an ephemeral GRASS session
-First, a GRASS session must be initiated:
+### Initiate and setup GRASS
 
-```r
-library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass74/",
-          home = tempdir(),
-          override = TRUE)
-```
+First, a GRASS session must be initiated and setup. Adjust the paths to the GRASS installation (`gisBase`) and, if needed, to the GRASS data base where all GRASS files will be stored (`gisDbase`) to those on your system. The name of the GRASS location within can be given (`location`). The projection and extent of the GRASS location is based on that one of the digital elevation model (`dem`) and is used for all input and output files. On Windows systems, you might get a warinig '`WARNING: Concurrent mapset locking is not supported on Windows`' that can be ignored.
 
-Alternatively, the path to a specific GRASS database directory and a Location name can be provided.
+Please use data in a metric coordinate reference system (CRS) appropriate for the study region (i.e. no long/lat CRS). Otherwise particularly the network correction on 'correct\_colplex\_confluences' might not work proberly. Suggestions for CRS can e.g. be found here <http://epsg.io/>.
 
-```r
-library(openSTARS)
-initGRASS(gisBase = "/usr/lib/grass74/",
-          home = tempdir(),
-          gisDbase = file.path(tempdir(),"GRASSDB"),
-          location = "test_openSTARS",
-          remove_GISRC = T)
-#> gisdbase    /tmp/RtmptfdGjc/GRASSDB 
-#> location    test_openSTARS 
-#> mapset      file21775a3787e1 
-#> rows        1 
-#> columns     1 
-#> north       1 
-#> south       0 
-#> west        0 
-#> east        1 
-#> nsres       1 
-#> ewres       1 
-#> projection  NA
-```
+``` r
+# give paths to GRASS and where to store the GRASS data base
+# Linux e.g.
+grass_program_path <- "/usr/lib/grass78/"
+# Windows e.g.
+# grass_program_path <- "c:/Program Files/GRASS GIS 7.6"
 
-On Windows, this might look like this:
+working_dir <- file.path(tempdir(), "grass_workflow")
+grass_db_path <- file.path(working_dir, "grassDB")
+dir.create(working_dir)
+setwd(tempdir())
 
-```r
-library(openSTARS)
-initGRASS(gisBase = "c:/Program Files/GRASS GIS 7.4.0", 
-          home = tempdir(),
-          location = "test_openSTARS",
-          remove_GISRC = T)
-```
-
-
-### Setup GRASS and load data into GRASS
-The path to the digital elevation model (DEM) and the observation sites must be
-provided. Additionally, the path to a stream network, which can be burnt into the
-DEM before extracting the streams, can be given.
-
-First, `setup_grass_environment` prepares the GRASS environment by setting the projection and the region to the extent of the DEM. If the DEM does not contain projection infromation, an EPSG code can be provided. However, this must be the correct one for the DEM as no projection of raster data is performed here.
- 
-**Update**
-Please use data in a metric coordinate reference system (CRS) appropriate for the study region (i.e. no long/lat CRS). Otherwise particularly the network correction on 'correct_colplex_confluences' might not work proberly. Suggestions for CRS can e.g. be found here http://epsg.io/.
-
-For more information on the concept of GRASS Locations, Mapsets etc. see the [GRASS GIS Quickstart](https://grass.osgeo.org/grass78/manuals/helptext.html).
-
-
-```r
+# specify the path to the digital elevation model
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,
+                        gisDbase = grass_db_path,
+                        location = "nc_openSTARS",
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
+```
 
-setup_grass_environment(dem = dem_path)
-#> Setting up GRASS Environment ...
-
+``` r
 gmeta()
-#> gisdbase    /tmp/RtmptfdGjc/GRASSDB 
-#> location    test_openSTARS 
+#> gisdbase    /tmp/RtmpKMDWRd/grass_workflow/grassDB 
+#> location    nc_openSTARS 
 #> mapset      PERMANENT 
 #> rows        450 
 #> columns     500 
@@ -117,36 +77,66 @@ gmeta()
 #> east        645000 
 #> nsres       30 
 #> ewres       30 
-#> projection  +proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334
-#> +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +no_defs +a=6378137
-#> +rf=298.257222101 +towgs84=0.000,0.000,0.000 +to_meter=1
+#> projection  +proj=lcc +lat_0=33.75 +lon_0=-79 +lat_1=36.1666666666667
+#> +lat_2=34.3333333333333 +x_0=609601.22 +y_0=0 +no_defs +a=6378137
+#> +rf=298.257222101 +towgs84=0.000,0.000,0.000 +type=crs +to_meter=1
 ```
 
-Then, use `import_data` to import all data into GRASS (DEM, observation sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`). 
+### Load data into GRASS
+
+Use `import_data` to import all data into GRASS (DEM, observation sites and other optional data). Optional data includes a stream network to burn into the DEM (see `derive_streams`), prediction sites if they have been already created with a different program (alternatively, prediction sites can be created using `calc_prediction_sites`), and raster and vector maps of potential predictor variables for the SSN model that can later be intersected with the catchments of the sites (`calc_attributes_edges` and `calc_attributes_sites_approx`, or `calc_attributes_sites_exact`).
 
 Note that vector data is reprojected on the fly in this import, while raster data is not as it should be done manually (due to the changes this might cause to the resolution etc.). It can be checked before the import if the current region (as defined by the dem) and other raster maps have the same projection. If this is not the case, they should be reprojected before, so that the dem and all raster files have identical projections. Please note that providing all data including vector data in the same coordinate reference system (CRS) is best to avoid errors during on the fly import.
 
-
-```r
+``` r
 preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
 check_projection(preds_r_path)
-#>       GRASS project                landuse_r.tif                comp1 
-#>  [1,] "+proj=lcc"                  "+proj=lcc"                  "TRUE"
-#>  [2,] "+lat_1=36.16666666666666"   "+lat_1=36.16666666666666"   "TRUE"
-#>  [3,] "+lat_2=34.33333333333334"   "+lat_2=34.33333333333334"   "TRUE"
-#>  [4,] "+lat_0=33.75"               "+lat_0=33.75"               "TRUE"
-#>  [5,] "+lon_0=-79"                 "+lon_0=-79"                 "TRUE"
-#>  [6,] "+x_0=609601.22"             "+x_0=609601.22"             "TRUE"
-#>  [7,] "+y_0=0"                     "+y_0=0"                     "TRUE"
-#>  [8,] "+no_defs"                   "+no_defs"                   "TRUE"
-#>  [9,] "+a=6378137"                 "+a=6378137"                 "TRUE"
-#> [10,] "+rf=298.257222101"          "+rf=298.257222101"          "TRUE"
-#> [11,] "+towgs84=0.000,0.000,0.000" "+towgs84=0.000,0.000,0.000" "TRUE"
-#> [12,] "+to_meter=1"                "+to_meter=1"                "TRUE"
+#> current location
+#>  [1] "PROJCS[\"unknown\","                                                            
+#>  [2] "    GEOGCS[\"grs80\","                                                          
+#>  [3] "        DATUM[\"North_American_Datum_1983\","                                   
+#>  [4] "            SPHEROID[\"Geodetic_Reference_System_1980\",6378137,298.257222101],"
+#>  [5] "            AUTHORITY[\"EPSG\",\"6269\"]],"                                     
+#>  [6] "        PRIMEM[\"Greenwich\",0,"                                                
+#>  [7] "            AUTHORITY[\"EPSG\",\"8901\"]],"                                     
+#>  [8] "        UNIT[\"degree\",0.0174532925199433,"                                    
+#>  [9] "            AUTHORITY[\"EPSG\",\"9122\"]]],"                                    
+#> [10] "    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],"                               
+#> [11] "    PARAMETER[\"latitude_of_origin\",33.75],"                                   
+#> [12] "    PARAMETER[\"central_meridian\",-79],"                                       
+#> [13] "    PARAMETER[\"standard_parallel_1\",36.1666666666667],"                       
+#> [14] "    PARAMETER[\"standard_parallel_2\",34.3333333333333],"                       
+#> [15] "    PARAMETER[\"false_easting\",609601.22],"                                    
+#> [16] "    PARAMETER[\"false_northing\",0],"                                           
+#> [17] "    UNIT[\"metre\",1,"                                                          
+#> [18] "        AUTHORITY[\"EPSG\",\"9001\"]],"                                         
+#> [19] "    AXIS[\"Easting\",EAST],"                                                    
+#> [20] "    AXIS[\"Northing\",NORTH]]"
+#> landuse_r.tif
+#> Projection seems to match current location
+#>  [1] "PROJCS[\"unknown\","                                                            
+#>  [2] "    GEOGCS[\"grs80\","                                                          
+#>  [3] "        DATUM[\"North_American_Datum_1983\","                                   
+#>  [4] "            SPHEROID[\"Geodetic_Reference_System_1980\",6378137,298.257222101],"
+#>  [5] "            AUTHORITY[\"EPSG\",\"6269\"]],"                                     
+#>  [6] "        PRIMEM[\"Greenwich\",0,"                                                
+#>  [7] "            AUTHORITY[\"EPSG\",\"8901\"]],"                                     
+#>  [8] "        UNIT[\"degree\",0.0174532925199433,"                                    
+#>  [9] "            AUTHORITY[\"EPSG\",\"9122\"]]],"                                    
+#> [10] "    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],"                               
+#> [11] "    PARAMETER[\"latitude_of_origin\",33.75],"                                   
+#> [12] "    PARAMETER[\"central_meridian\",-79],"                                       
+#> [13] "    PARAMETER[\"standard_parallel_1\",36.1666666666667],"                       
+#> [14] "    PARAMETER[\"standard_parallel_2\",34.3333333333333],"                       
+#> [15] "    PARAMETER[\"false_easting\",609601.22],"                                    
+#> [16] "    PARAMETER[\"false_northing\",0],"                                           
+#> [17] "    UNIT[\"metre\",1,"                                                          
+#> [18] "        AUTHORITY[\"EPSG\",\"9001\"]],"                                         
+#> [19] "    AXIS[\"Easting\",EAST],"                                                    
+#> [20] "    AXIS[\"Northing\",NORTH]]"
 ```
 
-
-```r
+``` r
 # the observation sites
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 # potential predictor in raster format
@@ -167,12 +157,11 @@ import_data(dem = dem_path, sites = sites_path, streams = streams_path,
 #> Loading streams into GRASS as 'streams_o'  ...
 ```
 
-The DEM is loaded into the GRASS database as a raster map named `dem`, the sites as a vector map named `sites_o` and the (optional) stream network as a vector map named `streams_o`. Predictor sites are stored under their base file name, potential predictors either using their base file names or the ones provided in 'predictor_r_names' and 'predictor_v_names', respectively.
+The DEM is loaded into the GRASS database as a raster map named `dem`, the sites as a vector map named `sites_o` and the (optional) stream network as a vector map named `streams_o`. Predictor sites are stored under their base file name, potential predictors either using their base file names or the ones provided in 'predictor\_r\_names' and 'predictor\_v\_names', respectively.
 
 The data looks like this:
 
-
-```r
+``` r
 library(sp)
 dem <- readRAST("dem", ignore.stderr = TRUE)
 sites <- readVECT("sites_o", ignore.stderr = TRUE)
@@ -185,27 +174,28 @@ points(psources, pch = 19, col = 1, cex = 1.7)
 legend(x = par("usr")[2]*0.991, y = par("usr")[4]*0.999, pch = c(16, 16, 19), ncol = 1, col = c(range(cols),1), legend = c(paste("value at sites:", c(range(sites$value))), "point sources"))
 ```
 
-![](README_files/figure-html/plot_data1.1-1.png)<!-- -->
+![](README_files/figure-markdown_github/plot_data1.1-1.png)
 
-```r
+``` r
 col <- adjustcolor(c("orange", "yellow",  "green", "greenyellow", "green3","blue", "brown"), alpha.f = 1)
 image(lu["landuse_r"], col = col)
 legend("right", col = col, pch = 15, legend = as.factor(sort(unique(lu$landuse_r))), 
        title = "landuse")
 ```
 
-![](README_files/figure-html/plot_data1.2-1.png)<!-- -->
+![](README_files/figure-markdown_github/plot_data1.2-1.png)
 
 ### Derive streams from DEM
+
 Next, the streams must be derived from the DEM.
 
-```r
+``` r
 derive_streams()
 ```
+
 An existing stream network (if provided to `import_data` before) can be burnt into the DEM to force the streams derived from the DEM to mapped ones. It is not possible to use a given stream network directly but it has to be derived from the DEM because otherwise it lacks topological information needed in the consecutive steps. Additional specifications on how the streams shall be created can be provided (see `?derive_streams` and the GRASS function [r.stream.extract](https://grass.osgeo.org/grass78/manuals/r.stream.extract.html) for details).
 
-
-```r
+``` r
 derive_streams(accum_threshold = 100, condition = T, clean = TRUE, burn = 10)
 #> Conditioning DEM ...
 #> Burning streams into DEM ...
@@ -214,8 +204,7 @@ derive_streams(accum_threshold = 100, condition = T, clean = TRUE, burn = 10)
 #> Derived streams saved as 'streams_v'.
 ```
 
-
-```r
+``` r
 dem <- readRAST("dem", ignore.stderr = TRUE)
 streams <- readVECT("streams_v", ignore.stderr = TRUE)
 plot(dem, col = terrain.colors(20))
@@ -224,21 +213,20 @@ cols <- colorRampPalette(c("blue", "red"))(length(sites$value))[rank(sites$value
 points(sites, pch = 16, col = cols)
 ```
 
-![](README_files/figure-html/plot_data2-1.png)<!-- -->
+![](README_files/figure-markdown_github/plot_data2-1.png)
 
 ### Check and correct the network
-Next, the stream network should be checked if there are stream segments with more than two inflows. These must be corrected because the .ssn object must not have such complex confluences. In the nc data set provided, there will be complex confluences only if accum_threshold is small (e.g. 150; note that this will take long to run and use a lot of memory).
 
+Next, the stream network should be checked if there are stream segments with more than two inflows. These must be corrected because the .ssn object must not have such complex confluences. In the nc data set provided, there will be complex confluences only if accum\_threshold is small (e.g. 150; note that this will take long to run and use a lot of memory).
 
-```r
+``` r
 cp <- check_compl_confluences()
 
 if (cp)
   correct_compl_confluences()
 ```
 
-
-```r
+``` r
 dem <- readRAST('dem', ignore.stderr = TRUE)
 #> Creating BIL support files...
 #> Exporting raster as floating values (bytes=4)
@@ -254,32 +242,25 @@ legend("topright", col = c("red", "blue"), lty = c(1,2), lwd = c(4,2),
        legend = c("original", "corrected"))
 ```
 
-![](README_files/figure-html/plot_compl_confl-1.png)<!-- -->
-
+![](README_files/figure-markdown_github/plot_compl_confl-1.png)
 
 <!-- An example of a complex junction and the correction would look like this: -->
-
 <!-- ![Original network with complex junction. Arrows indicate flow direction.](README_files/compl_junction1.PNG)  ![Corrected network. Arrows indicate flow direction.](README_files/compl_junction2.PNG) -->
-
 <!-- *Left* Original network with complex junction (i.e. three inflows to one outflow).  -->
 <!-- *Right* Corrected network. Arrows indicate flow direction. -->
+The end node of one segment is moved a small fraction of the cell size upstream on a neighbouring segment. That segement is split into two parts at the new confluence. All features are corrected accordingly (cat, stream, length, prev\_str01, prev\_str02, next\_str etc.).
 
-
-The end node of one segment is moved a small fraction of the cell size upstream on a neighbouring segment. That segement is split into two parts at the new confluence. All features are corrected accordingly (cat, stream, length, prev_str01, prev_str02, next_str etc.). 
-
-Other topological errors as mentioned for the ArcGIS toolbox STARS do not occur
-if the stream network is derived from a DEM.
+Other topological errors as mentioned for the ArcGIS toolbox STARS do not occur if the stream network is derived from a DEM.
 
 ### Prepare edges
+
 Now, information needed for the .ssn object can be derived for the streams and stored in a new vector map `edges`.
 
-
-```r
+``` r
 calc_edges()
 ```
 
-
-```r
+``` r
 edges <- readVECT("edges", ignore.stderr = TRUE)
 head(edges@data, n = 4)
 #>   cat cat_ stream prev_str01 prev_str02 next_str flow_accu changed netID rid
@@ -296,27 +277,25 @@ head(edges@data, n = 4)
 
 `edges` now holds the derived network plus attributes needed for the .ssn object
 
-* network identifier (netID)
-* reach identifier (rid)
-* stream segment length (length)
-* distance from the source (sourceDist)
-* upstream distance, i.e. distance from the outlet of the network to the start (upstream node) of the stream segment (upDist)
-* total catchment area (H2OArea)
-* reach contributing area (rcaArea)
+-   network identifier (netID)
+-   reach identifier (rid)
+-   stream segment length (length)
+-   distance from the source (sourceDist)
+-   upstream distance, i.e. distance from the outlet of the network to the start (upstream node) of the stream segment (upDist)
+-   total catchment area (H2OArea)
+-   reach contributing area (rcaArea)
 
-The additional fields hold information about the network: 'next_str' is the 'stream' this segment flows into, 'prev_str01' and 'prev_str02' are the two segments that flow into this segment.
+The additional fields hold information about the network: 'next\_str' is the 'stream' this segment flows into, 'prev\_str01' and 'prev\_str02' are the two segments that flow into this segment.
 
 ### Prepare sites
-Often, survey sites do not lay exactly on the stream network (due to GPS imprecision, stream representation as lines, derivation of streams from a DEM, etc.). To assign an exact position of the sites on the network they are moved to the closest stream segment (snapped) using the GRASS function
-[v.distance](https://grass.osgeo.org/grass78/manuals/v.distance.html). Additionally, attributes needed for .ssn object are assigned: 
 
+Often, survey sites do not lay exactly on the stream network (due to GPS imprecision, stream representation as lines, derivation of streams from a DEM, etc.). To assign an exact position of the sites on the network they are moved to the closest stream segment (snapped) using the GRASS function [v.distance](https://grass.osgeo.org/grass78/manuals/v.distance.html). Additionally, attributes needed for .ssn object are assigned:
 
-```r
+``` r
 calc_sites()
 ```
 
-
-```r
+``` r
 sites <- readVECT("sites", ignore.stderr = TRUE)
 head(sites@data, n = 4)
 #>   cat site_id value str_edge     dist   NEAR_X   NEAR_Y locID pid netID rid
@@ -333,24 +312,22 @@ head(sites@data, n = 4)
 
 `sites` now holds the corrected sites plus attributes needed for the .ssn object
 
-* point identifier (pid)
-* location identifier (locID) 
-* network identifier (netID)
-* reach identifier of the edge segment the point lies on (rid)
-* upstream distance (upDist), i.e. the distance to the network outlet calculated using [r.stream.distance](https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html).
-* distance ratio, i.e. the ratio of the distance from the outflow of the edge to the point along the edge and the total length of the edge segment (distRatio).
+-   point identifier (pid)
+-   location identifier (locID)
+-   network identifier (netID)
+-   reach identifier of the edge segment the point lies on (rid)
+-   upstream distance (upDist), i.e. the distance to the network outlet calculated using [r.stream.distance](https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html).
+-   distance ratio, i.e. the ratio of the distance from the outflow of the edge to the point along the edge and the total length of the edge segment (distRatio).
 
-Additional fields hold information on the snapping: distance of the original site to the closest edge ('dist'), i.e. how far the point was moved, and the new x and y coordinates ('xm', 'ym'). The filed 'cat_edge' gives the 'cat' of the stream segment the point lies on. It is used to identify the edge the point lies on to extract the 'rid'.
+Additional fields hold information on the snapping: distance of the original site to the closest edge ('dist'), i.e. how far the point was moved, and the new x and y coordinates ('xm', 'ym'). The filed 'cat\_edge' gives the 'cat' of the stream segment the point lies on. It is used to identify the edge the point lies on to extract the 'rid'.
 
 It is possible to give a maximum distance a point is allowed to be moved ('maxdist'). Points farther away from any stream are deleted.
 
-
-```r
+``` r
 calc_sites(maxdist = 100)
 ```
 
-
-```r
+``` r
 dem <- readRAST("dem", ignore.stderr = TRUE)
 #> Creating BIL support files...
 #> Exporting raster as floating values (bytes=4)
@@ -365,29 +342,28 @@ points(sites, pch = 21, cex=0.75, bg = "grey")
 legend("topright", y = par("usr")[3]*1.01, col = 1, pt.bg = "grey", pch = c(21, 19), legend = c("snapped sites", "original sites"), ncol = 2)
 ```
 
-![](README_files/figure-html/plot_data3-1.png)<!-- -->
+![](README_files/figure-markdown_github/plot_data3-1.png)
 
 ### Prepare prediction sites
+
 Prediction sites can be created along the streams. Either the distance between the sites must be provided (`dist`) or the approximate number of sites that shall be created (`nsites`). Additionally, the creation can be restricted to certain networks (`netIDs`). The sites will be assigned regularly on the stream network. If prediction sites with specifec coordinates are needed, they should be created manually.
 
-Similar as for the observation sites, attributes needed for .ssn object are assigned: 
+Similar as for the observation sites, attributes needed for .ssn object are assigned:
 
-* point identifier (pid)
-* location identifier (locID) 
-* network identifier (netID)
-* reach identifier of the edge segment the point lies on (rid)
-* upstream distance (upDist), i.e. the distance to the network outlet calculated using [r.stream.distance](https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html).
-* distance ratio, i.e. the ratio of the distance from the outflow of the edge to the point along the edge and the total length of the edge segment (distRatio).
+-   point identifier (pid)
+-   location identifier (locID)
+-   network identifier (netID)
+-   reach identifier of the edge segment the point lies on (rid)
+-   upstream distance (upDist), i.e. the distance to the network outlet calculated using [r.stream.distance](https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html).
+-   distance ratio, i.e. the ratio of the distance from the outflow of the edge to the point along the edge and the total length of the edge segment (distRatio).
 
-The filed 'cat_edge' gives the 'cat' of the stream segment the point lies on (equivalent to 'rid').
+The filed 'cat\_edge' gives the 'cat' of the stream segment the point lies on (equivalent to 'rid').
 
-
-```r
+``` r
 calc_prediction_sites(predictions = "preds", nsites = 100, netIDs = 50 )
 ```
 
-
-```r
+``` r
 dem <- readRAST("dem", ignore.stderr = TRUE)
 #> Creating BIL support files...
 #> Exporting raster as floating values (bytes=4)
@@ -402,9 +378,9 @@ points(pred_sites, pch = 21, cex=0.75, bg = "royalblue")
 legend("topright", ncol = 2, pt.bg = c("grey","royalblue"), pch = 21, legend = c("(snapped) observation sites","prediction sites"))
 ```
 
-![](README_files/figure-html/plot_data4-1.png)<!-- -->
+![](README_files/figure-markdown_github/plot_data4-1.png)
 
-```r
+``` r
 head(pred_sites@data, n = 5)
 #>   cat str_edge         dist pid rid distalong      ratio locID netID   upDist
 #> 1   1        6 0.000000e+00   1   5       231 0.48319835     1    50 21616.92
@@ -420,22 +396,22 @@ head(pred_sites@data, n = 5)
 #> 5 635115.0 225645.1
 ```
 
-If prediction sites were prepared before in a different software and were loaded with 'import_data' they should be treated in the same way as the observation sites:
+If prediction sites were prepared before in a different software and were loaded with 'import\_data' they should be treated in the same way as the observation sites:
 
-
-```r
+``` r
 calc_sites(pred_site = name_of_prediction_sites)
 ```
+
 ### Calculate attributes from raster and vector maps
-Attributes (i.e. predictor variables for the .ssn object) can be calculated for observation and prediction sites. There are two ways to calculates attributes: 
 
-1. approximately as described in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J. Stat. Softw., 56 (2).
-2. exactly by intersecting the catchment of each point with raster maps;
+Attributes (i.e. predictor variables for the .ssn object) can be calculated for observation and prediction sites. There are two ways to calculates attributes:
 
-For the approximate calculation, first attributes must be intersected with the sub-catchments of the stream segments and then they are assigned to each site based on the distance ratio of the point. Note that the sub-catchment area 'H2OArea' for each stream segment is calculated automatically in calc_edges.
+1.  approximately as described in Peterson & Ver Hoef, 2014: STARS: An ARCGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J. Stat. Softw., 56 (2).
+2.  exactly by intersecting the catchment of each point with raster maps;
 
+For the approximate calculation, first attributes must be intersected with the sub-catchments of the stream segments and then they are assigned to each site based on the distance ratio of the point. Note that the sub-catchment area 'H2OArea' for each stream segment is calculated automatically in calc\_edges.
 
-```r
+``` r
 # calculate slope from DEM as an example attribute
 execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
           parameters = list(
@@ -475,9 +451,7 @@ head(sites@data, n = 5)
 
 The exact calculation of attribute values for the total catchment of each point can take quite long (depending on the number of points): For each point, first the total catchment is delineated based on the DEM and then intersected with the map(s) provided. It must be decided on a case by case basis if the approximate calculation is good enough.
 
-
-
-```r
+``` r
 # calculate exact catchment area, average slope per catchment and number of point sources of each site
 calc_attributes_sites_exact(sites_map = "sites", 
                             input_raster = "slope",
@@ -508,15 +482,16 @@ head(sites@data, n = 5)
 #> 4 0.024096386 0.4236948    0    0  1.2726 2.5608   0
 #> 5 0.038674033 0.6315157    0    0  3.7116 3.0860   0
 ```
+
 In both alternatives, the catchment area for each site is calculated automatically ('H2OAreaA' for `calc_attributes_sites_appox` and 'H2OArea' for `calc_attributes_sites_exact`).
 
 If predictions are to be made in a later step, the same attributes must be calculated for the prediction sites.
 
 ### Write all files to an ssn folder
+
 All files needed (edges, sites and optionally prediction sites) are written to the file path provided and can then be read in by the SSN package.
 
-
-```r
+``` r
 ssn_dir <- file.path(tempdir(), 'nc.ssn')
 export_ssn(ssn_dir)
 list.files(ssn_dir)
@@ -535,19 +510,18 @@ list.files(ssn_dir)
 #> [61] "sites.shx"
 ```
 
-
 #### Try with SSN package
 
-```r
+``` r
 library(SSN)
 # import
 ssn_obj <- importSSN(ssn_dir, o.write = TRUE)
 plot(ssn_obj, 'value')
 ```
 
-![](README_files/figure-html/ssn_test-1.png)<!-- -->
+![](README_files/figure-markdown_github/ssn_test-1.png)
 
-```r
+``` r
 
 # Create Distance Matrix
 createDistMat(ssn_obj, o.write = TRUE)
@@ -557,9 +531,9 @@ ssn_obj.Torg <- Torgegram(ssn_obj, "value", nlag = 20, maxlag = 15000)
 plot(ssn_obj.Torg)
 ```
 
-![](README_files/figure-html/ssn_test-2.png)<!-- -->
+![](README_files/figure-markdown_github/ssn_test-2.png)
 
-```r
+``` r
 
 names(ssn_obj@data)
 #>  [1] "cat"       "cat_"      "stream"    "flow_accu" "changed"   "netID"    
@@ -619,7 +593,7 @@ summary(lm(value ~ upDist, getSSNdata.frame(ssn_obj)))
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Residual standard error: 2.939 on 58 degrees of freedom
-#> Multiple R-squared:  0.1098,	Adjusted R-squared:  0.09444 
+#> Multiple R-squared:  0.1098, Adjusted R-squared:  0.09444 
 #> F-statistic: 7.153 on 1 and 58 DF,  p-value: 0.009708
 
 
@@ -662,11 +636,10 @@ varcomp(ssn_obj.glmssn1)
 #> 4               Nugget 0.001233662
 ```
 
-
 ### Contributors
 
-+ [Mira Kattwinkel](https://github.com/MiKatt)
-+ [Eduard Szöcs](https://github.com/EDiLD)
+-   [Mira Kattwinkel](https://github.com/MiKatt)
+-   [Eduard Szöcs](https://github.com/EDiLD)
 
 ### Want to contribute?
 
@@ -674,5 +647,5 @@ Checkout our [contribution guide here](https://github.com/edild/openSTARS/blob/m
 
 ### Meta
 
-* Please [report any issues, bugs or feature requests](https://github.com/MiKatt/openSTARS/issues).
-* License: MIT
+-   Please [report any issues, bugs or feature requests](https://github.com/MiKatt/openSTARS/issues).
+-   License: MIT

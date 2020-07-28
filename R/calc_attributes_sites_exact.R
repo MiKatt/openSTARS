@@ -4,7 +4,7 @@
 #' calculated ('H2OArea'). Additionally, other attributes (predictor variables)
 #' can be derived based on given raster or vector maps. This function calculates
 #' exact values for catchments derived with
-#' \href{https://grass.osgeo.org/grass74/manuals/addons/r.stream.basins.html}{r.stream.basins}
+#' \href{https://grass.osgeo.org/grass78/manuals/addons/r.stream.basins.html}{r.stream.basins}
 #' and can take considerable time if there are many sites.
 #' Catchment raster maps can optionally be stored as "sitename_catchm_X" (X = locID).
 
@@ -63,28 +63,33 @@
 #' 
 #' @examples
 #' \donttest{
-#' # Initiate GRASS session
+#' # Initiate and setup GRASS
+#' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.6"
-#' } else {
-#'   gisbase = "/usr/lib/grass74/"
-#' }
-#' initGRASS(gisBase = gisbase,
-#'      home = tempdir(),
-#'      override = TRUE)
+#'   grass_program_path = "c:/Program Files/GRASS GIS 7.6"
+#'   } else {
+#'   grass_program_path = "/usr/lib/grass78/"
+#'   }
 #' 
+#' setup_grass_environment(dem = dem_path, 
+#'                         gisBase = grass_program_path,      
+#'                         remove_GISRC = TRUE,
+#'                         override = TRUE
+#'                         )
+#' gmeta()
+#'                         
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-#' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path)
-#' gmeta()
 #' 
 #' # Derive streams from DEM
 #' derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
 #' 
 #' # Prepare edges
 #' calc_edges()
+#' 
+#' # caluclate slope as potential predictor
 #' execGRASS("r.slope.aspect", flags = c("overwrite","quiet"),
 #'           parameters = list(
 #'             elevation = "dem",
@@ -549,7 +554,7 @@ calc_attributes_sites_exact <- function(sites_map = "sites",
           #             option = "area",
           #             columns = "area"
           #           ), ignore.stderr = TRUE)
-          grass_v.to.db(map = "intersect_out", option = "area", column = "area", format = "double precision")
+          grass_v.to.db(map = "intersect_out", option = "area", columns = "area", format = "double precision")
           
           # get the areas per value of the attribute
           a <- execGRASS("db.select",flags = "c",

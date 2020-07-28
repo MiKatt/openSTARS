@@ -31,22 +31,24 @@ Measurements are merged to the sites objects based on \code{site_id}. If
 }
 \examples{
 \donttest{
-# Initiate GRASS session
+dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 if(.Platform$OS.type == "windows"){
-  gisbase = "c:/Program Files/GRASS GIS 7.6"
+  grass_program_path = "c:/Program Files/GRASS GIS 7.6"
   } else {
-  gisbase = "/usr/lib/grass74/"
+  grass_program_path = "/usr/lib/grass78/"
   }
-initGRASS(gisBase = gisbase,
-    home = tempdir(),
-    override = TRUE)
 
+setup_grass_environment(dem = dem_path, 
+                        gisBase = grass_program_path,      
+                        remove_GISRC = TRUE,
+                        override = TRUE
+                        )
+gmeta()
+                        
 # Load files into GRASS
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
-setup_grass_environment(dem = dem_path)
 import_data(dem = dem_path, sites = sites_path)
-gmeta()
 
 # Derive streams from DEM
 derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
@@ -64,17 +66,12 @@ calc_edges()
 # Prepare site
 calc_sites()
 
-# Plot data
-library(sp)
-dem <- readRAST('dem', ignore.stderr = TRUE)
-edges <- readVECT('edges', ignore.stderr = TRUE)
-sites <- readVECT('sites', ignore.stderr = TRUE)
-sites_o <- readVECT('sites_o', ignore.stderr = TRUE)
-plot(dem, col = terrain.colors(20),axes = TRUE)
-lines(edges, col = 'blue')
-points(sites, pch = 4)
-points(sites_o, pch = 1)
-legend("topright", pch = c(1, 4), legend = c("original", "corrected"))
+merge_sites_measurements(measurements = system.file(
+  "extdata", "nc", "obs_data.csv", package = "openSTARS"),
+   site_id = "site_id", sep = ",", dec = ".")
+# note the dublicated rows, and the new columns at the end
+sites <- readVECT("sites", ignore.stderr = TRUE)
+head(sites@data, n = 6)
 }
 }
 \author{

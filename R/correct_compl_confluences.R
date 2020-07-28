@@ -20,10 +20,10 @@
 #' the end of this segment will be moved
 #' 3. the inflow with the smallest angle to this inflow is found;
 #' this segment will be cut into tow segments close to the juntion using the GRASS function
-#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
+#' \href{https://grass.osgeo.org/grass78/manuals/v.edit.html}{v.edit}(tool =
 #' break) creating a new confluence
 #' 4. the shortest inflow found in 2 is moved to the newly created confluence using
-#' \href{https://grass.osgeo.org/grass74/manuals/v.edit.html}{v.edit}(tool =
+#' \href{https://grass.osgeo.org/grass78/manuals/v.edit.html}{v.edit}(tool =
 #' vertexmove)
 #' 5. all lengths are updated (segment length, cumulative length, i.e. length of the stream
 #' from the source, distance to the outlet).
@@ -39,23 +39,26 @@
 #'
 #' @examples
 #' \donttest{
-#' # Initiate GRASS session
+#' # Initiate and setup GRASS
+#' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.6"
+#'   grass_program_path = "c:/Program Files/GRASS GIS 7.6"
 #'   } else {
-#'   gisbase = "/usr/lib/grass74/"
+#'   grass_program_path = "/usr/lib/grass78/"
 #'   }
-#' initGRASS(gisBase = gisbase,
-#'     home = tempdir(),
-#'     override = TRUE)
-#'
+#' 
+#' setup_grass_environment(dem = dem_path, 
+#'                         gisBase = grass_program_path,      
+#'                         remove_GISRC = TRUE,
+#'                         override = TRUE
+#'                         )
+#' gmeta()
+#' 
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 #' streams_path <- system.file("extdata", "nc", "streams.shp", package = "openSTARS")
-#' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path, streams = streams_path)
-#' gmeta()
 #'
 #' # Derive streams from DEM
 #' derive_streams(burn = 10, accum_threshold = 100, condition = TRUE, clean = TRUE)

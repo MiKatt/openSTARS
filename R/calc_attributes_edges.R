@@ -76,15 +76,21 @@
 #' 
 #' @examples
 #' \donttest{
+#' # Initiate and setup GRASS
+#' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' if(.Platform$OS.type == "windows"){
-#'   gisbase = "c:/Program Files/GRASS GIS 7.6"
+#'   grass_program_path = "c:/Program Files/GRASS GIS 7.6"
 #'   } else {
-#'   gisbase = "/usr/lib/grass74/"
+#'   grass_program_path = "/usr/lib/grass78/"
 #'   }
-#' initGRASS(gisBase = gisbase,
-#'     home = tempdir(),
-#'     override = TRUE)
 #' 
+#' setup_grass_environment(dem = dem_path, 
+#'                         gisBase = grass_program_path,      
+#'                         remove_GISRC = TRUE,
+#'                         override = TRUE
+#'                         )
+#' gmeta()
+#'                         
 #' # Load files into GRASS
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
@@ -92,11 +98,8 @@
 #' preds_v_path <- system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
 #' preds_r_path <- system.file("extdata", "nc", "landuse_r.tif", package = "openSTARS")
 #'                  
-#' 
-#' setup_grass_environment(dem = dem_path)
 #' import_data(dem = dem_path, sites = sites_path, streams = streams_path,
 #'             predictor_vector = preds_v_path, predictor_raster = preds_r_path)
-#' gmeta()
 #' 
 #' # Derive streams from DEM
 #' # burn in 'streams' 10 meters
@@ -115,8 +118,7 @@
 #' parameters = list(
 #'   elevation = "dem",
 #'     slope = "slope"
-#'     ))
-#' 
+#'     )) 
 #' 
 #' # Prepare edges
 #' calc_edges()
@@ -131,7 +133,7 @@
 #' head(edges@data)
 #' lu <- readRAST("landuse_r", ignore.stderr = TRUE)
 #' 
-#'  # plot landuse data
+#' # plot landuse data
 #' library(raster)
 #' op <- par()
 #' par(xpd = FALSE)
@@ -143,6 +145,7 @@
 #'   legend = c("developed", "agriculture", "herbaceous", "shrubland", "forest", "water", "sediment"),
 #'   fill = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"),
 #'   horiz = TRUE, inset = -0.175)
+#'   # line width is relative to the area of land use class 5 (forest) in the rca of the edge segment
 #' plot(edges, lwd = edges$lusep_5_c * 10, add = TRUE)    
 #' par <- op
 #' }
@@ -477,6 +480,14 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
         dt.dat <- dt.dat[, .(area = sum(area)), c("stream", cname)] 
         dt.dat <- dcast(dt.dat, paste0("stream  ~ b_", attr_name_vect[j]), value.var = "area")
         #setnames(dt.dat, names(dt.dat)[-1], paste0("p", names(dt.dat)[-1]))
+        
+        # remove temporary files
+        execGRASS("g.remove",
+                  flags = c("quiet", "f"),
+                  parameters = list(
+                    type = "vector",
+                    name = "temp_inters"
+                  ), ignore.stderr = TRUE)
       } else { # if point data
         execGRASS("v.vect.stats", flags = "quiet", 
                   parameters = list(
@@ -541,14 +552,6 @@ calc_attributes_edges <- function(input_raster = NULL, stat_rast = NULL, attr_na
                 other_table = "edge_attributes",
                 other_column = "stream"
               ))
-    
-    # remove temporary files
-    execGRASS("g.remove",
-              flags = c("quiet", "f"),
-              parameters = list(
-                type = "vector",
-                name = "temp_inters"
-              ), ignore.stderr = TRUE)
   }
   
   cnames_edges2 <- execGRASS("db.columns", flags = "quiet",
