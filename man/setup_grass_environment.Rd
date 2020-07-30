@@ -41,7 +41,9 @@ if(.Platform$OS.type == "windows"){
   }
 # path to the dem   
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
-setup_grass_environment(dem = dem_path, gisBase = gisbase, location = "nc_example_location")
+setup_grass_environment(dem = dem_path, 
+                        gisBase = gisbase, 
+                        location = "nc_example_location")
 gmeta()
 }
 }

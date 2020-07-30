@@ -90,8 +90,7 @@ gmeta()
 # Load files into GRASS
 sites_path <- system.file("extdata", "nc", "sites_nc.shp", package = "openSTARS")
 preds_v_path <- system.file("extdata", "nc", "geology.shp", package = "openSTARS")
-import_data(dem = dem_path, sites = sites_path, 
-            predictor_vector = preds_v_path, predictor_raster = preds_r_path)
+import_data(dem = dem_path, sites = sites_path, predictor_vector = preds_v_path,)
 
 # Derive streams from DEM
 derive_streams(burn = 0, accum_threshold = 700, condition = TRUE, clean = TRUE)
