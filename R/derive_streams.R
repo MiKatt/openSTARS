@@ -40,7 +40,7 @@
 #'
 #' @details For details on \code{accum_threshold} and \code{min_stream_length}
 #' see the parameters 'threshold' and 'stream_length' at
-#' \href{https://grass.osgeo.org/grass78/manuals/r.stream.extract}{r.stream.extract}.
+#' \href{https://grass.osgeo.org/grass78/manuals/r.stream.extract.html}{r.stream.extract}.
 #' It might be useful to not burn in the whole available stream network but only 
 #' parts of it (e.g., larger streams with higher Strahler stream order only). 
 #' For this, the stream network needs to be pre-processed (parts could be deleted)

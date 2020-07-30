@@ -5,6 +5,8 @@
 #' @param dem character; path to DEM.  
 #' @param gisBase character; the directory path to GRASS binaries and libraries, containing 
 #'   bin and lib subdirectories among others (see details).
+#' @param epsg integer (deprecated); not used any more. Only included for compatibility with previous version.
+#' @param sites (deprecated); not used any more. Only included for compatibility with previous version.
 #' @param ... Optional arguments to be passed to \code{\link[rgrass7]{initGRASS}} (see details).
 #'
 #' @return Nothing. A GRASS session is initiated and the 'GRASS' mapset is set to PERMANENT. 
@@ -34,11 +36,21 @@
 #' dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 #' setup_grass_environment(dem = dem_path, 
 #'                         gisBase = gisbase, 
-#'                         location = "nc_example_location")
+#'                         location = "nc_example_location",
+#'                         override = TRUE)
 #' gmeta()
 #' }
 
-setup_grass_environment <- function(dem, gisBase, ...){
+setup_grass_environment <- function(dem, gisBase, epsg = NULL, sites = NULL, ...){
+  if(!is.null(sites))
+    message(writeLines(strwrap("'sites' is no longer a parameter of setup_grass_environment (see help).\n
+                               The function will still execute normally. Please update your code.",
+                               width = 80)))
+  if(!is.null(epsg))
+    message(writeLines(strwrap("'epsg' is no longer a parameter of setup_grass_environment (see help).\n
+                               The function will still execute normally. Please update your code.",
+                               width = 80)))
+  
   use_sp()
   dem_grid <- rgdal::readGDAL(dem, silent = TRUE)
   initGRASS(gisBase = gisBase,

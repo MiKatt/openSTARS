@@ -4,13 +4,17 @@
 \alias{setup_grass_environment}
 \title{Setup 'GRASS' environment.}
 \usage{
-setup_grass_environment(dem, gisBase, ...)
+setup_grass_environment(dem, gisBase, epsg = NULL, sites = NULL, ...)
 }
 \arguments{
 \item{dem}{character; path to DEM.}
 
 \item{gisBase}{character; the directory path to GRASS binaries and libraries, containing 
 bin and lib subdirectories among others (see details).}
+
+\item{epsg}{integer (deprecated); not used any more. Only included for compatibility with previous version.}
+
+\item{sites}{(deprecated); not used any more. Only included for compatibility with previous version.}
 
 \item{...}{Optional arguments to be passed to \code{\link[rgrass7]{initGRASS}} (see details).}
 }
@@ -43,7 +47,8 @@ if(.Platform$OS.type == "windows"){
 dem_path <- system.file("extdata", "nc", "elev_ned_30m.tif", package = "openSTARS")
 setup_grass_environment(dem = dem_path, 
                         gisBase = gisbase, 
-                        location = "nc_example_location")
+                        location = "nc_example_location",
+                        override = TRUE)
 gmeta()
 }
 }

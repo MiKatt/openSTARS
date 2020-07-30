@@ -1,7 +1,7 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "May 21, 2020"
+date: "July 30, 2020"
 output: html_document
 ---
 
@@ -9,6 +9,7 @@ output: html_document
 
 ## Test environments
 * Linux Mint 19.0 Tara, R 3.6.3, grass 7.4
+* Linux Mint 19.0 Tara, R 4.0.2, grass 7.8.3
 * Windows 10, R 4.0, grass 7.6.1
 * win-builder (devel, release, oldrelease)
 

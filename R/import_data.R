@@ -125,8 +125,10 @@
 #'      col = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"))
 #' par(xpd = TRUE)
 #' legend("bottom", cex = 0.75,
-#'        legend = c("developed", "agriculture", "herbaceous", "shrubland", "forest", "water", "sediment"),
-#'        fill = c("red", "goldenrod", "green", "forestgreen","darkgreen", "blue", "lightblue"),
+#'        legend = c("developed", "agriculture", "herbaceous", 
+#'                   "shrubland", "forest", "water", "sediment"),
+#'        fill = c("red", "goldenrod", "green", 
+#'                 "forestgreen","darkgreen", "blue", "lightblue"),
 #'        horiz = TRUE, inset = -0.175)
 #' par <- op
 #' }
