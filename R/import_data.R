@@ -53,7 +53,7 @@
 #' projection as the current location. Hence, it is important to make sure that 
 #' they all have indeed the same projection (and same cell size) and that the correct
 #' one is set in \code{\link{setup_grass_environment}}. If this condition is not met,
-#' the raster data should be propocessed before importing.
+#' the raster data should be preprocessed before importing.
 #' Use \code{\link{check_projection}} to compare the projection of a raster data set and
 #' the one of the current location (i.e the one of the dem).
 #' 
@@ -262,12 +262,12 @@ import_data <- function(dem, band = 1, sites, streams = NULL, snap_streams = FAL
 #' 
 #' @param data character string or object; path to data vector file (shape), postgis 
 #' data source name (dsn; see details), or sp or sf data object.
-#' @param name string giving the base name of the vector data within the GRASS envrionment (i.e. output)
+#' @param name string giving the base name of the vector data within the GRASS environment (i.e. output)
 #' @param layer character string; default 1, particularly needed if data is a dsn for 
 #' importing postgis data (see details)
 #' @param proj_ref_obj character; path to a georeferenced data file to be used as reference; only
 #'   used if \code{data} is an sf of sp object, then, the two projections are compared to check if
-#'   on-the-fly reprocection is needed for importing; typically the dem raster file used in this project.
+#'   on-the-fly reprojection is needed for importing; typically the dem raster file used in this project.
 #' @param snap float; snapping threshold in map units. If != -1 (default) vertices are snapped to other vertices
 #'   in this snapping distance during import. If used, the features are automatically cleaned afterwards 
 #'   (see GRASS tools \href{https://grass.osgeo.org/grass78/manuals/v.import.html}{v.import}  
@@ -383,7 +383,7 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
 
 #' Show the projection of raster data and compare to the current GRASS location.
 #' 
-#' @description Check if the procection of raster files matches the region of the 
+#' @description Check if the projection of raster files matches the region of the 
 #' current location
 #' 
 #' @param path character string vector; path raster data file(s)
@@ -397,7 +397,7 @@ import_vector_data <- function(data, name, layer = NULL, proj_ref_obj = NULL, sn
 #'   and of the raster file(s). Based on this information it can be decided if the data 
 #'   can be read into GRASS (\code{\link{import_data}}) without prior processing, i.e.
 #'   if all raster data are of the same projection.
-#'   Different ouptput options can be chosen:
+#'   Different output options can be chosen:
 #'   * \code{wkt} WKT format (default)
 #'   * \code{grass} conventional GRASS format
 #'   * \code{shell} shell script style

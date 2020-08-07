@@ -30,8 +30,8 @@ the original file to the file name provided.
 }
 \description{
 When the stream network is derived from a DEM, the network will cover the whole
-extent of the DEM input. However, the obervation sites might be restricted
-to a certain area, i.e. to certain networks. This functin deletes edges
+extent of the DEM input. However, the observation sites might be restricted
+to a certain area, i.e. to certain networks. This function deletes edges
 that belong to networks (based on their netID) without sites (observation or prediction).
 This can help to save computation time before calculating edge attributes.
 }

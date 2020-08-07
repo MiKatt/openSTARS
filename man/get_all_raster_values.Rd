@@ -3,7 +3,7 @@
 \name{get_all_raster_values}
 \alias{get_all_raster_values}
 \title{get_all_raster_values
-Returns all unuque values in the raster}
+Returns all unique values in the raster}
 \usage{
 get_all_raster_values(raster_name)
 }

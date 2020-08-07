@@ -26,10 +26,10 @@ i.e. more than two inflows to an outflow), new confluences of only two streams
 are created:
 1. complex confluences are found based on the fact that the outflow has more than
 two previous streams
-2. the inflow with the shortest cummulative length from its source  is found; 
+2. the inflow with the shortest cumulative length from its source  is found; 
 the end of this segment will be moved
 3. the inflow with the smallest angle to this inflow is found;
-this segment will be cut into tow segments close to the juntion using the GRASS function
+this segment will be cut into tow segments close to the junction using the GRASS function
 \href{https://grass.osgeo.org/grass78/manuals/v.edit.html}{v.edit}(tool =
 break) creating a new confluence
 4. the shortest inflow found in 2 is moved to the newly created confluence using
@@ -38,7 +38,7 @@ vertexmove)
 5. all lengths are updated (segment length, cumulative length, i.e. length of the stream
 from the source, distance to the outlet).
 The distance the shortest confluence is moved depends on the number of inflows. For three 
-inflows, it is moved 1/12 time the DEM cellsize upstream, for seven (the extremly rare maximum)
+inflows, it is moved 1/12 time the DEM cellsize upstream, for seven (the extremely rare maximum)
 5/12 * cellsize.
 }
 \note{

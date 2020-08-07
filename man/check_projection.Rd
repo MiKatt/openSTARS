@@ -15,7 +15,7 @@ check_projection(path, format = "wkt")
 Nothing.
 }
 \description{
-Check if the procection of raster files matches the region of the 
+Check if the projection of raster files matches the region of the 
 current location
 }
 \details{
@@ -25,7 +25,7 @@ This is a wrapper for the GRASS function
   and of the raster file(s). Based on this information it can be decided if the data 
   can be read into GRASS (\code{\link{import_data}}) without prior processing, i.e.
   if all raster data are of the same projection.
-  Different ouptput options can be chosen:
+  Different output options can be chosen:
   * \code{wkt} WKT format (default)
   * \code{grass} conventional GRASS format
   * \code{shell} shell script style

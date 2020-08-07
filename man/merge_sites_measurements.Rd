@@ -14,9 +14,9 @@ path to table data containing the data or a data.table or data.frame object}
 site. Must be identical in both the sites vector object and the table of 
 measurements}
 
-\item{all_sites}{locical; should sites without measurments be preserved (default FALSE)}
+\item{all_sites}{logical; should sites without measurements be preserved (default FALSE)}
 
-\item{...}{additional agruments to read.table in case \code{measuremtes} is a file path
+\item{...}{additional arguments to read.table in case \code{measuremtes} is a file path
 to table data; see \code{\link{read.table}} for details.}
 }
 \description{
@@ -26,8 +26,8 @@ After all processing steps are done and before exporting as an SSN object
 }
 \details{
 Measurements are merged to the sites objects based on \code{site_id}. If
- there are repeated measurements, point features are dublicated and the 'pid' of the 
- sites is updated accoringly to be unique.
+ there are repeated measurements, point features are duplicated and the 'pid' of the 
+ sites is updated accordingly to be unique.
 }
 \examples{
 \donttest{

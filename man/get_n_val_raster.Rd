@@ -3,7 +3,7 @@
 \name{get_n_val_raster}
 \alias{get_n_val_raster}
 \title{get_n_val_raster
-Returns the number of differnt values in the raster.}
+Returns the number of different values in the raster.}
 \usage{
 get_n_val_raster(raster_name)
 }

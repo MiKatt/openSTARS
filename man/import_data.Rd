@@ -83,7 +83,7 @@ All raster data are not transformed but it is assumed that they have the same
 projection as the current location. Hence, it is important to make sure that 
 they all have indeed the same projection (and same cell size) and that the correct
 one is set in \code{\link{setup_grass_environment}}. If this condition is not met,
-the raster data should be propocessed before importing.
+the raster data should be preprocessed before importing.
 Use \code{\link{check_projection}} to compare the projection of a raster data set and
 the one of the current location (i.e the one of the dem).
 }

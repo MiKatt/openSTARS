@@ -9,13 +9,13 @@
 #'@param site_id character string; columns name that gives the unique name of the
 #'  site. Must be identical in both the sites vector object and the table of 
 #'  measurements
-#'@param all_sites locical; should sites without measurments be preserved (default FALSE)
-#'@param ... additional agruments to read.table in case \code{measuremtes} is a file path
+#'@param all_sites logical; should sites without measurements be preserved (default FALSE)
+#'@param ... additional arguments to read.table in case \code{measuremtes} is a file path
 #' to table data; see \code{\link{read.table}} for details.
 #'  
 #'@details Measurements are merged to the sites objects based on \code{site_id}. If
-#'  there are repeated measurements, point features are dublicated and the 'pid' of the 
-#'  sites is updated accoringly to be unique. 
+#'  there are repeated measurements, point features are duplicated and the 'pid' of the 
+#'  sites is updated accordingly to be unique. 
 #'
 #'@author Mira Kattwinkel \email{mira.kattwinkel@@gmx.net}
 #'
