@@ -289,7 +289,7 @@ derive_streams <- function(burn = 0, accum_threshold = 700, condition = TRUE,
 
 #' Calculate RAM needed for deriving the stream network from DEM
 #' 
-#' See GRASS function \href{https://grass.osgeo.org/grass73/manuals/r.watershed.html}{r.watershed}.
+#' See GRASS function \href{https://grass.osgeo.org/grass78/manuals/r.watershed.html}{r.watershed}.
 #' 
 #' @param dem character; path to DEM raster file.
 #' 

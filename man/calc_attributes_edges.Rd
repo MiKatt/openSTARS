@@ -152,7 +152,7 @@ calc_attributes_edges(input_raster = c("slope", "landuse_r"),
 # Plot eges with percentage of forest in the catchment (lusep_5) as line width
 edges <- readVECT('edges', ignore.stderr = TRUE)
 head(edges@data)
-lu <- readRAST("landuse_r", ignore.stderr = TRUE)
+lu <- readRAST("landuse_r", ignore.stderr = TRUE, plugin = FALSE)
 
 # plot landuse data
 library(raster)

@@ -35,6 +35,9 @@ A GRASS session is initiated using \code{\link[rgrass7]{initGRASS}}. The path to
   * \code{location}: name of the location for this session; defaults to tempfile()
   * \code{override}: TRUE for allowing to override an existing location.
 }
+\note{
+It is no longer required to initiate a GRASS session before using \code{\link[rgrass7]{initGRASS}}!
+}
 \examples{
 \donttest{
 # path to GRASS

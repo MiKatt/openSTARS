@@ -61,7 +61,7 @@ calc_attributes_sites_exact()
 
 # Plot data
 library(sp)
-dem <- readRAST('dem', ignore.stderr = TRUE)
+dem <- readRAST('dem', ignore.stderr = TRUE, plugin = FALSE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
 sites_orig <-  readVECT('sites_o', ignore.stderr = TRUE)
 edges <- readVECT('edges', ignore.stderr = TRUE)

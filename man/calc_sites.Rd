@@ -117,7 +117,7 @@ calc_sites()
 
 # Plot data
 library(sp)
-dem <- readRAST('dem', ignore.stderr = TRUE)
+dem <- readRAST('dem', ignore.stderr = TRUE, plugin = FALSE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
 sites_o <- readVECT('sites_o', ignore.stderr = TRUE)

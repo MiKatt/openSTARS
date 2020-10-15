@@ -20,6 +20,8 @@
 #'   * \code{gisDbase}: the GRASS GISBASE directory for this session; defaults to tempdir()
 #'   * \code{location}: name of the location for this session; defaults to tempfile()
 #'   * \code{override}: TRUE for allowing to override an existing location.
+#'
+#' @note It is no longer required to initiate a GRASS session before using \code{\link[rgrass7]{initGRASS}}!
 #' 
 #' @author Mira Kattwinkel, \email{mira.kattwinkel@@gmx.net}
 #' @export

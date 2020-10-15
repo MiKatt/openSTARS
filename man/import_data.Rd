@@ -125,9 +125,9 @@ import_data(dem = dem_path, sites = sites_path, streams = streams_path,
 
 # Plot data
 library(sp)
-dem <- readRAST("dem", ignore.stderr = TRUE)
+dem <- readRAST("dem", ignore.stderr = TRUE, plugin = FALSE)
 sites_orig <-  readVECT("sites_o", ignore.stderr = TRUE)
-lu <- readRAST("landuse_r", ignore.stderr = TRUE)
+lu <- readRAST("landuse_r", ignore.stderr = TRUE, plugin = FALSE)
 # import additional vector data
 fp <-  system.file("extdata", "nc", "pointsources.shp", package = "openSTARS")
 execGRASS("v.import", flags = c("overwrite", "quiet"),

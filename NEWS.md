@@ -4,11 +4,12 @@
 * update setup_grass_environment to use 'dem' as SG in initGRASS
 * update examples to GRASS 7.8
 * several small changes and bug fixes
+* update of setup_grass_environment
 
 # openSTARS 1.2.0
 
 * Renamed check_compl_junctions and correct_compl_junctions to 
-  check_compl_confluences and correct_compl_confluences, respectively,
+  check_compl_confluences and correct_compl_confluences, respectively,devt
   to be in line with the STARS publications.
 * correct_compl_confluences now works for up to seven inflows to one outflow
 * Corrected an error in correct_compl_confluences: If there were outflows from a 

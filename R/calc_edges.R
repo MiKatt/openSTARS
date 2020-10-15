@@ -57,7 +57,7 @@
 #' 
 #' # Plot data
 #' library(sp)
-#' dem <- readRAST('dem', ignore.stderr = TRUE)
+#' dem <- readRAST('dem', ignore.stderr = TRUE, plugin = FALSE)
 #' edges <- readVECT('edges', ignore.stderr = TRUE)
 #' plot(dem, col = terrain.colors(20))
 #' lines(edges, col = 'blue')

@@ -72,7 +72,7 @@ delete_lakes(lakes = lakes_path)
 
 # plot
 library(sp)
-dem <- readRAST('dem', ignore.stderr = TRUE)
+dem <- readRAST('dem', ignore.stderr = TRUE, plugin = FALSE)
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
 streams_with_lakes <- readVECT('streams_v_prev_lakes', ignore.stderr = TRUE)
 lakes <- readVECT('lakes', ignore.stderr = TRUE)

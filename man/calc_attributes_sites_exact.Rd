@@ -130,7 +130,7 @@ calc_attributes_sites_exact(input_raster = "slope", attr_name_rast = "maxSloE", 
 
 # Plot data
 library(sp)
-dem <- readRAST('dem', ignore.stderr = TRUE)
+dem <- readRAST('dem', ignore.stderr = TRUE, plugin = FALSE)
 edges <- readVECT('edges', ignore.stderr = TRUE)
 sites <- readVECT('sites', ignore.stderr = TRUE)
 plot(dem, col = gray(seq(0,1,length.out=20)))

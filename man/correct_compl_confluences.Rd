@@ -80,7 +80,7 @@ if(cj){
 
 # plot
 library(sp)
-dem <- readRAST('dem', ignore.stderr = TRUE)
+dem <- readRAST('dem', ignore.stderr = TRUE, plugin = FALSE)
 streams <- readVECT('streams_v', ignore.stderr = TRUE)
 streams_orig <- readVECT('streams_v_o3', ignore.stderr = TRUE)
 # zoom to a relevant part of the dem
