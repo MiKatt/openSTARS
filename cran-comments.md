@@ -1,15 +1,17 @@
 ---
 title: "cran-comments.md"
 author: "Mira Kattwinkel"
-date: "Aug 7, 2020"
+date: "Oct 17, 2020"
 output: html_document
 ---
 
 ## Submission review comments
+The possibly invalid URL: https://grass.osgeo.org/grass73/manuals/r.watershed.html 
+was changed to https://grass.osgeo.org/grass78/manuals/r.watershed.html.
 
 ## Test environments
 * Linux Mint 19.0 Tara, R 3.6.3, grass 7.4
-* Linux Mint 19.0 Tara, R 4.0.2, grass 7.8.3
+* Linux Mint 19.0 Tara, R 4.0.2, grass 7.8.4
 * Windows 10, R 4.0, grass 7.6.1
 * win-builder (devel, release, oldrelease)
 
