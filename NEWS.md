@@ -1,3 +1,8 @@
+# openSTARS 1.2.2
+
+* release on CRAN
+* typo corrections etc.
+
 # openSTARS 1.2.1
 
 * catch error arising in GRASS 7.8 due to changes in v.to.db
