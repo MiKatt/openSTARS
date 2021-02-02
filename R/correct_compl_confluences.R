@@ -306,7 +306,7 @@ correct_compl_confluences <- function(clean = TRUE){
                   map = "streams_v", 
                   type = "line", 
                   tool = "break", 
-                  threshold = 1, 
+                  threshold = cellsize/(12 * 2), 
                   coords = c(dt.cut_coords[j, c(cut_x, cut_y)])
                 ))
     }

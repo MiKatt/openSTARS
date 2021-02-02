@@ -1,3 +1,8 @@
+# openSTARS 1.2.2.1
+
+* fixed issue #18 on GitHub: in correct_complex_confluences, set threshold for breaking (v.edit) to 
+  cellsize/(12 *2) instead of 1 to prevent additional cutting of the other inflows
+
 # openSTARS 1.2.2
 
 * release on CRAN
