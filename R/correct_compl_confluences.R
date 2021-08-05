@@ -408,7 +408,8 @@ correct_compl_confluences <- function(clean = TRUE){
     remove(df.move_streams)
 
     # assign updated stream (str_new) value to 'stream' for cut stream segments
-    cut.str<-paste(c(dt.smallcut[, cat_small], dt.largecut[, cat_large]), collapse = ",")
+    # but only for those where it must be changed
+    cut.str <- paste(c(dt.smallcut[stream != str_new_small, cat_small], dt.largecut[stream != str_new_large, cat_large]), collapse = ",")
     cut.str<-paste0("(", cut.str, ")",sep="")
     execGRASS("v.db.update", flags = c("quiet"),
               parameters = list(
