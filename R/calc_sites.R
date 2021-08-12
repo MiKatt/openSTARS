@@ -135,6 +135,9 @@ calc_sites <- function(locid_col = NULL, pid_col = NULL, predictions = NULL, max
     stop("Edges not found. Did you run calc_edges()?")
   
   if(!is.null(predictions)){
+    if(!is.character(predictions)){
+      stop("'predictions' must be the name of the predictions sites in the GRASS DB imported with import_data() (usually 'preds_o').")
+    }
     i <- grep("_o$",predictions)
     if(length(i) > 0){
       predictions[-i] <- paste0(predictions[-i],"_o")
