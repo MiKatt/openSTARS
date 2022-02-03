@@ -19,13 +19,15 @@ knitr::opts_chunk$set(
 ```
 
 ## Introduction
-`openSTARS` is an open source implementation of the STARS toolbox (Peterson & Ver Hoef, 2014) using R and GRASS GIS.
+`openSTARS` is an open source implementation of the STARS toolbox for ArcGIS (Peterson & Ver Hoef, 2014) using R and GRASS GIS.
 It prepares the .ssn object needed for the SSN package.
 A digital elevation model (DEM) is used to derive stream networks (in contrast to STARS that can clean an existing stream network). The reason for this is that existing stream networks (e.g. obtained as shape files) very often contain loops and dead ends that hinder building a valid topology for them.
 
 For more information on STARS and SSN, see [their web page](http://www.fs.fed.us/rm/boise/AWAE/projects/SpatialStreamNetworks.shtml).
 
 Peterson, E. E., & Ver Hoef, J. M. (2014). STARS: An ArcGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J Stat Softw, 56(2), 1–17.
+
+`openSTARS` can also be used for other purposes whenever observation sites at streams and their catchments need to be intersected with potential covariates. A detailed description of this package and a step-by-step manual can be found here: \url{https://doi.org/10.1371/journal.pone.0239237}.
 
 ## Installation and loading
 A functional installation of [GRASS GIS (>=7.0)](https://grass.osgeo.org/#) with installed add-ons [r.stream.basins](https://grass.osgeo.org/grass78/manuals/addons/r.stream.basins.html), [r.stream.distance](https://grass.osgeo.org/grass78/manuals/addons/r.stream.distance.html), [r.stream.order](https://grass.osgeo.org/grass78/manuals/addons/r.stream.order.html) and 

@@ -2,6 +2,7 @@
 
 * fixed issue #18 on GitHub: in correct_complex_confluences, set threshold for breaking (v.edit) to 
   cellsize/(12 *2) instead of 1 to prevent additional cutting of the other inflows
+* fixed issue #25 concerning many complex confluences to be corrected
 
 # openSTARS 1.2.2
 
@@ -19,20 +20,20 @@
 # openSTARS 1.2.0
 
 * Renamed check_compl_junctions and correct_compl_junctions to 
-  check_compl_confluences and correct_compl_confluences, respectively,devt
+  check_compl_confluences and correct_compl_confluences, respectively,
   to be in line with the STARS publications.
 * correct_compl_confluences now works for up to seven inflows to one outflow
 * Corrected an error in correct_compl_confluences: If there were outflows from a 
   complex junction that were also inflows to complex confluences a wrong assignment
-  might have occured.
+  might have occurred.
 * Updated all lengths in correct_complex_confluences 
-  (segement length, cum_length, out_dist)
+  (segment length, cum_length, out_dist)
 * correct_complex_confluences now works correctly for non-sqared cells (use max
-  cell dimension instead of min for calculation of flow directions at conflueces)
+  cell dimension instead of min for calculation of flow directions at confluences)
 * New function to delete lakes from the network ('delete_lakes'). Added "lakes.shp"
   to example data.
-* New function to restrict edges to certain networks based on sites (obeservation
-  or prediction) or given netIDs and delete the rest ('restict_network').
+* New function to restrict edges to certain networks based on sites (observation
+  or prediction) or given netIDs and delete the rest ('restrict_network').
 * New functionality in calc_attributes_edges and calc_attributes_sites_exact: 
   It is now possible to calculate percentages from raster maps with multiple values
   (e.g. land cover classes). 
@@ -49,10 +50,10 @@
 * Fixed error when loading (import_data) example shapes: no empty cell allowed
   in attribute table (used to work when checking).
 * Bug fix in correct_compl_junctions(): if the cut outflow was also the inflow
-  to another complex junction an error occured like
+  to another complex junction an error occurred like
   "Error in `[<-.data.table`(`*tmp*`, ii, jj, value = c(12013, 12019)) :  NA in j".
 * Set round rcaArea and H2OArea to 6 digits instead of 4 in calc_edges() to be 
-  able to retrive squared meters from the sqared km.
+  able to retrieve squared meters from the squared km.
 * Updated calc_attributes_edges() for vector input data; it is now possible to 
   calculate percentage of a certain attribute within a catchment (polygons) or 
   count the number of features in a catchment (points).
