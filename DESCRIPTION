@@ -19,7 +19,6 @@ Depends:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyLoad: true
-LazyData: true
 Imports:
     methods,
     progress,
