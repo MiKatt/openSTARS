@@ -9,6 +9,7 @@ We love collaboration.
 
 ### Code contributions?
 
+* The dev branch holds the newest version but also including untested changes
 * **Fork** this repo to your Github account.
 * **Clone** your version on your account down to your machine from your account, e.g,. `git clone https://github.com/<yourgithubusername>/openSTARS.git`.
 * Make sure to **track upstream** progress (i.e., on our version of `openSTARS` at `MiKatt/openSTARS`) by doing `git remote add upstream https://github.com/MiKatt/openSTARS.git`. Before making changes make sure to pull changes in from upstream by doing either `git fetch upstream` then merge later or `git pull upstream` to fetch and merge in one step
@@ -25,7 +26,6 @@ We do not have strong guideline for our contributions and are happy to help.
 
 ### Questions?
 
-Get in touch: [Mira Kattwinkel](mailto:mira.kattwinkel@gmx.net) or
-[eduardszoecs@gmail.com](mailto:eduardszoecs@gmail.com)
+Get in touch: [Mira Kattwinkel](mailto:mira.kattwinkel@gmx.net)
 
 ### Thanks for contributing!
