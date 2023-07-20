@@ -12,7 +12,7 @@ For more information on STARS and SSN, see [their web page](http://www.fs.fed.us
 
 Peterson, E. E., & Ver Hoef, J. M. (2014). STARS: An ArcGIS Toolset Used to Calculate the Spatial Information Needed to Fit Spatial Statistical Models to Stream Network Data. J Stat Softw, 56(2), 1–17.
 
-- For additional support with basic setup tasks on Windows you can also checkout this [walkthrough video tutorial](https://youtu.be/eKFeO1Dhvt8) by [Matthew Bayly](https://github.com/mattjbayly).
+For additional support with basic setup tasks on Windows, you can also checkout this [walkthrough video tutorial](https://youtu.be/eKFeO1Dhvt8) by [Matthew Bayly](https://github.com/mattjbayly).
 
 Installation and loading
 ------------------------
